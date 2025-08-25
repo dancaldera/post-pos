@@ -15,7 +15,7 @@ export default function Layout({ children, currentPage, onNavigate }: LayoutProp
 
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: "📊" },
-    { id: "sales", label: "Sales", icon: "💰" },
+    { id: "orders", label: "Orders", icon: "📋" },
     { id: "products", label: "Products", icon: "📦" },
     { id: "customers", label: "Customers", icon: "👥" },
     { id: "members", label: "Members", icon: "👤" },

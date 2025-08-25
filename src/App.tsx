@@ -1,7 +1,6 @@
 import { useState, useEffect } from "preact/hooks";
 import Layout from "./components/Layout";
 import Dashboard from "./pages/Dashboard";
-import Sales from "./pages/Sales";
 import Products from "./pages/Products";
 import Customers from "./pages/Customers";
 import Members from "./pages/Members";
@@ -11,6 +10,7 @@ import SignIn from "./pages/SignIn";
 import { useAuth } from "./hooks/useAuth";
 import { authActions } from "./stores/auth/authActions";
 import "./App.css"
+import Orders from "./pages/Orders";
 
 function App() {
   const [currentPage, setCurrentPage] = useState("dashboard");
@@ -46,8 +46,8 @@ function App() {
     switch (currentPage) {
       case "dashboard":
         return <Dashboard />;
-      case "sales":
-        return <Sales />;
+      case "orders":
+        return <Orders />;
       case "products":
         return <Products />;
       case "customers":
