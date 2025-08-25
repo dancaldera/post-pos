@@ -9,7 +9,25 @@ export interface User {
   lastLogin?: string;
 }
 
-// Mock users data
+// Default permissions for each role
+export const DEFAULT_PERMISSIONS = {
+  admin: ["*"],
+  manager: [
+    "sales.view", "sales.create", "sales.edit",
+    "products.view", "products.create", "products.edit", "products.delete",
+    "inventory.view", "inventory.edit",
+    "customers.view", "customers.create", "customers.edit",
+    "reports.view", "reports.export",
+    "users.view", "users.create", "users.edit", "users.delete"
+  ],
+  user: [
+    "sales.view", "sales.create",
+    "products.view",
+    "customers.view", "customers.create"
+  ]
+} as const;
+
+// Mock users data - permissions are derived from role
 const mockUsers: (User & { password: string })[] = [
   {
     id: "1",
@@ -17,7 +35,7 @@ const mockUsers: (User & { password: string })[] = [
     password: "admin123",
     name: "Admin User",
     role: "admin",
-    permissions: ["*"], // All permissions
+    permissions: [...DEFAULT_PERMISSIONS.admin],
     createdAt: "2024-01-01T00:00:00.000Z",
     lastLogin: "2025-01-24T10:30:00.000Z"
   },
@@ -27,17 +45,7 @@ const mockUsers: (User & { password: string })[] = [
     password: "manager123",
     name: "Store Manager",
     role: "manager",
-    permissions: [
-      "sales.view",
-      "sales.create",
-      "products.view",
-      "products.edit",
-      "inventory.view",
-      "inventory.edit",
-      "customers.view",
-      "customers.edit",
-      "reports.view"
-    ],
+    permissions: [...DEFAULT_PERMISSIONS.manager],
     createdAt: "2024-01-15T00:00:00.000Z",
     lastLogin: "2025-01-23T14:45:00.000Z"
   },
@@ -47,12 +55,7 @@ const mockUsers: (User & { password: string })[] = [
     password: "cashier123",
     name: "John Cashier",
     role: "user",
-    permissions: [
-      "sales.view",
-      "sales.create",
-      "products.view",
-      "customers.view"
-    ],
+    permissions: [...DEFAULT_PERMISSIONS.user],
     createdAt: "2024-02-01T00:00:00.000Z",
     lastLogin: "2025-01-24T09:00:00.000Z"
   }
@@ -76,7 +79,7 @@ export class AuthService {
     await new Promise(resolve => setTimeout(resolve, 1000));
 
     const user = mockUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
-    
+
     if (!user) {
       return {
         success: false,
@@ -93,13 +96,13 @@ export class AuthService {
 
     // Remove password from user object
     const { password: _, ...userWithoutPassword } = user;
-    
+
     // Update last login
     user.lastLogin = new Date().toISOString();
-    
+
     // Set current user
     this.currentUser = userWithoutPassword;
-    
+
     // Store in localStorage for persistence
     localStorage.setItem("pos_user", JSON.stringify(userWithoutPassword));
     localStorage.setItem("pos_token", this.generateToken(userWithoutPassword));
@@ -166,7 +169,7 @@ export class AuthService {
       iat: Date.now(),
       exp: Date.now() + (24 * 60 * 60 * 1000) // 24 hours
     };
-    
+
     return btoa(JSON.stringify(payload));
   }
 
@@ -212,12 +215,12 @@ export class AuthService {
 
     // Update password
     mockUser.password = newPassword;
-    
+
     return { success: true };
   }
 
   // Create user (admin/manager only)
-  async createUser(userData: Omit<User, 'id' | 'createdAt'> & { password: string }): Promise<{ success: boolean; user?: User; error?: string }> {
+  async createUser(userData: Omit<User, 'id' | 'createdAt' | 'permissions'> & { password: string }): Promise<{ success: boolean; user?: User; error?: string }> {
     if (!this.hasPermission("users.create") && !this.hasRole("admin")) {
       return { success: false, error: "Insufficient permissions" };
     }
@@ -233,7 +236,8 @@ export class AuthService {
     const newUser = {
       ...userData,
       id: (mockUsers.length + 1).toString(),
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      permissions: [...DEFAULT_PERMISSIONS[userData.role]]
     };
 
     mockUsers.push(newUser);
@@ -265,9 +269,16 @@ export class AuthService {
       }
     }
 
+    // Update user data
     mockUsers[userIndex] = { ...mockUsers[userIndex], ...updates };
-    const { password, ...userWithoutPassword } = mockUsers[userIndex];
     
+    // If role is updated, update permissions automatically
+    if (updates.role) {
+      mockUsers[userIndex].permissions = [...DEFAULT_PERMISSIONS[updates.role]];
+    }
+    
+    const { password, ...userWithoutPassword } = mockUsers[userIndex];
+
     return { success: true, user: userWithoutPassword };
   }
 
@@ -291,24 +302,6 @@ export class AuthService {
     return { success: true };
   }
 }
-
-// Default permissions for each role
-export const DEFAULT_PERMISSIONS = {
-  admin: ["*"],
-  manager: [
-    "sales.view", "sales.create", "sales.edit",
-    "products.view", "products.create", "products.edit", "products.delete",
-    "inventory.view", "inventory.edit",
-    "customers.view", "customers.create", "customers.edit",
-    "reports.view", "reports.export",
-    "users.view", "users.create", "users.edit", "users.delete"
-  ],
-  user: [
-    "sales.view", "sales.create",
-    "products.view",
-    "customers.view", "customers.create"
-  ]
-} as const;
 
 // Export singleton instance
 export const authService = AuthService.getInstance();

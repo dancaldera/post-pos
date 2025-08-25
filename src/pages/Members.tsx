@@ -1,5 +1,5 @@
 import { useState, useEffect } from "preact/hooks";
-import { Button, Input } from "../components/ui";
+import { Button, Input, Dialog, DialogBody, DialogFooter, DialogConfirm } from "../components/ui";
 import { User, authService } from "../services/auth";
 import { useAuth } from "../hooks/useAuth";
 
@@ -57,8 +57,7 @@ function EditUserModal({ user, isOpen, onClose, onSave }: EditUserModalProps) {
           name: formData.name,
           email: formData.email,
           role: formData.role,
-          password: formData.password,
-          permissions: []
+          password: formData.password
         });
       }
 
@@ -75,15 +74,14 @@ function EditUserModal({ user, isOpen, onClose, onSave }: EditUserModalProps) {
     }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg p-6 w-full max-w-md">
-        <h3 class="text-lg font-semibold mb-4">
-          {user ? "Edit User" : "Create User"}
-        </h3>
-        
+    <Dialog 
+      isOpen={isOpen} 
+      onClose={onClose} 
+      title={user ? "Edit User" : "Create User"}
+      size="md"
+    >
+      <DialogBody>
         {error && (
           <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
             {error}
@@ -143,26 +141,27 @@ function EditUserModal({ user, isOpen, onClose, onSave }: EditUserModalProps) {
               />
             </div>
           )}
-
-          <div class="flex justify-end space-x-2 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              disabled={isLoading}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={isLoading}
-            >
-              {isLoading ? "Saving..." : user ? "Update" : "Create"}
-            </Button>
-          </div>
         </form>
-      </div>
-    </div>
+      </DialogBody>
+      
+      <DialogFooter>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onClose}
+          disabled={isLoading}
+        >
+          Cancel
+        </Button>
+        <Button
+          type="button"
+          onClick={() => handleSubmit(new Event('submit'))}
+          disabled={isLoading}
+        >
+          {isLoading ? "Saving..." : user ? "Update" : "Create"}
+        </Button>
+      </DialogFooter>
+    </Dialog>
   );
 }
 
@@ -174,12 +173,15 @@ export default function Members() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, hasRole, hasPermission } = useAuth();
+
+  console.log("Has Admin Role: ", hasRole("admin"));
+  console.log("Has manager Role: ", hasRole("manager"));
 
   const canManageUsers = currentUser && (
-    authService.hasPermission("users.view") || 
-    authService.hasRole("admin") ||
-    authService.hasRole("manager")
+    hasRole("admin") || 
+    hasRole("manager") ||
+    hasPermission("users.view")
   );
 
   useEffect(() => {
@@ -275,7 +277,7 @@ export default function Members() {
             <h3 class="text-lg font-semibold">Members</h3>
             <p class="text-gray-600">Manage system users and their roles</p>
           </div>
-          {(authService.hasPermission("users.create") || authService.hasRole("admin")) && (
+          {(hasPermission("users.create") || hasRole("admin")) && (
             <Button onClick={handleCreateUser}>
               <span class="mr-2">👤</span>
               Add User
@@ -322,7 +324,7 @@ export default function Members() {
                   </td>
                   <td class="py-3 px-4">
                     <div class="flex space-x-2">
-                      {(authService.hasPermission("users.edit") || authService.hasRole("admin")) && (
+                      {(hasPermission("users.edit") || hasRole("admin")) && (
                         <Button
                           size="sm"
                           variant="outline"
@@ -331,7 +333,7 @@ export default function Members() {
                           Edit
                         </Button>
                       )}
-                      {(authService.hasPermission("users.delete") || authService.hasRole("admin")) && 
+                      {(hasPermission("users.delete") || hasRole("admin")) && 
                        user.id !== currentUser?.id && (
                         <Button
                           size="sm"
@@ -365,30 +367,15 @@ export default function Members() {
         onSave={handleSaveUser}
       />
 
-      {deleteConfirm && (
-        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div class="bg-white rounded-lg p-6 w-full max-w-md">
-            <h3 class="text-lg font-semibold mb-4">Confirm Delete</h3>
-            <p class="text-gray-600 mb-6">
-              Are you sure you want to delete this user? This action cannot be undone.
-            </p>
-            <div class="flex justify-end space-x-2">
-              <Button
-                variant="outline"
-                onClick={() => setDeleteConfirm(null)}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="danger"
-                onClick={() => handleDeleteUser(deleteConfirm)}
-              >
-                Delete
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      <DialogConfirm
+        isOpen={!!deleteConfirm}
+        onClose={() => setDeleteConfirm(null)}
+        onConfirm={() => deleteConfirm && handleDeleteUser(deleteConfirm)}
+        title="Confirm Delete"
+        message="Are you sure you want to delete this user? This action cannot be undone."
+        confirmText="Delete"
+        variant="danger"
+      />
     </div>
   );
 }

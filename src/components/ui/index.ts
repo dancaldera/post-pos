@@ -12,3 +12,10 @@ export {
   SidebarFooter, 
   SidebarGroup 
 } from "./Sidebar";
+export { 
+  default as Dialog, 
+  DialogHeader, 
+  DialogBody, 
+  DialogFooter, 
+  DialogConfirm 
+} from "./Dialog";

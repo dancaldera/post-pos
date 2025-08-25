@@ -1,5 +1,5 @@
 import { user, isLoading, error, token } from './authStore';
-import { authService } from '../../services/auth';
+import { authService, User } from '../../services/auth';
 
 export const authActions = {
   // Login action
@@ -74,7 +74,7 @@ export const authActions = {
   },
 
   // Check role
-  hasRole(role: string): boolean {
-    return authService.hasRole(role as any);
+  hasRole(role: User["role"]): boolean {
+    return authService.hasRole(role);
   },
 };
