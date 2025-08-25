@@ -3,7 +3,7 @@ export interface User {
   id: string;
   email: string;
   name: string;
-  role: "admin" | "manager" | "cashier";
+  role: "admin" | "manager" | "user";
   permissions: string[];
   createdAt: string;
   lastLogin?: string;
@@ -46,7 +46,7 @@ const mockUsers: (User & { password: string })[] = [
     email: "cashier@postpos.com",
     password: "cashier123",
     name: "John Cashier",
-    role: "cashier",
+    role: "user",
     permissions: [
       "sales.view",
       "sales.create",
@@ -215,6 +215,81 @@ export class AuthService {
     
     return { success: true };
   }
+
+  // Create user (admin/manager only)
+  async createUser(userData: Omit<User, 'id' | 'createdAt'> & { password: string }): Promise<{ success: boolean; user?: User; error?: string }> {
+    if (!this.hasPermission("users.create") && !this.hasRole("admin")) {
+      return { success: false, error: "Insufficient permissions" };
+    }
+
+    if (mockUsers.find(u => u.email.toLowerCase() === userData.email.toLowerCase())) {
+      return { success: false, error: "User with this email already exists" };
+    }
+
+    if (userData.password.length < 6) {
+      return { success: false, error: "Password must be at least 6 characters" };
+    }
+
+    const newUser = {
+      ...userData,
+      id: (mockUsers.length + 1).toString(),
+      createdAt: new Date().toISOString()
+    };
+
+    mockUsers.push(newUser);
+
+    const { password, ...userWithoutPassword } = newUser;
+    return { success: true, user: userWithoutPassword };
+  }
+
+  // Update user (admin/manager only)
+  async updateUser(userId: string, updates: Partial<Omit<User, 'id' | 'createdAt'>>): Promise<{ success: boolean; user?: User; error?: string }> {
+    if (!this.hasPermission("users.edit") && !this.hasRole("admin")) {
+      return { success: false, error: "Insufficient permissions" };
+    }
+
+    const userIndex = mockUsers.findIndex(u => u.id === userId);
+    if (userIndex === -1) {
+      return { success: false, error: "User not found" };
+    }
+
+    const currentUser = this.getCurrentUser();
+    if (currentUser?.id === userId && updates.role && updates.role !== currentUser.role) {
+      return { success: false, error: "Cannot change your own role" };
+    }
+
+    if (updates.email) {
+      const existingUser = mockUsers.find(u => u.id !== userId && u.email.toLowerCase() === updates.email?.toLowerCase());
+      if (existingUser) {
+        return { success: false, error: "User with this email already exists" };
+      }
+    }
+
+    mockUsers[userIndex] = { ...mockUsers[userIndex], ...updates };
+    const { password, ...userWithoutPassword } = mockUsers[userIndex];
+    
+    return { success: true, user: userWithoutPassword };
+  }
+
+  // Delete user (admin/manager only)
+  async deleteUser(userId: string): Promise<{ success: boolean; error?: string }> {
+    if (!this.hasPermission("users.delete") && !this.hasRole("admin")) {
+      return { success: false, error: "Insufficient permissions" };
+    }
+
+    const currentUser = this.getCurrentUser();
+    if (currentUser?.id === userId) {
+      return { success: false, error: "Cannot delete your own account" };
+    }
+
+    const userIndex = mockUsers.findIndex(u => u.id === userId);
+    if (userIndex === -1) {
+      return { success: false, error: "User not found" };
+    }
+
+    mockUsers.splice(userIndex, 1);
+    return { success: true };
+  }
 }
 
 // Default permissions for each role
@@ -226,9 +301,9 @@ export const DEFAULT_PERMISSIONS = {
     "inventory.view", "inventory.edit",
     "customers.view", "customers.create", "customers.edit",
     "reports.view", "reports.export",
-    "users.view"
+    "users.view", "users.create", "users.edit", "users.delete"
   ],
-  cashier: [
+  user: [
     "sales.view", "sales.create",
     "products.view",
     "customers.view", "customers.create"

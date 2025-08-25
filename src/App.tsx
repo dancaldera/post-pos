@@ -6,6 +6,7 @@ import Products from "./pages/Products";
 import Inventory from "./pages/Inventory";
 import Customers from "./pages/Customers";
 import Reports from "./pages/Reports";
+import Members from "./pages/Members";
 import Settings from "./pages/Settings";
 import ComponentShowcase from "./pages/ComponentShowcase";
 import SignIn from "./pages/SignIn";
@@ -57,6 +58,8 @@ function App() {
         return <Customers />;
       case "reports":
         return <Reports />;
+      case "members":
+        return <Members />;
       case "settings":
         return <Settings onNavigate={handleNavigate} />;
       case "component-showcase":

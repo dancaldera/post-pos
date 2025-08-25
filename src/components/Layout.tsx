@@ -19,8 +19,14 @@ export default function Layout({ children, currentPage, onNavigate }: LayoutProp
     { id: "inventory", label: "Inventory", icon: "📋" },
     { id: "customers", label: "Customers", icon: "👥" },
     { id: "reports", label: "Reports", icon: "📈" },
+    { id: "members", label: "Members", icon: "👤" },
     { id: "settings", label: "Settings", icon: "⚙️" },
-  ];
+  ].filter(item => {
+    if (item.id === "members") {
+      return user && (user.role === "admin" || user.role === "manager");
+    }
+    return true;
+  });
 
   return (
     <div class="flex h-screen bg-gray-100">
