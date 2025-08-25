@@ -1,5 +1,5 @@
 import { useState, useEffect } from "preact/hooks";
-import { Button, Input, Select, Textarea, Dialog, DialogBody, DialogFooter, DialogConfirm } from "../components/ui";
+import { Button, Input, Select, Textarea, Dialog, DialogBody, DialogFooter, DialogConfirm, Container } from "../components/ui";
 import { Product, productService, PRODUCT_CATEGORIES } from "../services/products";
 import { useAuth } from "../hooks/useAuth";
 
@@ -96,9 +96,9 @@ function EditProductModal({ product, isOpen, onClose, onSave }: EditProductModal
   };
 
   return (
-    <Dialog 
-      isOpen={isOpen} 
-      onClose={onClose} 
+    <Dialog
+      isOpen={isOpen}
+      onClose={onClose}
       title={product ? "Edit Product" : "Create Product"}
       size="md"
     >
@@ -111,109 +111,80 @@ function EditProductModal({ product, isOpen, onClose, onSave }: EditProductModal
 
         <form onSubmit={handleSubmit} class="space-y-4">
           <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                Name *
-              </label>
-              <Input
-                value={formData.name}
-                onInput={(e) => setFormData({...formData, name: (e.target as HTMLInputElement).value})}
-                required
-              />
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                Category *
-              </label>
-              <Select
-                value={formData.category}
-                onChange={(e) => setFormData({...formData, category: (e.target as HTMLSelectElement).value})}
-                required
-                placeholder="Select a category"
-                options={PRODUCT_CATEGORIES.map(category => ({ value: category, label: category }))}
-              />
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-              Description
-            </label>
-            <Textarea
-              value={formData.description}
-              onInput={(e) => setFormData({ ...formData, description: (e.target as HTMLTextAreaElement).value })}
-              rows={3}
+            <Input
+              label="Name"
+              value={formData.name}
+              onInput={(e) => setFormData({ ...formData, name: (e.target as HTMLInputElement).value })}
+              required
             />
+
+            <Select
+              label="Category"
+              value={formData.category}
+              onChange={(e) => setFormData({ ...formData, category: (e.target as HTMLSelectElement).value })}
+              required
+              placeholder="Select a category"
+              options={PRODUCT_CATEGORIES.map(category => ({ value: category, label: category }))}
+            />
+
           </div>
+
+          <Textarea
+            label="Description"
+            value={formData.description}
+            onInput={(e) => setFormData({ ...formData, description: (e.target as HTMLTextAreaElement).value })}
+            rows={3}
+          />
 
           <div class="grid grid-cols-3 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                Price *
-              </label>
-              <Input
-                type="number"
-                value={formData.price.toString()}
-                onInput={(e) => setFormData({...formData, price: parseFloat((e.target as HTMLInputElement).value) || 0})}
-                required
-              />
-            </div>
+            <Input
+              label="Price"
+              type="number"
+              value={formData.price.toString()}
+              onInput={(e) => setFormData({ ...formData, price: parseFloat((e.target as HTMLInputElement).value) || 0 })}
+              required
+            />
 
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                Cost *
-              </label>
-              <Input
-                type="number"
-                value={formData.cost.toString()}
-                onInput={(e) => setFormData({...formData, cost: parseFloat((e.target as HTMLInputElement).value) || 0})}
-                required
-              />
-            </div>
+            <Input
+              label="Cost"
+              type="number"
+              value={formData.cost.toString()}
+              onInput={(e) => setFormData({ ...formData, cost: parseFloat((e.target as HTMLInputElement).value) || 0 })}
+              required
+            />
 
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                Stock *
-              </label>
-              <Input
-                type="number"
-                value={formData.stock.toString()}
-                onInput={(e) => setFormData({...formData, stock: parseInt((e.target as HTMLInputElement).value) || 0})}
-                required
-              />
-            </div>
+            <Input
+              label="Stock"
+              type="number"
+              value={formData.stock.toString()}
+              onInput={(e) => setFormData({ ...formData, stock: parseInt((e.target as HTMLInputElement).value) || 0 })}
+              required
+            />
           </div>
 
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                Barcode
-              </label>
               <Input
+                label="Barcode"
                 value={formData.barcode}
-                onInput={(e) => setFormData({...formData, barcode: (e.target as HTMLInputElement).value})}
+                onInput={(e) => setFormData({ ...formData, barcode: (e.target as HTMLInputElement).value })}
                 placeholder="Optional"
               />
             </div>
 
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                Status
-              </label>
-              <Select
-                value={formData.isActive ? "active" : "inactive"}
-                onChange={(e) => setFormData({...formData, isActive: (e.target as HTMLSelectElement).value === "active"})}
-                options={[
-                  { value: "active", label: "Active" },
-                  { value: "inactive", label: "Inactive" }
-                ]}
-              />
-            </div>
+            <Select
+              label="Status"
+              value={formData.isActive ? "active" : "inactive"}
+              onChange={(e) => setFormData({ ...formData, isActive: (e.target as HTMLSelectElement).value === "active" })}
+              options={[
+                { value: "active", label: "Active" },
+                { value: "inactive", label: "Inactive" }
+              ]}
+            />
           </div>
         </form>
       </DialogBody>
-      
+
       <DialogFooter>
         <Button
           type="button"
@@ -242,11 +213,11 @@ export default function Products() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
-  
+
   const { user: currentUser, hasRole, hasPermission } = useAuth();
 
   const canManageProducts = currentUser && (
-    hasRole("admin") || 
+    hasRole("admin") ||
     hasRole("manager") ||
     hasPermission("products.view")
   );
@@ -311,8 +282,8 @@ export default function Products() {
   };
 
   const getStatusColor = (isActive: boolean) => {
-    return isActive 
-      ? "bg-green-100 text-green-800" 
+    return isActive
+      ? "bg-green-100 text-green-800"
       : "bg-gray-100 text-gray-800";
   };
 
@@ -322,7 +293,7 @@ export default function Products() {
 
   if (!canManageProducts) {
     return (
-      <div class="bg-white rounded-lg shadow p-6">
+      <div class="rounded-lg shadow p-6">
         <div class="text-center py-8">
           <div class="text-4xl mb-4">🔒</div>
           <h3 class="text-lg font-semibold text-gray-900 mb-2">Access Denied</h3>
@@ -334,7 +305,7 @@ export default function Products() {
 
   if (isLoading) {
     return (
-      <div class="bg-white rounded-lg shadow p-6">
+      <div class="rounded-lg shadow p-6">
         <div class="text-center py-8">
           <div class="w-8 h-8 bg-blue-600 rounded-full animate-spin border-2 border-transparent border-t-white mx-auto mb-4"></div>
           <p class="text-gray-600">Loading products...</p>
@@ -344,110 +315,108 @@ export default function Products() {
   }
 
   return (
-    <div class="space-y-6">
-      <div class="bg-white rounded-lg shadow p-6">
-        <div class="flex justify-between items-center mb-6">
-          <div>
-            <h3 class="text-lg font-semibold">Products</h3>
-            <p class="text-gray-600">Manage your product catalog and inventory</p>
-          </div>
-          {(hasPermission("products.create") || hasRole("admin") || hasRole("manager")) && (
-            <Button onClick={handleCreateProduct}>
-              <span class="mr-2">📦</span>
-              Add Product
-            </Button>
-          )}
+    <Container size="xl">
+      <div class="flex justify-between items-center mb-6">
+        <div>
+          <h3 class="text-lg font-semibold">Products</h3>
+          <p class="text-gray-600">Manage your product catalog and inventory</p>
         </div>
+        {(hasPermission("products.create") || hasRole("admin") || hasRole("manager")) && (
+          <Button onClick={handleCreateProduct}>
+            <span class="mr-2">📦</span>
+            Add Product
+          </Button>
+        )}
+      </div>
 
-        {error && (
-          <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
-            {error}
+      {error && (
+        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+          {error}
+        </div>
+      )}
+
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead>
+            <tr class="border-b border-gray-200">
+              <th class="text-left py-3 px-4 font-medium text-gray-700">Product</th>
+              <th class="text-left py-3 px-4 font-medium text-gray-700">Category</th>
+              <th class="text-left py-3 px-4 font-medium text-gray-700">Price</th>
+              <th class="text-left py-3 px-4 font-medium text-gray-700">Cost</th>
+              <th class="text-left py-3 px-4 font-medium text-gray-700">Stock</th>
+              <th class="text-left py-3 px-4 font-medium text-gray-700">Status</th>
+              <th class="text-left py-3 px-4 font-medium text-gray-700">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {products.map((product) => (
+              <tr key={product.id} class="border-b border-gray-100 hover:bg-gray-50">
+                <td class="py-3 px-4">
+                  <div>
+                    <div class="font-medium text-gray-900">{product.name}</div>
+                    {product.description && (
+                      <div class="text-sm text-gray-600 truncate max-w-xs">{product.description}</div>
+                    )}
+                    {product.barcode && (
+                      <div class="text-xs text-gray-500">Barcode: {product.barcode}</div>
+                    )}
+                  </div>
+                </td>
+                <td class="py-3 px-4">
+                  <span class="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    {product.category}
+                  </span>
+                </td>
+                <td class="py-3 px-4 font-medium text-gray-900">
+                  {formatCurrency(product.price)}
+                </td>
+                <td class="py-3 px-4 text-gray-600">
+                  {formatCurrency(product.cost)}
+                </td>
+                <td class="py-3 px-4">
+                  <span class={`font-medium ${getStockColor(product.stock)}`}>
+                    {product.stock}
+                  </span>
+                </td>
+                <td class="py-3 px-4">
+                  <span class={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(product.isActive)}`}>
+                    {product.isActive ? "Active" : "Inactive"}
+                  </span>
+                </td>
+                <td class="py-3 px-4">
+                  <div class="flex space-x-2">
+                    {(hasPermission("products.edit") || hasRole("admin") || hasRole("manager")) && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleEditProduct(product)}
+                      >
+                        Edit
+                      </Button>
+                    )}
+                    {(hasPermission("products.delete") || hasRole("admin") || hasRole("manager")) && (
+                      <Button
+                        size="sm"
+                        variant="danger"
+                        onClick={() => setDeleteConfirm(product.id)}
+                      >
+                        Delete
+                      </Button>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {products.length === 0 && (
+          <div class="text-center py-8">
+            <div class="text-4xl mb-4">📦</div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">No products found</h3>
+            <p class="text-gray-600">Get started by adding your first product.</p>
           </div>
         )}
-
-        <div class="overflow-x-auto">
-          <table class="w-full">
-            <thead>
-              <tr class="border-b border-gray-200">
-                <th class="text-left py-3 px-4 font-medium text-gray-700">Product</th>
-                <th class="text-left py-3 px-4 font-medium text-gray-700">Category</th>
-                <th class="text-left py-3 px-4 font-medium text-gray-700">Price</th>
-                <th class="text-left py-3 px-4 font-medium text-gray-700">Cost</th>
-                <th class="text-left py-3 px-4 font-medium text-gray-700">Stock</th>
-                <th class="text-left py-3 px-4 font-medium text-gray-700">Status</th>
-                <th class="text-left py-3 px-4 font-medium text-gray-700">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {products.map((product) => (
-                <tr key={product.id} class="border-b border-gray-100 hover:bg-gray-50">
-                  <td class="py-3 px-4">
-                    <div>
-                      <div class="font-medium text-gray-900">{product.name}</div>
-                      {product.description && (
-                        <div class="text-sm text-gray-600 truncate max-w-xs">{product.description}</div>
-                      )}
-                      {product.barcode && (
-                        <div class="text-xs text-gray-500">Barcode: {product.barcode}</div>
-                      )}
-                    </div>
-                  </td>
-                  <td class="py-3 px-4">
-                    <span class="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                      {product.category}
-                    </span>
-                  </td>
-                  <td class="py-3 px-4 font-medium text-gray-900">
-                    {formatCurrency(product.price)}
-                  </td>
-                  <td class="py-3 px-4 text-gray-600">
-                    {formatCurrency(product.cost)}
-                  </td>
-                  <td class="py-3 px-4">
-                    <span class={`font-medium ${getStockColor(product.stock)}`}>
-                      {product.stock}
-                    </span>
-                  </td>
-                  <td class="py-3 px-4">
-                    <span class={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(product.isActive)}`}>
-                      {product.isActive ? "Active" : "Inactive"}
-                    </span>
-                  </td>
-                  <td class="py-3 px-4">
-                    <div class="flex space-x-2">
-                      {(hasPermission("products.edit") || hasRole("admin") || hasRole("manager")) && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleEditProduct(product)}
-                        >
-                          Edit
-                        </Button>
-                      )}
-                      {(hasPermission("products.delete") || hasRole("admin") || hasRole("manager")) && (
-                        <Button
-                          size="sm"
-                          variant="danger"
-                          onClick={() => setDeleteConfirm(product.id)}
-                        >
-                          Delete
-                        </Button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          {products.length === 0 && (
-            <div class="text-center py-8">
-              <div class="text-4xl mb-4">📦</div>
-              <h3 class="text-lg font-semibold text-gray-900 mb-2">No products found</h3>
-              <p class="text-gray-600">Get started by adding your first product.</p>
-            </div>
-          )}
-        </div>
       </div>
 
       <EditProductModal
@@ -466,6 +435,6 @@ export default function Products() {
         confirmText="Delete"
         variant="danger"
       />
-    </div>
+    </Container>
   );
 }
