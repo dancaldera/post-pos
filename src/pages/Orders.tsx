@@ -462,6 +462,14 @@ export default function Orders() {
                 </TableCell>
                 <TableCell>
                   <div class="flex flex-wrap gap-1">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setSelectedOrder(order)}
+                      class="text-indigo-600 border-indigo-200 hover:bg-indigo-50 hover:border-indigo-300 transition-all hover:shadow-md"
+                    >
+                      👁️ View
+                    </Button>
                     {order.status === 'pending' && (
                       <>
                         <Button
