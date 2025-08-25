@@ -1,7 +1,7 @@
 import { useEffect, useState } from "preact/hooks";
 import { Button, Container, Dialog, DialogBody, DialogConfirm, DialogFooter, Heading, Input, Select, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Text } from "../components/ui";
-import { Order, orderService } from "../services/orders-sqlite";
-import { Product, productService } from "../services/products-sqlite";
+import { type Order, orderService } from "../services/orders-sqlite";
+import { type Product, productService } from "../services/products-sqlite";
 
 export default function Orders() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -74,11 +74,12 @@ export default function Orders() {
         case 'status':
           comparison = a.status.localeCompare(b.status);
           break;
-        case 'customer':
+        case 'customer': {
           const customerA = a.customerName || 'Guest';
           const customerB = b.customerName || 'Guest';
           comparison = customerA.localeCompare(customerB);
           break;
+        }
       }
       
       return sortOrder === 'asc' ? comparison : -comparison;

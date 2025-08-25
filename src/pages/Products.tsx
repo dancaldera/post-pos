@@ -1,6 +1,6 @@
 import { useState, useEffect } from "preact/hooks";
 import { Button, Input, Select, Textarea, Dialog, DialogBody, DialogFooter, DialogConfirm, Container, Table, TableHead, TableBody, TableRow, TableHeader, TableCell } from "../components/ui";
-import { Product, productService, PRODUCT_CATEGORIES } from "../services/products-sqlite";
+import { type Product, productService, PRODUCT_CATEGORIES } from "../services/products-sqlite";
 import { useAuth } from "../hooks/useAuth";
 
 interface EditProductModalProps {

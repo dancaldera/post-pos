@@ -1,4 +1,4 @@
-import { JSX } from "preact"
+import type { JSX } from "preact"
 import { createContext } from "preact"
 import { useContext, useState } from "preact/hooks"
 import { Link } from "./Link"
@@ -57,7 +57,7 @@ export function TableRow({
   class: className = "",
   ...props
 }: { href?: string; target?: string; title?: string } & JSX.HTMLAttributes<HTMLTableRowElement>) {
-  let { striped } = useContext(TableContext)
+  const { striped } = useContext(TableContext)
 
   return (
     <TableRowContext.Provider value={{ href, target, title }}>
@@ -77,7 +77,7 @@ export function TableRow({
 }
 
 export function TableHeader({ class: className = "", ...props }: JSX.HTMLAttributes<HTMLTableCellElement>) {
-  let { bleed, grid } = useContext(TableContext)
+  const { bleed, grid } = useContext(TableContext)
 
   return (
     <th
@@ -93,9 +93,9 @@ export function TableHeader({ class: className = "", ...props }: JSX.HTMLAttribu
 }
 
 export function TableCell({ class: className = "", children, ...props }: JSX.HTMLAttributes<HTMLTableCellElement>) {
-  let { bleed, dense, grid, striped } = useContext(TableContext)
-  let { href, target, title } = useContext(TableRowContext)
-  let [cellRef, setCellRef] = useState<HTMLElement | null>(null)
+  const { bleed, dense, grid, striped } = useContext(TableContext)
+  const { href, target, title } = useContext(TableRowContext)
+  const [cellRef, setCellRef] = useState<HTMLElement | null>(null)
 
   return (
     <td

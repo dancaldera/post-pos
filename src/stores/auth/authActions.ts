@@ -1,5 +1,5 @@
 import { user, isLoading, error } from './authStore';
-import { authService, User } from '../../services/auth-sqlite';
+import { authService, type User } from '../../services/auth-sqlite';
 
 export const authActions = {
   // Login action

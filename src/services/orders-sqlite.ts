@@ -196,7 +196,7 @@ export class OrderService {
       const now = new Date().toISOString();
 
       // Get customer name if customerId is provided
-      let customerName = undefined;
+      let customerName ;
       if (orderData.customerId) {
         const customers = await db.select<{first_name: string, last_name: string}[]>(
           'SELECT first_name, last_name FROM customers WHERE id = ? LIMIT 1',

@@ -45,6 +45,7 @@ function DialogHeader({ children, onClose }: DialogHeaderProps) {
       </h3>
       {onClose && (
         <button
+          type="button"
           onClick={onClose}
           class="p-2 text-gray-600 border border-gray-300 rounded-lg bg-white/40 backdrop-blur-sm hover:bg-white/60 hover:border-gray-400 hover:text-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
@@ -87,7 +88,7 @@ function Dialog({ isOpen, onClose, title, children, size = "md" }: DialogProps) 
   }, [isOpen]);
   const sizeClasses = {
     sm: "max-w-sm",
-    md: "max-w-md", 
+    md: "max-w-md",
     lg: "max-w-lg",
     xl: "max-w-xl"
   };
@@ -95,7 +96,7 @@ function Dialog({ isOpen, onClose, title, children, size = "md" }: DialogProps) 
   if (!shouldRender) return null;
 
   return (
-    <div 
+    <div
       class={clsx(
         "fixed inset-0 z-50 overflow-y-auto",
         // Overlay with visible frame border and added transparency
@@ -105,7 +106,7 @@ function Dialog({ isOpen, onClose, title, children, size = "md" }: DialogProps) 
       onClick={onClose}
     >
       <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-        <div 
+        <div
           class={clsx(
             // Dialog card with added transparency and refined border
             "relative w-full bg-white/60 backdrop-blur-xl border-2 border-white/50 rounded-2xl shadow-2xl",
@@ -128,13 +129,13 @@ function Dialog({ isOpen, onClose, title, children, size = "md" }: DialogProps) 
   );
 }
 
-function DialogConfirm({ 
-  isOpen, 
-  onClose, 
-  onConfirm, 
-  title = "Confirm Action", 
-  message, 
-  confirmText = "Confirm", 
+function DialogConfirm({
+  isOpen,
+  onClose,
+  onConfirm,
+  title = "Confirm Action",
+  message,
+  confirmText = "Confirm",
   cancelText = "Cancel",
   variant = "primary"
 }: DialogConfirmProps) {
