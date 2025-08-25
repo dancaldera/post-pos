@@ -1,4 +1,3 @@
-import { JSX } from "preact";
 import Button from "./Button";
 
 interface DialogProps {
@@ -33,18 +32,24 @@ interface DialogConfirmProps {
   variant?: "danger" | "primary";
 }
 
+function clsx(...classes: (string | undefined | boolean)[]): string {
+  return classes.filter(Boolean).join(' ');
+}
+
 function DialogHeader({ children, onClose }: DialogHeaderProps) {
   return (
     <div class="flex items-center justify-between p-6 border-b border-gray-200">
-      <h3 class="text-lg font-semibold text-gray-900">
+      <h3 class="text-lg font-semibold text-gray-800">
         {children}
       </h3>
       {onClose && (
         <button
           onClick={onClose}
-          class="text-gray-400 hover:text-gray-600 transition-colors"
+          class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
-          <span class="text-xl">✕</span>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
+          </svg>
         </button>
       )}
     </div>
@@ -61,7 +66,7 @@ function DialogBody({ children }: DialogBodyProps) {
 
 function DialogFooter({ children }: DialogFooterProps) {
   return (
-    <div class="flex justify-end space-x-2 p-6 border-t border-gray-200">
+    <div class="flex justify-end space-x-3 p-6 border-t border-gray-200">
       {children}
     </div>
   );
@@ -70,7 +75,7 @@ function DialogFooter({ children }: DialogFooterProps) {
 function Dialog({ isOpen, onClose, title, children, size = "md" }: DialogProps) {
   const sizeClasses = {
     sm: "max-w-sm",
-    md: "max-w-md",
+    md: "max-w-md", 
     lg: "max-w-lg",
     xl: "max-w-xl"
   };
@@ -78,8 +83,23 @@ function Dialog({ isOpen, onClose, title, children, size = "md" }: DialogProps) 
   if (!isOpen) return null;
 
   return (
-    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class={`bg-white rounded-lg w-full ${sizeClasses[size]} mx-4`}>
+    <div 
+      class={clsx(
+        "fixed inset-0 flex items-center justify-center z-50 p-4",
+        "bg-black/50 backdrop-blur-sm transition-all duration-300 ease-out",
+        isOpen ? "opacity-100" : "opacity-0"
+      )}
+      onClick={onClose}
+    >
+      <div 
+        class={clsx(
+          "w-full bg-white/80 backdrop-blur-xl border border-white/50 shadow-2xl",
+          "transition-all duration-300 ease-out transform",
+          isOpen ? "scale-100 opacity-100" : "scale-95 opacity-0",
+          sizeClasses[size]
+        )}
+        onClick={(e) => e.stopPropagation()}
+      >
         {title && (
           <DialogHeader onClose={onClose}>
             {title}
@@ -106,9 +126,11 @@ function DialogConfirm({
   return (
     <Dialog isOpen={isOpen} onClose={onClose} title={title} size="sm">
       <DialogBody>
-        <p class="text-gray-600">
-          {message}
-        </p>
+        <div class="p-4 bg-gray-50 border border-gray-200">
+          <p class="text-gray-700 leading-relaxed">
+            {message}
+          </p>
+        </div>
       </DialogBody>
       <DialogFooter>
         <Button variant="outline" onClick={onClose}>
