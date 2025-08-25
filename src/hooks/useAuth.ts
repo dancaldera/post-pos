@@ -1,6 +1,6 @@
 import { user, isLoading, error, isAuthenticated, isAdmin, isManager, isUser } from '../stores/auth/authStore';
 import { authActions } from '../stores/auth/authActions';
-import { User } from '../services/auth';
+import { User } from '../services/auth-sqlite';
 
 interface UseAuthReturn {
   user: User | null;

@@ -18,7 +18,7 @@ import {
   Text
 } from "../components/ui";
 import { useAuth } from "../hooks/useAuth";
-import { User, authService } from "../services/auth";
+import { User, authService } from "../services/auth-sqlite";
 
 interface EditUserModalProps {
   user: User | null;

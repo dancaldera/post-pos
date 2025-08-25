@@ -90,24 +90,26 @@ export default function SignIn({ onSignIn }: SignInProps) {
             </Text>
           </div>
 
-          {/* Demo Credentials Helper */}
-          <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <Text variant="small" color="primary" weight="medium" class="mb-2">
-              Demo Credentials
-            </Text>
-            <Text variant="small" color="muted" class="mb-3">
-              Email: admin@postpos.com<br/>
-              Password: admin123
-            </Text>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={fillDemoCredentials}
-              class="w-full"
-            >
-              Use Demo Credentials
-            </Button>
-          </div>
+          {/* Demo Credentials Helper - Remove in production */}
+          {import.meta.env.DEV && (
+            <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <Text variant="small" color="primary" weight="medium" class="mb-2">
+                Demo Credentials
+              </Text>
+              <Text variant="small" color="muted" class="mb-3">
+                Email: admin@postpos.com<br/>
+                Password: admin123
+              </Text>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={fillDemoCredentials}
+                class="w-full"
+              >
+                Use Demo Credentials
+              </Button>
+            </div>
+          )}
 
           {/* General Error */}
           {errors.general && (
