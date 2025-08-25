@@ -20,7 +20,6 @@ export default function Heading({
   class: className = "",
   ...props
 }: HeadingProps & JSX.HTMLAttributes<HTMLHeadingElement>) {
-  const Tag = `h${level}` as keyof JSX.IntrinsicElements;
   
   // Default sizes based on heading level
   const defaultSizes = {

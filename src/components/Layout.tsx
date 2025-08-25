@@ -1,6 +1,7 @@
 import { useState } from "preact/hooks";
 import Sidebar, { SidebarNav, SidebarItem, SidebarGroup } from "./ui/Sidebar";
 import { useAuth } from "../hooks/useAuth";
+import { Button, Heading, Text } from "./ui";
 
 interface LayoutProps {
   children: any;
@@ -55,12 +56,12 @@ export default function Layout({ children, currentPage, onNavigate }: LayoutProp
         <header class="bg-white shadow-sm border-b border-gray-200">
           <div class="flex items-center justify-between px-6 py-4">
             <div>
-              <h2 class="text-2xl font-semibold text-gray-800 capitalize">
-                {currentPage}
-              </h2>
-              <p class="text-sm text-gray-600 mt-1">
+              <Heading>
+                {menuItems.find((item) => item.id === currentPage)?.label}
+              </Heading>
+              <Text>
                 Welcome to your POS dashboard
-              </p>
+              </Text>
             </div>
             
             <div class="flex items-center space-x-4">
@@ -88,45 +89,31 @@ export default function Layout({ children, currentPage, onNavigate }: LayoutProp
 
                 {isDropdownOpen && (
                   <div class="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
-                    <div class="py-2">
-                      <div class="px-4 py-3 border-b border-gray-100">
-                        <p class="text-sm font-medium text-gray-900">{user?.name}</p>
-                        <p class="text-sm text-gray-500">{user?.email}</p>
-                        <p class="text-xs text-blue-600 capitalize">{user?.role}</p>
-                      </div>
-                      
-                      <button 
+                    <div class="p-2">                      
+                      <Button
+                        variant="outline"
                         onClick={() => {
                           onNavigate('settings');
                           setIsDropdownOpen(false);
                         }}
-                        class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+                        class="w-full"
                       >
                         <span>⚙️</span>
                         <span>Settings</span>
-                      </button>
-                      
-                      <button class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2">
-                        <span>👤</span>
-                        <span>Profile</span>
-                      </button>
-                      
-                      <button class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2">
-                        <span>🔒</span>
-                        <span>Privacy</span>
-                      </button>
+                      </Button>
                       
                       <div class="border-t border-gray-100 mt-2 pt-2">
-                        <button 
+                        <Button 
+                          variant="danger"
                           onClick={() => {
                             signOut();
                             setIsDropdownOpen(false);
                           }}
-                          class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
+                          class="w-full"
                         >
                           <span>🚪</span>
                           <span>Sign Out</span>
-                        </button>
+                        </Button>
                       </div>
                     </div>
                   </div>

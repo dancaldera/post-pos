@@ -46,8 +46,8 @@ export default function Input({
     // Base layout and glass effect
     "relative w-full rounded-xl transition-colors duration-150",
     "backdrop-blur-md bg-white/10 border border-white/20",
-    // Interaction states (no visual click/focus effect)
-    "focus:outline-none",
+    // Accessible focus-visible ring (matches Button)
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-white/10",
     "hover:bg-white/15",
     // Disabled state
     disabled ? "opacity-40 cursor-not-allowed" : "",
@@ -64,11 +64,15 @@ export default function Input({
   const stateClasses = error
     ? clsx(
         "border-red-400/50",
-        "bg-red-50/10"
+        "bg-red-50/10",
+        // Red focus ring when invalid
+        "focus-visible:ring-red-500/60"
       )
     : clsx(
         "border-white/20",
-        "hover:border-white/30"
+        "hover:border-white/30",
+        // Blue focus ring by default
+        "focus-visible:ring-blue-500/60"
       );
 
   const classes = clsx(baseClasses, sizes[size], stateClasses, className);

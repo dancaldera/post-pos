@@ -45,11 +45,11 @@ export default function Select({
 }: SelectProps & Omit<JSX.HTMLAttributes<HTMLSelectElement>, 'size'>) {
   const selectId = id || `select-${Math.random().toString(36).substring(2, 11)}`;
 
-  // Unify with Input styles: glass border on the element, subtle hover, focus ring
+  // Unify with Input styles: glass border on the element, accessible focus-visible ring
   const baseClasses = clsx(
     'relative w-full appearance-none rounded-xl transition-colors duration-150',
     'backdrop-blur-md bg-white/10 border border-white/20',
-    'focus:outline-none focus:ring-0 focus:shadow-none',
+    'focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-offset-2 focus-visible:ring-offset-white/10',
     'shadow-lg',
     disabled && 'opacity-40 cursor-not-allowed'
   );
@@ -57,11 +57,12 @@ export default function Select({
   const stateClasses = error
     ? clsx(
         'border-red-400/50',
-        'bg-red-50/10'
+        'bg-red-50/10',
+        'focus-visible:ring-red-500/60'
       )
     : clsx(
         'border-white/20',
-        'focus:border-white/20'
+        'focus-visible:ring-blue-500/60'
       );
 
   const paddingClasses = multiple
@@ -93,7 +94,7 @@ export default function Select({
           class={clsx(
             baseClasses,
             paddingClasses,
-            'text-gray-800 placeholder:text-gray-500',
+            // Match Input: no explicit text color/placeholder styling
             stateClasses,
             className
           )}
