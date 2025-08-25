@@ -1,5 +1,5 @@
-import { useState, useEffect } from "preact/hooks";
-import { Button, Input, Container, Heading, Text, Dialog, DialogBody, DialogFooter } from "../components/ui";
+import { useEffect, useState } from "preact/hooks";
+import { Button, Container, Dialog, DialogBody, DialogFooter, Heading, Input, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Text } from "../components/ui";
 import { Customer, customerService } from "../services/customers";
 
 export default function Customers() {
@@ -123,14 +123,14 @@ export default function Customers() {
       </div>
 
       {isLoading ? (
-        <div class="bg-white rounded-lg shadow p-6">
+        <div class="rounded-lg shadow p-6">
           <div class="text-center py-8">
             <div class="w-8 h-8 bg-blue-600 rounded-full animate-spin border-2 border-transparent border-t-white mx-auto mb-4"></div>
             <p class="text-gray-600">Loading customers...</p>
           </div>
         </div>
       ) : customers.length === 0 ? (
-        <div class="bg-white rounded-lg shadow p-6">
+        <div class="rounded-lg shadow p-6">
           <div class="text-center py-8">
             <div class="text-4xl mb-4">👥</div>
             <Heading level={4} class="mb-2">
@@ -142,56 +142,54 @@ export default function Customers() {
           </div>
         </div>
       ) : (
-        <div class="bg-white rounded-lg shadow overflow-hidden">
-          <table class="w-full">
-            <thead>
-              <tr class="border-b border-gray-200">
-                <th class="text-left py-3 px-4 font-medium text-gray-700">Customer</th>
-                <th class="text-left py-3 px-4 font-medium text-gray-700">Contact</th>
-                <th class="text-left py-3 px-4 font-medium text-gray-700">Location</th>
-                <th class="text-left py-3 px-4 font-medium text-gray-700">Loyalty Points</th>
-                <th class="text-left py-3 px-4 font-medium text-gray-700">Total Spent</th>
-              </tr>
-            </thead>
-            <tbody>
-              {customers.map((customer) => (
-                <tr key={customer.id} class="border-b border-gray-100 hover:bg-gray-50">
-                  <td class="py-3 px-4">
-                    <div class="font-medium text-gray-900">
-                      {customer.firstName} {customer.lastName}
-                    </div>
-                    <div class="text-sm text-gray-600">
-                      {customer.isActive ? "Active" : "Inactive"}
-                    </div>
-                  </td>
-                  <td class="py-3 px-4">
-                    <div class="text-sm">
-                      <div class="text-gray-900">{customer.email}</div>
-                      <div class="text-gray-600">{customer.phone}</div>
-                    </div>
-                  </td>
-                  <td class="py-3 px-4">
-                    <div class="text-sm text-gray-600">
-                      {customer.city && customer.state ? `${customer.city}, ${customer.state}` : "-"}
-                    </div>
-                  </td>
-                  <td class="py-3 px-4">
-                    <span class="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                      {customer.loyaltyPoints} pts
-                    </span>
-                  </td>
-                  <td class="py-3 px-4 font-medium text-gray-900">
-                    ${customer.totalSpent.toFixed(2)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <Table striped>
+          <TableHead>
+            <TableRow>
+              <TableHeader>Customer</TableHeader>
+              <TableHeader>Contact</TableHeader>
+              <TableHeader>Location</TableHeader>
+              <TableHeader>Loyalty Points</TableHeader>
+              <TableHeader>Total Spent</TableHeader>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {customers.map((customer) => (
+              <TableRow key={customer.id}>
+                <TableCell>
+                  <div class="font-medium text-gray-900">
+                    {customer.firstName} {customer.lastName}
+                  </div>
+                  <div class="text-sm text-gray-600">
+                    {customer.isActive ? "Active" : "Inactive"}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div class="text-sm">
+                    <div class="text-gray-900">{customer.email}</div>
+                    <div class="text-gray-600">{customer.phone}</div>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div class="text-sm text-gray-600">
+                    {customer.city && customer.state ? `${customer.city}, ${customer.state}` : "-"}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <span class="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    {customer.loyaltyPoints} pts
+                  </span>
+                </TableCell>
+                <TableCell class="font-medium text-gray-900">
+                  ${customer.totalSpent.toFixed(2)}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       )}
 
-      <Dialog 
-        isOpen={isDialogOpen} 
+      <Dialog
+        isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
         title="Add New Customer"
         size="lg"
@@ -205,7 +203,7 @@ export default function Customers() {
                 </label>
                 <Input
                   value={formData.firstName}
-                  onInput={(e) => setFormData({...formData, firstName: (e.target as HTMLInputElement).value})}
+                  onInput={(e) => setFormData({ ...formData, firstName: (e.target as HTMLInputElement).value })}
                   required
                 />
               </div>
@@ -216,7 +214,7 @@ export default function Customers() {
                 </label>
                 <Input
                   value={formData.lastName}
-                  onInput={(e) => setFormData({...formData, lastName: (e.target as HTMLInputElement).value})}
+                  onInput={(e) => setFormData({ ...formData, lastName: (e.target as HTMLInputElement).value })}
                   required
                 />
               </div>
@@ -230,7 +228,7 @@ export default function Customers() {
                 <Input
                   type="email"
                   value={formData.email}
-                  onInput={(e) => setFormData({...formData, email: (e.target as HTMLInputElement).value})}
+                  onInput={(e) => setFormData({ ...formData, email: (e.target as HTMLInputElement).value })}
                   required
                 />
               </div>
@@ -241,7 +239,7 @@ export default function Customers() {
                 </label>
                 <Input
                   value={formData.phone}
-                  onInput={(e) => setFormData({...formData, phone: (e.target as HTMLInputElement).value})}
+                  onInput={(e) => setFormData({ ...formData, phone: (e.target as HTMLInputElement).value })}
                   required
                 />
               </div>
@@ -253,7 +251,7 @@ export default function Customers() {
               </label>
               <Input
                 value={formData.address}
-                onInput={(e) => setFormData({...formData, address: (e.target as HTMLInputElement).value})}
+                onInput={(e) => setFormData({ ...formData, address: (e.target as HTMLInputElement).value })}
                 placeholder="Street address"
               />
             </div>
@@ -265,7 +263,7 @@ export default function Customers() {
                 </label>
                 <Input
                   value={formData.city}
-                  onInput={(e) => setFormData({...formData, city: (e.target as HTMLInputElement).value})}
+                  onInput={(e) => setFormData({ ...formData, city: (e.target as HTMLInputElement).value })}
                   placeholder="City"
                 />
               </div>
@@ -276,7 +274,7 @@ export default function Customers() {
                 </label>
                 <Input
                   value={formData.state}
-                  onInput={(e) => setFormData({...formData, state: (e.target as HTMLInputElement).value})}
+                  onInput={(e) => setFormData({ ...formData, state: (e.target as HTMLInputElement).value })}
                   placeholder="State"
                 />
               </div>
@@ -287,14 +285,14 @@ export default function Customers() {
                 </label>
                 <Input
                   value={formData.zipCode}
-                  onInput={(e) => setFormData({...formData, zipCode: (e.target as HTMLInputElement).value})}
+                  onInput={(e) => setFormData({ ...formData, zipCode: (e.target as HTMLInputElement).value })}
                   placeholder="ZIP"
                 />
               </div>
             </div>
           </form>
         </DialogBody>
-        
+
         <DialogFooter>
           <Button
             type="button"

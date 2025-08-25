@@ -1,5 +1,5 @@
 import { useState, useEffect } from "preact/hooks";
-import { Button, Input, Select, Textarea, Dialog, DialogBody, DialogFooter, DialogConfirm, Container } from "../components/ui";
+import { Button, Input, Select, Textarea, Dialog, DialogBody, DialogFooter, DialogConfirm, Container, Table, TableHead, TableBody, TableRow, TableHeader, TableCell } from "../components/ui";
 import { Product, productService, PRODUCT_CATEGORIES } from "../services/products";
 import { useAuth } from "../hooks/useAuth";
 
@@ -335,89 +335,87 @@ export default function Products() {
         </div>
       )}
 
-      <div class="overflow-x-auto">
-        <table class="w-full">
-          <thead>
-            <tr class="border-b border-gray-200">
-              <th class="text-left py-3 px-4 font-medium text-gray-700">Product</th>
-              <th class="text-left py-3 px-4 font-medium text-gray-700">Category</th>
-              <th class="text-left py-3 px-4 font-medium text-gray-700">Price</th>
-              <th class="text-left py-3 px-4 font-medium text-gray-700">Cost</th>
-              <th class="text-left py-3 px-4 font-medium text-gray-700">Stock</th>
-              <th class="text-left py-3 px-4 font-medium text-gray-700">Status</th>
-              <th class="text-left py-3 px-4 font-medium text-gray-700">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {products.map((product) => (
-              <tr key={product.id} class="border-b border-gray-100 hover:bg-gray-50">
-                <td class="py-3 px-4">
-                  <div>
-                    <div class="font-medium text-gray-900">{product.name}</div>
-                    {product.description && (
-                      <div class="text-sm text-gray-600 truncate max-w-xs">{product.description}</div>
-                    )}
-                    {product.barcode && (
-                      <div class="text-xs text-gray-500">Barcode: {product.barcode}</div>
-                    )}
-                  </div>
-                </td>
-                <td class="py-3 px-4">
-                  <span class="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                    {product.category}
-                  </span>
-                </td>
-                <td class="py-3 px-4 font-medium text-gray-900">
-                  {formatCurrency(product.price)}
-                </td>
-                <td class="py-3 px-4 text-gray-600">
-                  {formatCurrency(product.cost)}
-                </td>
-                <td class="py-3 px-4">
-                  <span class={`font-medium ${getStockColor(product.stock)}`}>
-                    {product.stock}
-                  </span>
-                </td>
-                <td class="py-3 px-4">
-                  <span class={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(product.isActive)}`}>
-                    {product.isActive ? "Active" : "Inactive"}
-                  </span>
-                </td>
-                <td class="py-3 px-4">
-                  <div class="flex space-x-2">
-                    {(hasPermission("products.edit") || hasRole("admin") || hasRole("manager")) && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleEditProduct(product)}
-                      >
-                        Edit
-                      </Button>
-                    )}
-                    {(hasPermission("products.delete") || hasRole("admin") || hasRole("manager")) && (
-                      <Button
-                        size="sm"
-                        variant="danger"
-                        onClick={() => setDeleteConfirm(product.id)}
-                      >
-                        Delete
-                      </Button>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <Table striped>
+        <TableHead>
+          <TableRow>
+            <TableHeader>Product</TableHeader>
+            <TableHeader>Category</TableHeader>
+            <TableHeader>Price</TableHeader>
+            <TableHeader>Cost</TableHeader>
+            <TableHeader>Stock</TableHeader>
+            <TableHeader>Status</TableHeader>
+            <TableHeader>Actions</TableHeader>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {products.map((product) => (
+            <TableRow key={product.id}>
+              <TableCell>
+                <div>
+                  <div class="font-medium text-gray-900">{product.name}</div>
+                  {product.description && (
+                    <div class="text-sm text-gray-600 truncate max-w-xs">{product.description}</div>
+                  )}
+                  {product.barcode && (
+                    <div class="text-xs text-gray-500">Barcode: {product.barcode}</div>
+                  )}
+                </div>
+              </TableCell>
+              <TableCell>
+                <span class="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                  {product.category}
+                </span>
+              </TableCell>
+              <TableCell class="font-medium text-gray-900">
+                {formatCurrency(product.price)}
+              </TableCell>
+              <TableCell class="text-gray-600">
+                {formatCurrency(product.cost)}
+              </TableCell>
+              <TableCell>
+                <span class={`font-medium ${getStockColor(product.stock)}`}>
+                  {product.stock}
+                </span>
+              </TableCell>
+              <TableCell>
+                <span class={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(product.isActive)}`}>
+                  {product.isActive ? "Active" : "Inactive"}
+                </span>
+              </TableCell>
+              <TableCell>
+                <div class="flex space-x-2">
+                  {(hasPermission("products.edit") || hasRole("admin") || hasRole("manager")) && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleEditProduct(product)}
+                    >
+                      Edit
+                    </Button>
+                  )}
+                  {(hasPermission("products.delete") || hasRole("admin") || hasRole("manager")) && (
+                    <Button
+                      size="sm"
+                      variant="danger"
+                      onClick={() => setDeleteConfirm(product.id)}
+                    >
+                      Delete
+                    </Button>
+                  )}
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
 
-        {products.length === 0 && (
-          <div class="text-center py-8">
-            <div class="text-4xl mb-4">📦</div>
-            <h3 class="text-lg font-semibold text-gray-900 mb-2">No products found</h3>
-            <p class="text-gray-600">Get started by adding your first product.</p>
-          </div>
-        )}
-      </div>
+      {products.length === 0 && (
+        <div class="text-center py-8">
+          <div class="text-4xl mb-4">📦</div>
+          <h3 class="text-lg font-semibold text-gray-900 mb-2">No products found</h3>
+          <p class="text-gray-600">Get started by adding your first product.</p>
+        </div>
+      )}
 
       <EditProductModal
         product={editingProduct}
