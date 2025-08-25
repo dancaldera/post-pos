@@ -157,15 +157,6 @@ export default function SignIn({ onSignIn }: SignInProps) {
             </FormActions>
           </Form>
 
-          {/* Additional Links */}
-          <div class="mt-6 text-center">
-            <Text variant="small" color="muted">
-              Forgot your password?{" "}
-              <button class="text-blue-600 hover:text-blue-800 underline">
-                Reset it here
-              </button>
-            </Text>
-          </div>
 
           {/* Footer */}
           <div class="mt-8 pt-6 border-t border-gray-200 text-center">
