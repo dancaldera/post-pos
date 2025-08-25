@@ -105,60 +105,68 @@ function EditUserModal({ user, isOpen, onClose, onSave }: EditUserModalProps) {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} class="space-y-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-              Name
-            </label>
-            <Input
-              value={formData.name}
-              onInput={(e) => setFormData({ ...formData, name: (e.target as HTMLInputElement).value })}
-              required
-            />
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-              Email
-            </label>
-            <Input
-              type="email"
-              value={formData.email}
-              onInput={(e) => setFormData({ ...formData, email: (e.target as HTMLInputElement).value })}
-              required
-            />
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-              Role
-            </label>
-            <Select
-              value={formData.role}
-              onChange={(e) => setFormData({ ...formData, role: (e.target as HTMLSelectElement).value as User["role"] })}
-              options={[
-                { value: "user", label: "User" },
-                { value: "manager", label: "Manager" },
-                { value: "admin", label: "Admin" }
-              ]}
-            />
-          </div>
-
-          {!user && (
+        <div class="backdrop-blur-lg bg-gradient-to-br from-blue-50/60 to-indigo-50/40 border border-blue-200/50 rounded-2xl p-6 shadow-xl">
+          <form onSubmit={handleSubmit} class="space-y-6">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                Password
+              <label class="block text-sm font-semibold text-gray-800 mb-3 drop-shadow-sm">
+                👤 Full Name
               </label>
               <Input
-                type="password"
-                value={formData.password}
-                onInput={(e) => setFormData({ ...formData, password: (e.target as HTMLInputElement).value })}
+                value={formData.name}
+                onInput={(e) => setFormData({ ...formData, name: (e.target as HTMLInputElement).value })}
                 required
-                placeholder="Minimum 6 characters"
+                class="bg-white/80 text-gray-900"
+                placeholder="Enter full name"
               />
             </div>
-          )}
-        </form>
+
+            <div>
+              <label class="block text-sm font-semibold text-gray-800 mb-3 drop-shadow-sm">
+                ✉️ Email Address
+              </label>
+              <Input
+                type="email"
+                value={formData.email}
+                onInput={(e) => setFormData({ ...formData, email: (e.target as HTMLInputElement).value })}
+                required
+                class="bg-white/80 text-gray-900"
+                placeholder="Enter email address"
+              />
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold text-gray-800 mb-3 drop-shadow-sm">
+                👑 Role & Permissions
+              </label>
+              <Select
+                value={formData.role}
+                onChange={(e) => setFormData({ ...formData, role: (e.target as HTMLSelectElement).value as User["role"] })}
+                options={[
+                  { value: "user", label: "👤 User - Basic Access" },
+                  { value: "manager", label: "👔 Manager - Extended Access" },
+                  { value: "admin", label: "👑 Admin - Full Access" }
+                ]}
+                class="bg-white/80"
+              />
+            </div>
+
+            {!user && (
+              <div>
+                <label class="block text-sm font-semibold text-gray-800 mb-3 drop-shadow-sm">
+                  🔐 Password
+                </label>
+                <Input
+                  type="password"
+                  value={formData.password}
+                  onInput={(e) => setFormData({ ...formData, password: (e.target as HTMLInputElement).value })}
+                  required
+                  placeholder="Minimum 6 characters"
+                  class="bg-white/80 text-gray-900"
+                />
+              </div>
+            )}
+          </form>
+        </div>
       </DialogBody>
 
       <DialogFooter>
@@ -254,21 +262,32 @@ export default function Members() {
 
   const getRoleColor = (role: string) => {
     switch (role) {
-      case "admin": return "bg-red-100 text-red-800";
-      case "manager": return "bg-blue-100 text-blue-800";
-      case "user": return "bg-green-100 text-green-800";
-      default: return "bg-gray-100 text-gray-800";
+      case "admin": return "bg-gradient-to-r from-red-100 to-red-200 text-red-800 border border-red-300 shadow-sm";
+      case "manager": return "bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 border border-blue-300 shadow-sm";
+      case "user": return "bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300 shadow-sm";
+      default: return "bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-300 shadow-sm";
+    }
+  };
+
+  const getRoleIcon = (role: string) => {
+    switch (role) {
+      case "admin": return "👑";
+      case "manager": return "👔";
+      case "user": return "👤";
+      default: return "❓";
     }
   };
 
   if (!canManageUsers) {
     return (
-      <Container>
-        <div class="bg-white rounded-lg shadow p-6">
-          <div class="text-center py-8">
-            <div class="text-4xl mb-4">🔒</div>
-            <Heading level={4} class="mb-2">Access Denied</Heading>
-            <Text>You don't have permission to view the members page.</Text>
+      <Container size="xl">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-12">
+          <div class="text-center">
+            <div class="text-6xl mb-6 drop-shadow-lg">🔒</div>
+            <Heading level={3} class="mb-3 text-gray-900">Access Denied</Heading>
+            <Text class="text-gray-600 max-w-md mx-auto">
+              You don't have permission to view the members page. Contact your administrator for access.
+            </Text>
           </div>
         </div>
       </Container>
@@ -277,11 +296,11 @@ export default function Members() {
 
   if (isLoading) {
     return (
-      <Container>
-        <div class="bg-white rounded-lg shadow p-6">
-          <div class="text-center py-8">
-            <div class="w-8 h-8 bg-blue-600 rounded-full animate-spin border-2 border-transparent border-t-white mx-auto mb-4"></div>
-            <Text>Loading members...</Text>
+      <Container size="xl">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-12">
+          <div class="text-center">
+            <div class="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full animate-spin border-4 border-transparent border-t-white mx-auto mb-6 shadow-lg"></div>
+            <Text class="text-gray-600 text-lg">Loading team members...</Text>
           </div>
         </div>
       </Container>
@@ -292,50 +311,84 @@ export default function Members() {
     <Container size="xl">
       <div class="flex justify-between items-center mb-6">
         <div>
+          <h1 class="text-2xl font-bold text-gray-900 mb-2">Team Members</h1>
+          <p class="text-gray-600">
+            {users.length} {users.length === 1 ? 'member' : 'members'} total
+          </p>
         </div>
         {(hasPermission("users.create") || hasRole("admin")) && (
           <Button onClick={handleCreateUser}>
-            <span class="mr-2">👤</span>
-            Add User
+            <span class="mr-2">➕</span>
+            Add Member
           </Button>
         )}
       </div>
 
       {error && (
-        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
-          {error}
+        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6 backdrop-blur-sm">
+          <div class="flex items-center">
+            <span class="text-red-500 mr-2">⚠️</span>
+            {error}
+          </div>
         </div>
       )}
 
-      <Table striped>
-        <TableHead>
-          <TableRow>
-            <TableHeader>User</TableHeader>
-            <TableHeader>Role</TableHeader>
-            <TableHeader>Created</TableHeader>
-            <TableHeader>Last Login</TableHeader>
-            <TableHeader>Actions</TableHeader>
-          </TableRow>
-        </TableHead>
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <Table>
+          <TableHead>
+            <TableRow class="bg-gray-50">
+              <TableHeader class="font-semibold text-gray-900">User</TableHeader>
+              <TableHeader class="font-semibold text-gray-900">Role</TableHeader>
+              <TableHeader class="font-semibold text-gray-900">Created</TableHeader>
+              <TableHeader class="font-semibold text-gray-900">Last Login</TableHeader>
+              <TableHeader class="font-semibold text-gray-900">Actions</TableHeader>
+            </TableRow>
+          </TableHead>
         <TableBody>
-          {users.map((user) => (
-            <TableRow key={user.id}>
+          {users.map((user, index) => (
+            <TableRow 
+              key={user.id} 
+              class="hover:bg-gray-50 transition-all duration-200 hover:shadow-sm"
+              style={`animation-delay: ${index * 50}ms`}
+            >
               <TableCell>
-                <div>
-                  <div class="font-medium text-gray-900">{user.name}</div>
-                  <div class="text-sm text-gray-600">{user.email}</div>
+                <div class="flex items-center">
+                  <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-lg font-bold mr-4">
+                    {user.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <div class="font-semibold text-gray-900">{user.name}</div>
+                    <div class="text-sm text-gray-600">{user.email}</div>
+                  </div>
                 </div>
               </TableCell>
               <TableCell>
-                <span class={`px-2 py-1 rounded-full text-xs font-medium capitalize ${getRoleColor(user.role)}`}>
+                <div class={`inline-flex items-center px-3 py-2 rounded-full text-xs font-semibold uppercase tracking-wide ${getRoleColor(user.role)} transition-all hover:scale-105`}>
+                  <span class="mr-1 text-sm">{getRoleIcon(user.role)}</span>
                   {user.role}
-                </span>
+                </div>
               </TableCell>
-              <TableCell class="text-sm text-gray-600">
-                {new Date(user.createdAt).toLocaleDateString()}
+              <TableCell>
+                <div class="text-sm text-gray-600">
+                  <div>{new Date(user.createdAt).toLocaleDateString()}</div>
+                  <div class="text-xs text-gray-500">
+                    {new Date(user.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </div>
+                </div>
               </TableCell>
-              <TableCell class="text-sm text-gray-600">
-                {user.lastLogin ? new Date(user.lastLogin).toLocaleDateString() : "Never"}
+              <TableCell>
+                <div class="text-sm text-gray-600">
+                  {user.lastLogin ? (
+                    <>
+                      <div>{new Date(user.lastLogin).toLocaleDateString()}</div>
+                      <div class="text-xs text-gray-500">
+                        {new Date(user.lastLogin).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                    </>
+                  ) : (
+                    <div class="text-gray-400 italic">Never logged in</div>
+                  )}
+                </div>
               </TableCell>
               <TableCell>
                 <div class="flex space-x-2">
@@ -344,18 +397,20 @@ export default function Members() {
                       size="sm"
                       variant="outline"
                       onClick={() => handleEditUser(user)}
+                      class="text-blue-600 border-blue-200 hover:bg-blue-50 hover:border-blue-300 transition-all hover:shadow-md mr-2"
                     >
-                      Edit
+                      ✏️ Edit
                     </Button>
                   )}
                   {(hasPermission("users.delete") || hasRole("admin")) &&
                     user.id !== currentUser?.id && (
                       <Button
                         size="sm"
-                        variant="danger"
+                        variant="outline"
                         onClick={() => setDeleteConfirm(user.id)}
+                        class="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 transition-all hover:shadow-md"
                       >
-                        Delete
+                        🗑️ Delete
                       </Button>
                     )}
                 </div>
@@ -363,13 +418,24 @@ export default function Members() {
             </TableRow>
           ))}
         </TableBody>
-      </Table>
+        </Table>
+      </div>
 
       {users.length === 0 && (
-        <div class="text-center py-8">
-          <div class="text-4xl mb-4">👤</div>
-          <Heading level={4} class="mb-2">No users found</Heading>
-          <Text>Get started by adding your first user.</Text>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-12">
+          <div class="text-center">
+            <div class="text-6xl mb-6">👥</div>
+            <Heading level={3} class="mb-3 text-gray-900">No team members found</Heading>
+            <Text class="text-gray-600 mb-6 max-w-md mx-auto">
+              Your team is empty. Add your first team member to get started with user management.
+            </Text>
+            {(hasPermission("users.create") || hasRole("admin")) && (
+              <Button onClick={handleCreateUser} class="mt-4">
+                <span class="mr-2">➕</span>
+                Add First Member
+              </Button>
+            )}
+          </div>
         </div>
       )}
 

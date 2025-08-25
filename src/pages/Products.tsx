@@ -104,85 +104,147 @@ function EditProductModal({ product, isOpen, onClose, onSave }: EditProductModal
     >
       <DialogBody>
         {error && (
-          <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
-            {error}
+          <div class="bg-red-500/10 backdrop-blur-sm border border-red-400/20 text-red-700 px-4 py-3 rounded-xl mb-6">
+            <div class="flex items-center">
+              <span class="text-red-500 mr-2">⚠️</span>
+              {error}
+            </div>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} class="space-y-4">
-          <div class="grid grid-cols-2 gap-4">
-            <Input
-              label="Name"
-              value={formData.name}
-              onInput={(e) => setFormData({ ...formData, name: (e.target as HTMLInputElement).value })}
-              required
-            />
+        <div class="backdrop-blur-lg bg-gradient-to-br from-indigo-50/60 to-purple-50/40 border border-indigo-200/50 rounded-2xl p-6 shadow-xl">
+          <form onSubmit={handleSubmit} class="space-y-6">
+            <div class="grid grid-cols-2 gap-6">
+              <div>
+                <label class="block text-sm font-semibold text-gray-800 mb-3 drop-shadow-sm">
+                  📦 Product Name
+                </label>
+                <Input
+                  value={formData.name}
+                  onInput={(e) => setFormData({ ...formData, name: (e.target as HTMLInputElement).value })}
+                  required
+                  class="bg-white/80 text-gray-900"
+                  placeholder="Enter product name"
+                />
+              </div>
 
-            <Select
-              label="Category"
-              value={formData.category}
-              onChange={(e) => setFormData({ ...formData, category: (e.target as HTMLSelectElement).value })}
-              required
-              placeholder="Select a category"
-              options={PRODUCT_CATEGORIES.map(category => ({ value: category, label: category }))}
-            />
+              <div>
+                <label class="block text-sm font-semibold text-gray-800 mb-3 drop-shadow-sm">
+                  🏷️ Category
+                </label>
+                <Select
+                  value={formData.category}
+                  onChange={(e) => setFormData({ ...formData, category: (e.target as HTMLSelectElement).value })}
+                  required
+                  placeholder="Select a category"
+                  options={PRODUCT_CATEGORIES.map(category => ({ value: category, label: category }))}
+                  class="bg-white/80"
+                />
+              </div>
+            </div>
 
-          </div>
-
-          <Textarea
-            label="Description"
-            value={formData.description}
-            onInput={(e) => setFormData({ ...formData, description: (e.target as HTMLTextAreaElement).value })}
-            rows={3}
-          />
-
-          <div class="grid grid-cols-3 gap-4">
-            <Input
-              label="Price"
-              type="number"
-              value={formData.price.toString()}
-              onInput={(e) => setFormData({ ...formData, price: parseFloat((e.target as HTMLInputElement).value) || 0 })}
-              required
-            />
-
-            <Input
-              label="Cost"
-              type="number"
-              value={formData.cost.toString()}
-              onInput={(e) => setFormData({ ...formData, cost: parseFloat((e.target as HTMLInputElement).value) || 0 })}
-              required
-            />
-
-            <Input
-              label="Stock"
-              type="number"
-              value={formData.stock.toString()}
-              onInput={(e) => setFormData({ ...formData, stock: parseInt((e.target as HTMLInputElement).value) || 0 })}
-              required
-            />
-          </div>
-
-          <div class="grid grid-cols-2 gap-4">
             <div>
-              <Input
-                label="Barcode"
-                value={formData.barcode}
-                onInput={(e) => setFormData({ ...formData, barcode: (e.target as HTMLInputElement).value })}
-                placeholder="Optional"
+              <label class="block text-sm font-semibold text-gray-800 mb-3 drop-shadow-sm">
+                📝 Description
+              </label>
+              <Textarea
+                value={formData.description}
+                onInput={(e) => setFormData({ ...formData, description: (e.target as HTMLTextAreaElement).value })}
+                rows={3}
+                class="bg-white/80 text-gray-900"
+                placeholder="Enter product description"
               />
             </div>
 
-            <Select
-              label="Status"
-              value={formData.isActive ? "active" : "inactive"}
-              onChange={(e) => setFormData({ ...formData, isActive: (e.target as HTMLSelectElement).value === "active" })}
-              options={[
-                { value: "active", label: "Active" },
-                { value: "inactive", label: "Inactive" }
-              ]}
-            />
-          </div>
-        </form>
+            <div class="grid grid-cols-3 gap-4">
+              <div>
+                <label class="block text-sm font-semibold text-gray-800 mb-3 drop-shadow-sm">
+                  💰 Price
+                </label>
+                <Input
+                  type="number"
+                  value={formData.price.toString()}
+                  onInput={(e) => setFormData({ ...formData, price: parseFloat((e.target as HTMLInputElement).value) || 0 })}
+                  required
+                  class="bg-white/80 text-gray-900"
+                  placeholder="0.00"
+                />
+              </div>
+
+              <div>
+                <label class="block text-sm font-semibold text-gray-800 mb-3 drop-shadow-sm">
+                  🏭 Cost
+                </label>
+                <Input
+                  type="number"
+                  value={formData.cost.toString()}
+                  onInput={(e) => setFormData({ ...formData, cost: parseFloat((e.target as HTMLInputElement).value) || 0 })}
+                  required
+                  class="bg-white/80 text-gray-900"
+                  placeholder="0.00"
+                />
+              </div>
+
+              <div>
+                <label class="block text-sm font-semibold text-gray-800 mb-3 drop-shadow-sm">
+                  📊 Stock
+                </label>
+                <Input
+                  type="number"
+                  value={formData.stock.toString()}
+                  onInput={(e) => setFormData({ ...formData, stock: parseInt((e.target as HTMLInputElement).value) || 0 })}
+                  required
+                  class="bg-white/80 text-gray-900"
+                  placeholder="0"
+                />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-6">
+              <div>
+                <label class="block text-sm font-semibold text-gray-800 mb-3 drop-shadow-sm">
+                  📊 Barcode (Optional)
+                </label>
+                <Input
+                  value={formData.barcode}
+                  onInput={(e) => setFormData({ ...formData, barcode: (e.target as HTMLInputElement).value })}
+                  placeholder="Enter barcode"
+                  class="bg-white/80 text-gray-900"
+                />
+              </div>
+
+              <div>
+                <label class="block text-sm font-semibold text-gray-800 mb-3 drop-shadow-sm">
+                  ✅ Status
+                </label>
+                <Select
+                  value={formData.isActive ? "active" : "inactive"}
+                  onChange={(e) => setFormData({ ...formData, isActive: (e.target as HTMLSelectElement).value === "active" })}
+                  options={[
+                    { value: "active", label: "✅ Active - Available for sale" },
+                    { value: "inactive", label: "⛔ Inactive - Hidden from sales" }
+                  ]}
+                  class="bg-white/80"
+                />
+              </div>
+            </div>
+
+            {/* Profit Margin Preview */}
+            {formData.price > 0 && formData.cost > 0 && (
+              <div class="backdrop-blur-md bg-emerald-100/60 rounded-xl p-4 border border-emerald-200/50 shadow-md">
+                <div class="flex justify-between items-center">
+                  <span class="font-semibold text-emerald-800">Profit Margin:</span>
+                  <span class="text-xl font-bold text-emerald-600">
+                    {((formData.price - formData.cost) / formData.cost * 100).toFixed(1)}%
+                  </span>
+                </div>
+                <div class="text-sm text-emerald-700 mt-1">
+                  Profit: ${(formData.price - formData.cost).toFixed(2)} per unit
+                </div>
+              </div>
+            )}
+          </form>
+        </div>
       </DialogBody>
 
       <DialogFooter>
@@ -298,15 +360,37 @@ export default function Products() {
   };
 
   const getStockColor = (stock: number) => {
-    if (stock === 0) return "text-red-600";
-    if (stock < 10) return "text-yellow-600";
-    return "text-green-600";
+    if (stock === 0) return "bg-gradient-to-r from-red-100 to-red-200 text-red-800 border border-red-300";
+    if (stock < 10) return "bg-gradient-to-r from-yellow-100 to-yellow-200 text-yellow-800 border border-yellow-300";
+    return "bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300";
   };
 
   const getStatusColor = (isActive: boolean) => {
     return isActive
-      ? "bg-green-100 text-green-800"
-      : "bg-gray-100 text-gray-800";
+      ? "bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300 shadow-sm"
+      : "bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-300 shadow-sm";
+  };
+
+  const getStockIcon = (stock: number) => {
+    if (stock === 0) return "❌";
+    if (stock < 10) return "⚠️";
+    return "✅";
+  };
+
+  const getCategoryIcon = (category: string) => {
+    const icons: {[key: string]: string} = {
+      "Beverages": "🥤",
+      "Bakery": "🍞",
+      "Coffee & Tea": "☕",
+      "Dairy": "🥛",
+      "Snacks": "🍫",
+      "Seafood": "🐟",
+      "Frozen Foods": "🧊",
+      "Fresh Produce": "🍎",
+      "Household Items": "🧽",
+      "Personal Care": "🧴"
+    };
+    return icons[category] || "📦";
   };
 
   const formatCurrency = (amount: number) => {
@@ -315,24 +399,30 @@ export default function Products() {
 
   if (!canManageProducts) {
     return (
-      <div class="rounded-lg shadow p-6">
-        <div class="text-center py-8">
-          <div class="text-4xl mb-4">🔒</div>
-          <h3 class="text-lg font-semibold text-gray-900 mb-2">Access Denied</h3>
-          <p class="text-gray-600">You don't have permission to view the products page.</p>
+      <Container size="xl">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-12">
+          <div class="text-center">
+            <div class="text-6xl mb-6 drop-shadow-lg">🔒</div>
+            <h3 class="text-2xl font-bold text-gray-900 mb-3">Access Denied</h3>
+            <p class="text-gray-600 max-w-md mx-auto">
+              You don't have permission to view the products page. Contact your administrator for access.
+            </p>
+          </div>
         </div>
-      </div>
+      </Container>
     );
   }
 
   if (isLoading) {
     return (
-      <div class="rounded-lg shadow p-6">
-        <div class="text-center py-8">
-          <div class="w-8 h-8 bg-blue-600 rounded-full animate-spin border-2 border-transparent border-t-white mx-auto mb-4"></div>
-          <p class="text-gray-600">Loading products...</p>
+      <Container size="xl">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-12">
+          <div class="text-center">
+            <div class="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full animate-spin border-4 border-transparent border-t-white mx-auto mb-6 shadow-lg"></div>
+            <p class="text-gray-600 text-lg">Loading products catalog...</p>
+          </div>
         </div>
-      </div>
+      </Container>
     );
   }
 
@@ -348,74 +438,110 @@ export default function Products() {
         </div>
         {(hasPermission("products.create") || hasRole("admin") || hasRole("manager")) && (
           <Button onClick={handleCreateProduct}>
-            <span class="mr-2">📦</span>
+            <span class="mr-2">➕</span>
             Add Product
           </Button>
         )}
       </div>
 
-      <div class="mb-6">
+      <div class="mb-6 relative">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <span class="text-gray-400 text-lg">🔍</span>
+        </div>
         <Input
           type="search"
           placeholder="Search products by name, description, category, or barcode..."
           value={searchQuery}
           onInput={(e) => handleSearch((e.target as HTMLInputElement).value)}
-          class="w-full"
+          class="w-full bg-white text-gray-900 placeholder-gray-500 pl-10 pr-4"
         />
+        {searchQuery && (
+          <button
+            onClick={() => handleSearch("")}
+            class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+          >
+            <span class="text-lg">❌</span>
+          </button>
+        )}
       </div>
 
       {error && (
-        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
-          {error}
+        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6 backdrop-blur-sm">
+          <div class="flex items-center">
+            <span class="text-red-500 mr-2">⚠️</span>
+            {error}
+          </div>
         </div>
       )}
 
-      <Table striped>
-        <TableHead>
-          <TableRow>
-            <TableHeader>Product</TableHeader>
-            <TableHeader>Category</TableHeader>
-            <TableHeader>Price</TableHeader>
-            <TableHeader>Cost</TableHeader>
-            <TableHeader>Stock</TableHeader>
-            <TableHeader>Status</TableHeader>
-            <TableHeader>Actions</TableHeader>
-          </TableRow>
-        </TableHead>
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <Table>
+          <TableHead>
+            <TableRow class="bg-gray-50">
+              <TableHeader class="font-semibold text-gray-900">Product</TableHeader>
+              <TableHeader class="font-semibold text-gray-900">Category</TableHeader>
+              <TableHeader class="font-semibold text-gray-900">Price</TableHeader>
+              <TableHeader class="font-semibold text-gray-900">Cost</TableHeader>
+              <TableHeader class="font-semibold text-gray-900">Stock</TableHeader>
+              <TableHeader class="font-semibold text-gray-900">Status</TableHeader>
+              <TableHeader class="font-semibold text-gray-900">Actions</TableHeader>
+            </TableRow>
+          </TableHead>
         <TableBody>
-          {products.map((product) => (
-            <TableRow key={product.id}>
+          {products.map((product, index) => (
+            <TableRow 
+              key={product.id} 
+              class="hover:bg-gray-50 transition-all duration-200 hover:shadow-sm"
+              style={`animation-delay: ${index * 50}ms`}
+            >
               <TableCell>
-                <div>
-                  <div class="font-medium text-gray-900">{product.name}</div>
-                  {product.description && (
-                    <div class="text-sm text-gray-600 truncate max-w-xs">{product.description}</div>
-                  )}
-                  {product.barcode && (
-                    <div class="text-xs text-gray-500">Barcode: {product.barcode}</div>
-                  )}
+                <div class="flex items-start">
+                  <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center text-white text-lg font-bold mr-3 shadow-md">
+                    {getCategoryIcon(product.category)}
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <div class="font-semibold text-gray-900 truncate">{product.name}</div>
+                    {product.description && (
+                      <div class="text-sm text-gray-600 truncate max-w-xs mt-1">{product.description}</div>
+                    )}
+                    {product.barcode && (
+                      <div class="text-xs text-gray-500 mt-1 font-mono bg-gray-100 px-2 py-1 rounded w-fit">
+                        📊 {product.barcode}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </TableCell>
               <TableCell>
-                <span class="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                <div class="inline-flex items-center px-3 py-2 rounded-full text-xs font-semibold bg-gradient-to-r from-blue-100 to-indigo-200 text-blue-800 border border-blue-300 shadow-sm">
+                  <span class="mr-1">{getCategoryIcon(product.category)}</span>
                   {product.category}
-                </span>
-              </TableCell>
-              <TableCell class="font-medium text-gray-900">
-                {formatCurrency(product.price)}
-              </TableCell>
-              <TableCell class="text-gray-600">
-                {formatCurrency(product.cost)}
+                </div>
               </TableCell>
               <TableCell>
-                <span class={`font-medium ${getStockColor(product.stock)}`}>
-                  {product.stock}
-                </span>
+                <div class="text-lg font-bold text-emerald-600 drop-shadow-sm">
+                  {formatCurrency(product.price)}
+                </div>
               </TableCell>
               <TableCell>
-                <span class={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(product.isActive)}`}>
+                <div class="text-gray-600 font-medium">
+                  {formatCurrency(product.cost)}
+                </div>
+                <div class="text-xs text-gray-500">
+                  Margin: {((product.price - product.cost) / product.cost * 100).toFixed(1)}%
+                </div>
+              </TableCell>
+              <TableCell>
+                <div class={`inline-flex items-center px-3 py-2 rounded-full text-xs font-semibold transition-all hover:scale-105 ${getStockColor(product.stock)} shadow-sm`}>
+                  <span class="mr-1">{getStockIcon(product.stock)}</span>
+                  {product.stock} units
+                </div>
+              </TableCell>
+              <TableCell>
+                <div class={`inline-flex items-center px-3 py-2 rounded-full text-xs font-semibold uppercase tracking-wide ${getStatusColor(product.isActive)} transition-all hover:scale-105`}>
+                  <span class="mr-1">{product.isActive ? "✅" : "⛔"}</span>
                   {product.isActive ? "Active" : "Inactive"}
-                </span>
+                </div>
               </TableCell>
               <TableCell>
                 <div class="flex space-x-2">
@@ -424,17 +550,19 @@ export default function Products() {
                       size="sm"
                       variant="outline"
                       onClick={() => handleEditProduct(product)}
+                      class="text-blue-600 border-blue-200 hover:bg-blue-50 hover:border-blue-300 transition-all hover:shadow-md mr-2"
                     >
-                      Edit
+                      ✏️ Edit
                     </Button>
                   )}
                   {(hasPermission("products.delete") || hasRole("admin") || hasRole("manager")) && (
                     <Button
                       size="sm"
-                      variant="danger"
+                      variant="outline"
                       onClick={() => setDeleteConfirm(product.id)}
+                      class="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 transition-all hover:shadow-md"
                     >
-                      Delete
+                      🗑️ Delete
                     </Button>
                   )}
                 </div>
@@ -442,13 +570,31 @@ export default function Products() {
             </TableRow>
           ))}
         </TableBody>
-      </Table>
+        </Table>
+      </div>
 
       {products.length === 0 && (
-        <div class="text-center py-8">
-          <div class="text-4xl mb-4">📦</div>
-          <h3 class="text-lg font-semibold text-gray-900 mb-2">No products found</h3>
-          <p class="text-gray-600">Get started by adding your first product.</p>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-12">
+          <div class="text-center">
+            <div class="text-6xl mb-6">
+              {searchQuery ? "🔍" : "📦"}
+            </div>
+            <h3 class="text-2xl font-bold text-gray-900 mb-3">
+              {searchQuery ? "No products found" : "No products in catalog"}
+            </h3>
+            <p class="text-gray-600 mb-6 max-w-md mx-auto">
+              {searchQuery 
+                ? `We couldn't find any products matching "${searchQuery}". Try adjusting your search terms.`
+                : "Your product catalog is empty. Add your first product to get started with inventory management."
+              }
+            </p>
+            {!searchQuery && (hasPermission("products.create") || hasRole("admin") || hasRole("manager")) && (
+              <Button onClick={handleCreateProduct} class="mt-4">
+                <span class="mr-2">➕</span>
+                Add First Product
+              </Button>
+            )}
+          </div>
         </div>
       )}
 
