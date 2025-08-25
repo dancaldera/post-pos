@@ -197,59 +197,45 @@ export default function Customers() {
         <DialogBody>
           <form class="space-y-4">
             <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                  First Name *
-                </label>
-                <Input
-                  value={formData.firstName}
-                  onInput={(e) => setFormData({ ...formData, firstName: (e.target as HTMLInputElement).value })}
-                  required
-                />
-              </div>
 
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                  Last Name *
-                </label>
-                <Input
-                  value={formData.lastName}
-                  onInput={(e) => setFormData({ ...formData, lastName: (e.target as HTMLInputElement).value })}
-                  required
-                />
-              </div>
+              <Input
+                label="First Name"
+                value={formData.firstName}
+                onInput={(e) => setFormData({ ...formData, firstName: (e.target as HTMLInputElement).value })}
+                required
+              />
+
+              <Input
+                label="Last Name"
+                value={formData.lastName}
+                onInput={(e) => setFormData({ ...formData, lastName: (e.target as HTMLInputElement).value })}
+                required
+              />
+
             </div>
 
             <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                  Email *
-                </label>
-                <Input
-                  type="email"
-                  value={formData.email}
-                  onInput={(e) => setFormData({ ...formData, email: (e.target as HTMLInputElement).value })}
-                  required
-                />
-              </div>
+              <Input
+                label="Email"
+                type="email"
+                value={formData.email}
+                onInput={(e) => setFormData({ ...formData, email: (e.target as HTMLInputElement).value })}
+                required
+              />
 
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                  Phone *
-                </label>
-                <Input
-                  value={formData.phone}
-                  onInput={(e) => setFormData({ ...formData, phone: (e.target as HTMLInputElement).value })}
-                  required
-                />
-              </div>
+
+              <Input
+                label="Phone"
+                type="tel"
+                value={formData.phone}
+                onInput={(e) => setFormData({ ...formData, phone: (e.target as HTMLInputElement).value })}
+                required
+              />
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                Address
-              </label>
               <Input
+                label="Address"
                 value={formData.address}
                 onInput={(e) => setFormData({ ...formData, address: (e.target as HTMLInputElement).value })}
                 placeholder="Street address"
@@ -257,38 +243,27 @@ export default function Customers() {
             </div>
 
             <div class="grid grid-cols-3 gap-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                  City
-                </label>
-                <Input
-                  value={formData.city}
-                  onInput={(e) => setFormData({ ...formData, city: (e.target as HTMLInputElement).value })}
-                  placeholder="City"
-                />
-              </div>
+              <Input
+                label="City"
+                value={formData.city}
+                onInput={(e) => setFormData({ ...formData, city: (e.target as HTMLInputElement).value })}
+                placeholder="City"
+              />
 
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                  State
-                </label>
-                <Input
-                  value={formData.state}
-                  onInput={(e) => setFormData({ ...formData, state: (e.target as HTMLInputElement).value })}
-                  placeholder="State"
-                />
-              </div>
+              <Input
+                label="State"
+                value={formData.state}
+                onInput={(e) => setFormData({ ...formData, state: (e.target as HTMLInputElement).value })}
+                placeholder="State"
+              />
 
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                  ZIP Code
-                </label>
-                <Input
-                  value={formData.zipCode}
-                  onInput={(e) => setFormData({ ...formData, zipCode: (e.target as HTMLInputElement).value })}
-                  placeholder="ZIP"
-                />
-              </div>
+              <Input
+                label="ZIP"
+                value={formData.zipCode}
+                onInput={(e) => setFormData({ ...formData, zipCode: (e.target as HTMLInputElement).value })}
+                placeholder="ZIP"
+              />
+
             </div>
           </form>
         </DialogBody>
