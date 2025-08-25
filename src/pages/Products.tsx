@@ -1,6 +1,6 @@
 import { useState, useEffect } from "preact/hooks";
 import { Button, Input, Select, Textarea, Dialog, DialogBody, DialogFooter, DialogConfirm, Container, Table, TableHead, TableBody, TableRow, TableHeader, TableCell } from "../components/ui";
-import { Product, productService, PRODUCT_CATEGORIES } from "../services/products";
+import { Product, productService, PRODUCT_CATEGORIES } from "../services/products-sqlite";
 import { useAuth } from "../hooks/useAuth";
 
 interface EditProductModalProps {
@@ -208,11 +208,13 @@ function EditProductModal({ product, isOpen, onClose, onSave }: EditProductModal
 
 export default function Products() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const { user: currentUser, hasRole, hasPermission } = useAuth();
 
@@ -235,11 +237,27 @@ export default function Products() {
 
     try {
       const productsList = await productService.getProducts();
+      setAllProducts(productsList);
       setProducts(productsList);
     } catch (err: any) {
       setError(err.message || "Failed to load products");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleSearch = async (query: string) => {
+    setSearchQuery(query);
+    if (query.trim() === "") {
+      setProducts(allProducts);
+      return;
+    }
+
+    try {
+      const searchResults = await productService.searchProducts(query);
+      setProducts(searchResults);
+    } catch (err) {
+      setError("Search failed");
     }
   };
 
@@ -257,6 +275,7 @@ export default function Products() {
     try {
       const result = await productService.deleteProduct(productId);
       if (result.success) {
+        setAllProducts(allProducts.filter(p => p.id !== productId));
         setProducts(products.filter(p => p.id !== productId));
         setDeleteConfirm(null);
       } else {
@@ -269,8 +288,11 @@ export default function Products() {
 
   const handleSaveProduct = (savedProduct: Product) => {
     if (editingProduct) {
+      const updatedProducts = allProducts.map(p => p.id === savedProduct.id ? savedProduct : p);
+      setAllProducts(updatedProducts);
       setProducts(products.map(p => p.id === savedProduct.id ? savedProduct : p));
     } else {
+      setAllProducts([...allProducts, savedProduct]);
       setProducts([...products, savedProduct]);
     }
   };
@@ -318,6 +340,11 @@ export default function Products() {
     <Container size="xl">
       <div class="flex justify-between items-center mb-6">
         <div>
+          <h1 class="text-2xl font-bold text-gray-900 mb-2">Products</h1>
+          <p class="text-gray-600">
+            {allProducts.length} {allProducts.length === 1 ? 'product' : 'products'} total
+            {searchQuery && ` • ${products.length} found`}
+          </p>
         </div>
         {(hasPermission("products.create") || hasRole("admin") || hasRole("manager")) && (
           <Button onClick={handleCreateProduct}>
@@ -325,6 +352,16 @@ export default function Products() {
             Add Product
           </Button>
         )}
+      </div>
+
+      <div class="mb-6">
+        <Input
+          type="search"
+          placeholder="Search products by name, description, category, or barcode..."
+          value={searchQuery}
+          onInput={(e) => handleSearch((e.target as HTMLInputElement).value)}
+          class="w-full"
+        />
       </div>
 
       {error && (
