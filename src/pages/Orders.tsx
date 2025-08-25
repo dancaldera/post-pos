@@ -155,8 +155,6 @@ export default function Orders() {
     <Container size="xl">
       <div class="flex justify-between items-center mb-6">
         <div>
-          <Heading level={3}>Orders Management</Heading>
-          <Text>Manage your orders and transactions</Text>
         </div>
         <Button onClick={() => setIsCreateModalOpen(true)}>
           <span class="mr-2">➕</span>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "preact/hooks";
 import { dashboardService } from "../services/dashboard";
-import { Container, Heading, Text } from "../components/ui";
+import { Container } from "../components/ui";
 
 export default function Dashboard() {
   const [stats, setStats] = useState({
@@ -68,11 +68,6 @@ export default function Dashboard() {
 
   return (
     <Container size="xl">
-      <div class="mb-6">
-        <Heading level={3}>Dashboard</Heading>
-        <Text>Overview of your store performance</Text>
-      </div>
-
       {error && (
         <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
           {error}

@@ -110,24 +110,12 @@ export default function Layout({ children, currentPage, onNavigate }: LayoutProp
                 {menuItems.find((item) => item.id === currentPage)?.label}
               </Heading>
               <Text>
-                Welcome to your POS dashboard
+                {menuItems.find((item) => item.id === currentPage)?.description}
               </Text>
             </div>
             
             {/* Header right section with notifications and user profile */}
             <div class="flex items-center space-x-4">
-              {/* 
-                Notification bell with badge indicator
-                Shows 3 unread notifications (hardcoded for demo)
-                Hover effects for better user interaction
-              */}
-              <button class="relative p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full">
-                <span class="text-xl">🔔</span>
-                <span class="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">
-                  3
-                </span>
-              </button>
-              
               {/* 
                 User profile dropdown component
                 Contains user avatar, name, email, and dropdown menu

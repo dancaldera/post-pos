@@ -98,8 +98,6 @@ export default function Customers() {
     <Container size="xl">
       <div class="flex justify-between items-center mb-6">
         <div>
-          <Heading level={3}>Customer Management</Heading>
-          <Text>Manage your customer database and relationships</Text>
         </div>
         <Button onClick={() => setIsDialogOpen(true)}>
           Add Customer

@@ -318,8 +318,6 @@ export default function Products() {
     <Container size="xl">
       <div class="flex justify-between items-center mb-6">
         <div>
-          <h3 class="text-lg font-semibold">Products</h3>
-          <p class="text-gray-600">Manage your product catalog and inventory</p>
         </div>
         {(hasPermission("products.create") || hasRole("admin") || hasRole("manager")) && (
           <Button onClick={handleCreateProduct}>
