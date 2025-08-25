@@ -1,4 +1,4 @@
-import { useState } from "preact/hooks";
+import { useState, useEffect } from "preact/hooks";
 import Layout from "./components/Layout";
 import Dashboard from "./pages/Dashboard";
 import Sales from "./pages/Sales";
@@ -8,14 +8,40 @@ import Customers from "./pages/Customers";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import ComponentShowcase from "./pages/ComponentShowcase";
+import SignIn from "./pages/SignIn";
+import { useAuth } from "./hooks/useAuth";
+import { authActions } from "./stores/auth/authActions";
 import "./App.css"
 
 function App() {
   const [currentPage, setCurrentPage] = useState("dashboard");
+  const { isAuthenticated, isLoading, signIn } = useAuth();
+
+  // Initialize auth on app start
+  useEffect(() => {
+    authActions.initializeAuth();
+  }, []);
 
   const handleNavigate = (page: string) => {
     setCurrentPage(page);
   };
+
+  // Show loading spinner while checking authentication
+  if (isLoading) {
+    return (
+      <div class="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div class="text-center">
+          <div class="w-8 h-8 bg-blue-600 rounded-full animate-spin border-2 border-transparent border-t-white mx-auto mb-4"></div>
+          <p class="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show SignIn page if not authenticated
+  if (!isAuthenticated) {
+    return <SignIn onSignIn={signIn} />;
+  }
 
   const renderPage = () => {
     switch (currentPage) {

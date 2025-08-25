@@ -1,5 +1,6 @@
 import { useState } from "preact/hooks";
 import Sidebar, { SidebarNav, SidebarItem, SidebarGroup } from "./ui/Sidebar";
+import { useAuth } from "../hooks/useAuth";
 
 interface LayoutProps {
   children: any;
@@ -9,6 +10,7 @@ interface LayoutProps {
 
 export default function Layout({ children, currentPage, onNavigate }: LayoutProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const { user, signOut } = useAuth();
 
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: "📊" },
@@ -72,8 +74,8 @@ export default function Layout({ children, currentPage, onNavigate }: LayoutProp
                     A
                   </div>
                   <div class="flex flex-col items-start">
-                    <span class="font-medium">Admin User</span>
-                    <span class="text-xs text-gray-500">admin@postpos.com</span>
+                    <span class="font-medium">{user?.name || "User"}</span>
+                    <span class="text-xs text-gray-500">{user?.email}</span>
                   </div>
                   <span class={`text-gray-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}>▼</span>
                 </button>
@@ -82,8 +84,9 @@ export default function Layout({ children, currentPage, onNavigate }: LayoutProp
                   <div class="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
                     <div class="py-2">
                       <div class="px-4 py-3 border-b border-gray-100">
-                        <p class="text-sm font-medium text-gray-900">Admin User</p>
-                        <p class="text-sm text-gray-500">admin@postpos.com</p>
+                        <p class="text-sm font-medium text-gray-900">{user?.name}</p>
+                        <p class="text-sm text-gray-500">{user?.email}</p>
+                        <p class="text-xs text-blue-600 capitalize">{user?.role}</p>
                       </div>
                       
                       <button 
@@ -108,7 +111,13 @@ export default function Layout({ children, currentPage, onNavigate }: LayoutProp
                       </button>
                       
                       <div class="border-t border-gray-100 mt-2 pt-2">
-                        <button class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2">
+                        <button 
+                          onClick={() => {
+                            signOut();
+                            setIsDropdownOpen(false);
+                          }}
+                          class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
+                        >
                           <span>🚪</span>
                           <span>Sign Out</span>
                         </button>
