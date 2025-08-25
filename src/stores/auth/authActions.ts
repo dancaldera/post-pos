@@ -1,4 +1,4 @@
-import { user, isLoading, error, token } from './authStore';
+import { user, isLoading, error } from './authStore';
 import { authService, User } from '../../services/auth';
 
 export const authActions = {
@@ -12,20 +12,17 @@ export const authActions = {
       
       if (result.success && result.user) {
         user.value = result.user;
-        token.value = 'mock-token-' + result.user.id; // Mock token for now
         error.value = null;
         return result;
       } else {
         error.value = result.error || 'Sign in failed';
         user.value = null;
-        token.value = null;
         return result;
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Sign in failed';
       error.value = errorMessage;
       user.value = null;
-      token.value = null;
       throw err;
     } finally {
       isLoading.value = false;
@@ -35,7 +32,6 @@ export const authActions = {
   // Logout action
   signOut() {
     user.value = null;
-    token.value = null;
     error.value = null;
     authService.signOut();
   },
@@ -46,17 +42,10 @@ export const authActions = {
     
     try {
       const currentUser = authService.getCurrentUser();
-      if (currentUser) {
-        user.value = currentUser;
-        // Token should already be set from localStorage via the store
-      } else {
-        user.value = null;
-        token.value = null;
-      }
+      user.value = currentUser;
       error.value = null;
     } catch (err) {
       user.value = null;
-      token.value = null;
       error.value = err instanceof Error ? err.message : 'Auth initialization failed';
     } finally {
       isLoading.value = false;
@@ -68,13 +57,19 @@ export const authActions = {
     error.value = null;
   },
 
-  // Check permissions
+  // Check permissions - use store user directly
   hasPermission(permission: string): boolean {
-    return authService.hasPermission(permission);
+    const currentUser = user.value;
+    if (!currentUser) return false;
+    
+    // Admin has all permissions
+    if (currentUser.permissions.includes("*")) return true;
+    
+    return currentUser.permissions.includes(permission);
   },
 
-  // Check role
+  // Check role - use store user directly
   hasRole(role: User["role"]): boolean {
-    return authService.hasRole(role);
+    return user.value?.role === role;
   },
 };

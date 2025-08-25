@@ -1,4 +1,4 @@
-import { user, isLoading, error, isAuthenticated, isAdmin, isManager } from '../stores/auth/authStore';
+import { user, isLoading, error, isAuthenticated, isAdmin, isManager, isUser } from '../stores/auth/authStore';
 import { authActions } from '../stores/auth/authActions';
 import { User } from '../services/auth';
 
@@ -9,6 +9,7 @@ interface UseAuthReturn {
   error: string | null;
   isAdmin: boolean;
   isManager: boolean;
+  isUser: boolean;
   signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signOut: () => void;
   hasPermission: (permission: string) => boolean;
@@ -18,13 +19,14 @@ interface UseAuthReturn {
 
 export function useAuth(): UseAuthReturn {
   return {
-    // State from signals
+    // State from signals (reactive)
     user: user.value,
     isAuthenticated: isAuthenticated.value,
     isLoading: isLoading.value,
     error: error.value,
     isAdmin: isAdmin.value,
     isManager: isManager.value,
+    isUser: isUser.value,
     
     // Actions
     signIn: authActions.signIn,

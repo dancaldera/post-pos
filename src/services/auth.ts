@@ -51,8 +51,8 @@ const mockUsers: (User & { password: string })[] = [
   },
   {
     id: "3",
-    email: "cashier@postpos.com",
-    password: "cashier123",
+    email: "user@postpos.com",
+    password: "user123",
     name: "John Cashier",
     role: "user",
     permissions: [...DEFAULT_PERMISSIONS.user],

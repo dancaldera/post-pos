@@ -175,8 +175,6 @@ export default function Members() {
   
   const { user: currentUser, hasRole, hasPermission } = useAuth();
 
-  console.log("Has Admin Role: ", hasRole("admin"));
-  console.log("Has manager Role: ", hasRole("manager"));
 
   const canManageUsers = currentUser && (
     hasRole("admin") || 
