@@ -1,5 +1,5 @@
 import { useState } from "preact/hooks";
-import Sidebar from "./Sidebar";
+import Sidebar, { SidebarNav, SidebarItem, SidebarGroup } from "./ui/Sidebar";
 
 interface LayoutProps {
   children: any;
@@ -10,9 +10,37 @@ interface LayoutProps {
 export default function Layout({ children, currentPage, onNavigate }: LayoutProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
+  const menuItems = [
+    { id: "dashboard", label: "Dashboard", icon: "📊" },
+    { id: "sales", label: "Sales", icon: "💰" },
+    { id: "products", label: "Products", icon: "📦" },
+    { id: "inventory", label: "Inventory", icon: "📋" },
+    { id: "customers", label: "Customers", icon: "👥" },
+    { id: "reports", label: "Reports", icon: "📈" },
+    { id: "settings", label: "Settings", icon: "⚙️" },
+  ];
+
   return (
     <div class="flex h-screen bg-gray-100">
-      <Sidebar currentPage={currentPage} onNavigate={onNavigate} />
+      <Sidebar width="md" backgroundColor="dark" collapsible defaultCollapsed={false}>
+        {({ isCollapsed }: { isCollapsed: boolean }) => (
+          <SidebarNav>
+            <SidebarGroup title="Navigation" isCollapsed={isCollapsed}>
+              {menuItems.map((item) => (
+                <SidebarItem 
+                  key={item.id}
+                  item={{ 
+                    ...item,
+                    active: currentPage === item.id,
+                    onClick: () => onNavigate(item.id)
+                  }}
+                  isCollapsed={isCollapsed}
+                />
+              ))}
+            </SidebarGroup>
+          </SidebarNav>
+        )}
+      </Sidebar>
       
       <div class="flex-1 flex flex-col overflow-hidden">
         {/* Header */}

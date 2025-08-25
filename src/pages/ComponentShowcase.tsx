@@ -1,5 +1,19 @@
 import { useState } from "preact/hooks";
-import { Button, Input, Heading, Text } from "../components/ui";
+import { 
+  Button, 
+  Input, 
+  Heading, 
+  Text, 
+  Container, 
+  Form, 
+  FormField, 
+  FormGroup, 
+  FormActions,
+  Sidebar,
+  SidebarNav,
+  SidebarItem,
+  SidebarGroup
+} from "../components/ui";
 
 export default function ComponentShowcase() {
   const [inputValue, setInputValue] = useState("");
@@ -255,39 +269,267 @@ export default function ComponentShowcase() {
         </div>
       </div>
 
-      {/* Interactive Examples */}
+      {/* Container Showcase */}
       <div class="bg-white rounded-lg shadow p-6">
-        <h4 class="text-md font-medium mb-4">Interactive Examples</h4>
+        <Heading level={2}>Container Component</Heading>
         
-        <div class="space-y-4">
+        <div class="space-y-6 mt-6">
           <div>
-            <h5 class="text-sm font-medium text-gray-700 mb-3">Form Example</h5>
-            <form class="space-y-4 max-w-md">
-              <Input
-                label="First Name"
-                placeholder="Enter your first name"
-                required
-              />
-              <Input
-                label="Last Name"
-                placeholder="Enter your last name"
-                required
-              />
-              <Input
-                label="Email"
-                type="email"
-                placeholder="Enter your email"
-                required
-              />
-              <div class="flex gap-2">
-                <Button type="submit" variant="primary">
-                  Submit Form
-                </Button>
-                <Button type="button" variant="outline">
-                  Cancel
-                </Button>
+            <Text variant="caption" color="muted" class="mb-3">Different Container Sizes</Text>
+            <div class="space-y-4">
+              <div class="bg-gray-100 p-2">
+                <Container size="sm" class="bg-blue-50 border border-blue-200">
+                  <Text>Small Container (max-w-sm)</Text>
+                </Container>
               </div>
-            </form>
+              
+              <div class="bg-gray-100 p-2">
+                <Container size="md" class="bg-green-50 border border-green-200">
+                  <Text>Medium Container (max-w-md)</Text>
+                </Container>
+              </div>
+              
+              <div class="bg-gray-100 p-2">
+                <Container size="lg" class="bg-yellow-50 border border-yellow-200">
+                  <Text>Large Container (max-w-4xl) - Default size</Text>
+                </Container>
+              </div>
+              
+              <div class="bg-gray-100 p-2">
+                <Container size="xl" class="bg-purple-50 border border-purple-200">
+                  <Text>Extra Large Container (max-w-6xl)</Text>
+                </Container>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <Text variant="caption" color="muted" class="mb-3">Container with Different Padding</Text>
+            <div class="space-y-4">
+              <div class="bg-gray-100 p-2">
+                <Container size="md" padding="sm" class="bg-red-50 border border-red-200">
+                  <Text>Small Padding</Text>
+                </Container>
+              </div>
+              
+              <div class="bg-gray-100 p-2">
+                <Container size="md" padding="lg" class="bg-indigo-50 border border-indigo-200">
+                  <Text>Large Padding</Text>
+                </Container>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Form Components Showcase */}
+      <div class="bg-white rounded-lg shadow p-6">
+        <Heading level={2}>Form Components</Heading>
+        
+        <div class="space-y-8 mt-6">
+          <div>
+            <Text variant="caption" color="muted" class="mb-4">Basic Form with FormField</Text>
+            <Container size="md" padding="md" class="bg-gray-50 border border-gray-200">
+              <Form onSubmit={(e) => console.log("Form submitted!", e)}>
+                <FormField>
+                  <Input
+                    label="Username"
+                    placeholder="Enter your username"
+                    required
+                  />
+                </FormField>
+                
+                <FormField>
+                  <Input
+                    label="Password"
+                    type="password"
+                    placeholder="Enter your password"
+                    required
+                  />
+                </FormField>
+                
+                <FormActions>
+                  <Button type="button" variant="outline">
+                    Cancel
+                  </Button>
+                  <Button type="submit" variant="primary">
+                    Sign In
+                  </Button>
+                </FormActions>
+              </Form>
+            </Container>
+          </div>
+
+          <div>
+            <Text variant="caption" color="muted" class="mb-4">Advanced Form with FormGroup</Text>
+            <Container size="lg" padding="md" class="bg-gray-50 border border-gray-200">
+              <Form spacing="lg" onSubmit={(e) => console.log("Advanced form submitted!", e)}>
+                <FormGroup 
+                  title="Personal Information"
+                  description="Please provide your basic information"
+                >
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField>
+                      <Input
+                        label="First Name"
+                        placeholder="John"
+                        required
+                      />
+                    </FormField>
+                    
+                    <FormField>
+                      <Input
+                        label="Last Name"
+                        placeholder="Doe"
+                        required
+                      />
+                    </FormField>
+                  </div>
+                  
+                  <FormField>
+                    <Input
+                      label="Email Address"
+                      type="email"
+                      placeholder="john.doe@example.com"
+                      required
+                    />
+                  </FormField>
+                </FormGroup>
+
+                <FormGroup 
+                  title="Contact Details"
+                  description="How can we reach you?"
+                >
+                  <FormField>
+                    <Input
+                      label="Phone Number"
+                      type="tel"
+                      placeholder="+1 (555) 123-4567"
+                    />
+                  </FormField>
+                  
+                  <FormField>
+                    <Input
+                      label="Company"
+                      placeholder="Acme Corp"
+                    />
+                  </FormField>
+                </FormGroup>
+
+                <FormActions align="between">
+                  <Button type="button" variant="ghost">
+                    Save Draft
+                  </Button>
+                  
+                  <div class="flex gap-3">
+                    <Button type="button" variant="outline">
+                      Cancel
+                    </Button>
+                    <Button type="submit" variant="primary">
+                      Submit Application
+                    </Button>
+                  </div>
+                </FormActions>
+              </Form>
+            </Container>
+          </div>
+
+          <div>
+            <Text variant="caption" color="muted" class="mb-4">Form Actions Alignment Options</Text>
+            <div class="space-y-4">
+              <Container size="md" padding="sm" class="bg-gray-50 border border-gray-200">
+                <Text variant="small" color="muted" class="mb-2">Left Aligned</Text>
+                <FormActions align="left">
+                  <Button variant="primary" size="sm">Save</Button>
+                  <Button variant="outline" size="sm">Cancel</Button>
+                </FormActions>
+              </Container>
+
+              <Container size="md" padding="sm" class="bg-gray-50 border border-gray-200">
+                <Text variant="small" color="muted" class="mb-2">Center Aligned</Text>
+                <FormActions align="center">
+                  <Button variant="primary" size="sm">Save</Button>
+                  <Button variant="outline" size="sm">Cancel</Button>
+                </FormActions>
+              </Container>
+
+              <Container size="md" padding="sm" class="bg-gray-50 border border-gray-200">
+                <Text variant="small" color="muted" class="mb-2">Space Between</Text>
+                <FormActions align="between">
+                  <Button variant="ghost" size="sm">Reset</Button>
+                  <div class="flex gap-2">
+                    <Button variant="outline" size="sm">Cancel</Button>
+                    <Button variant="primary" size="sm">Save</Button>
+                  </div>
+                </FormActions>
+              </Container>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Sidebar Component Showcase */}
+      <div class="bg-white rounded-lg shadow p-6">
+        <Heading level={2}>Sidebar Component</Heading>
+        
+        <div class="space-y-8 mt-6">
+          <div>
+            <Text variant="caption" color="muted" class="mb-4">Interactive Sidebar with Navigation</Text>
+            <div class="h-96 flex border border-gray-200 rounded-lg overflow-hidden">
+              <Sidebar width="md" backgroundColor="dark" collapsible defaultCollapsed={false}>
+                <SidebarNav>
+                  {({ isCollapsed }: { isCollapsed: boolean }) => (
+                    <SidebarGroup title="Navigation" isCollapsed={isCollapsed}>
+                      <SidebarItem 
+                        item={{ 
+                          id: "dashboard", 
+                          label: "Dashboard", 
+                          icon: "📊",
+                          active: true,
+                          onClick: () => console.log("Dashboard clicked")
+                        }}
+                        isCollapsed={isCollapsed}
+                      />
+                      <SidebarItem 
+                        item={{ 
+                          id: "sales", 
+                          label: "Sales", 
+                          icon: "💰",
+                          onClick: () => console.log("Sales clicked")
+                        }}
+                        isCollapsed={isCollapsed}
+                      />
+                      <SidebarItem 
+                        item={{ 
+                          id: "products", 
+                          label: "Products", 
+                          icon: "📦",
+                          badge: "12",
+                          onClick: () => console.log("Products clicked")
+                        }}
+                        isCollapsed={isCollapsed}
+                      />
+                      <SidebarItem 
+                        item={{ 
+                          id: "settings", 
+                          label: "Settings", 
+                          icon: "⚙️",
+                          onClick: () => console.log("Settings clicked")
+                        }}
+                        isCollapsed={isCollapsed}
+                      />
+                    </SidebarGroup>
+                  )}
+                </SidebarNav>
+              </Sidebar>
+              
+              <div class="flex-1 p-6 bg-gray-50">
+                <Text variant="lead">Try the collapse button!</Text>
+                <Text color="muted" class="mt-2">
+                  Click the arrow button in the sidebar header to collapse/expand the sidebar.
+                </Text>
+              </div>
+            </div>
           </div>
         </div>
       </div>
