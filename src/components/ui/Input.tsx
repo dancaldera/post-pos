@@ -44,15 +44,15 @@ export default function Input({
   
   const baseClasses = clsx(
     // Base layout and glass effect
-    "relative w-full rounded-xl transition-all duration-200",
+    "relative w-full rounded-xl transition-colors duration-150",
     "backdrop-blur-md bg-white/10 border border-white/20",
-    // Focus and interaction states
-    "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-transparent",
-    "hover:bg-white/15 focus:bg-white/15",
+    // Interaction states (no visual click/focus effect)
+    "focus:outline-none",
+    "hover:bg-white/15",
     // Disabled state
     disabled ? "opacity-40 cursor-not-allowed" : "",
-    // Shadow for depth
-    "shadow-lg focus:shadow-xl"
+    // Shadow for depth (no change on focus)
+    "shadow-lg"
   );
   
   const sizes = {
@@ -63,12 +63,12 @@ export default function Input({
 
   const stateClasses = error
     ? clsx(
-        "border-red-400/50 focus:border-red-500/70 focus:ring-red-500/30",
-        "bg-red-50/10 focus:bg-red-50/15"
+        "border-red-400/50",
+        "bg-red-50/10"
       )
     : clsx(
-        "border-white/20 focus:border-blue-400/50 focus:ring-blue-500/30",
-        "hover:border-white/30 focus:border-blue-400/70"
+        "border-white/20",
+        "hover:border-white/30"
       );
 
   const classes = clsx(baseClasses, sizes[size], stateClasses, className);

@@ -1,4 +1,5 @@
 import Button from "./Button";
+import { useEffect, useState } from "preact/hooks";
 
 interface DialogProps {
   isOpen: boolean;
@@ -38,14 +39,14 @@ function clsx(...classes: (string | undefined | boolean)[]): string {
 
 function DialogHeader({ children, onClose }: DialogHeaderProps) {
   return (
-    <div class="flex items-center justify-between p-6 border-b border-gray-200">
+    <div class="flex items-center justify-between p-6 border-b-2 border-gray-300">
       <h3 class="text-lg font-semibold text-gray-800">
         {children}
       </h3>
       {onClose && (
         <button
           onClick={onClose}
-          class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+          class="p-2 text-gray-600 border border-gray-300 rounded-lg bg-white/40 backdrop-blur-sm hover:bg-white/60 hover:border-gray-400 hover:text-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
@@ -66,13 +67,24 @@ function DialogBody({ children }: DialogBodyProps) {
 
 function DialogFooter({ children }: DialogFooterProps) {
   return (
-    <div class="flex justify-end space-x-3 p-6 border-t border-gray-200">
+    <div class="flex justify-end space-x-3 p-6 border-t-2 border-gray-300">
       {children}
     </div>
   );
 }
 
 function Dialog({ isOpen, onClose, title, children, size = "md" }: DialogProps) {
+  // Keep the dialog mounted for close animation
+  const [shouldRender, setShouldRender] = useState(isOpen);
+
+  useEffect(() => {
+    if (isOpen) {
+      setShouldRender(true);
+      return;
+    }
+    const timeout = setTimeout(() => setShouldRender(false), 300);
+    return () => clearTimeout(timeout);
+  }, [isOpen]);
   const sizeClasses = {
     sm: "max-w-sm",
     md: "max-w-md", 
@@ -80,21 +92,23 @@ function Dialog({ isOpen, onClose, title, children, size = "md" }: DialogProps) 
     xl: "max-w-xl"
   };
 
-  if (!isOpen) return null;
+  if (!shouldRender) return null;
 
   return (
     <div 
       class={clsx(
         "fixed inset-0 flex items-center justify-center z-50 p-4",
-        "bg-black/50 backdrop-blur-sm transition-all duration-300 ease-out",
+        // Overlay with visible frame border and added transparency
+        "bg-black/40 backdrop-blur-sm transition-all duration-300 ease-out border-2 border-white/20",
         isOpen ? "opacity-100" : "opacity-0"
       )}
       onClick={onClose}
     >
       <div 
         class={clsx(
-          "w-full bg-white/80 backdrop-blur-xl border border-white/50 shadow-2xl",
-          "transition-all duration-300 ease-out transform",
+          // Dialog card with added transparency and refined border
+          "w-full bg-white/60 backdrop-blur-xl border-2 border-white/50 rounded-2xl shadow-2xl",
+          "transition-all duration-300 ease-out transform will-change-transform will-change-opacity",
           isOpen ? "scale-100 opacity-100" : "scale-95 opacity-0",
           sizeClasses[size]
         )}
@@ -126,7 +140,7 @@ function DialogConfirm({
   return (
     <Dialog isOpen={isOpen} onClose={onClose} title={title} size="sm">
       <DialogBody>
-        <div class="p-4 bg-gray-50 border border-gray-200">
+        <div class="p-4 bg-gray-50 border-2 border-gray-300 rounded-lg">
           <p class="text-gray-700 leading-relaxed">
             {message}
           </p>

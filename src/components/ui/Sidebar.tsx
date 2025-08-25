@@ -79,21 +79,17 @@ export default function Sidebar({
               <button
                 onClick={() => setIsCollapsed(!isCollapsed)}
                 class={clsx(
-                  "p-2.5 rounded-xl transition-all duration-300 ease-out group",
-                  "bg-white/10 hover:bg-white/25 backdrop-blur-sm",
+                  "p-2.5 rounded-xl transition-colors duration-200 ease-out group relative",
+                  "bg-white/10 hover:bg-white/20 backdrop-blur-sm",
                   "border border-white/20 hover:border-white/40",
-                  "text-white/80 hover:text-white drop-shadow-sm",
-                  "focus:outline-none focus:ring-2 focus:ring-blue-400/40",
-                  "hover:scale-110 hover:-translate-y-0.5 active:scale-95",
-                  "shadow-lg hover:shadow-xl",
-                  "before:absolute before:inset-0 before:rounded-xl before:bg-gradient-to-r before:from-blue-400/10 before:to-purple-400/10 before:opacity-0",
-                  "hover:before:opacity-100 before:transition-all before:duration-300"
+                  "text-white/80 hover:text-white",
+                  "focus:outline-none focus:ring-2 focus:ring-blue-400/40"
                 )}
               >
                 <svg 
                   class={clsx(
-                    "w-4 h-4 transition-all duration-300 ease-out relative z-10",
-                    "group-hover:scale-110 drop-shadow-sm",
+                    "w-4 h-4 transition-colors duration-200 ease-out relative z-10",
+                    "drop-shadow-sm",
                     isCollapsed && "rotate-180"
                   )}
                   fill="none" 
@@ -214,10 +210,9 @@ export function SidebarItem({
         )
       : clsx(
           "text-gray-300 hover:text-white",
-          "hover:bg-white/15 hover:backdrop-blur-sm hover:border-white/25",
+          "hover:bg-white/15 hover:border-white/25",
           "border border-transparent",
-          "hover:scale-[1.02] hover:-translate-y-0.5 active:scale-[0.98]",
-          "hover:shadow-lg"
+          "transition-colors duration-200 ease-out"
         ),
     primary: item.active
       ? clsx(
@@ -226,10 +221,9 @@ export function SidebarItem({
         )
       : clsx(
           "text-blue-300 hover:text-white",
-          "hover:bg-blue-500/25 hover:backdrop-blur-sm hover:border-blue-400/25",
+          "hover:bg-blue-500/20 hover:border-blue-400/25",
           "border border-transparent",
-          "hover:scale-[1.02] hover:-translate-y-0.5 active:scale-[0.98]",
-          "hover:shadow-lg hover:shadow-blue-500/20"
+          "transition-colors duration-200 ease-out"
         ),
     success: item.active
       ? clsx(
@@ -238,10 +232,9 @@ export function SidebarItem({
         )
       : clsx(
           "text-green-300 hover:text-white",
-          "hover:bg-green-500/25 hover:backdrop-blur-sm hover:border-green-400/25",
+          "hover:bg-green-500/20 hover:border-green-400/25",
           "border border-transparent",
-          "hover:scale-[1.02] hover:-translate-y-0.5 active:scale-[0.98]",
-          "hover:shadow-lg hover:shadow-green-500/20"
+          "transition-colors duration-200 ease-out"
         ),
     warning: item.active
       ? clsx(
@@ -250,10 +243,9 @@ export function SidebarItem({
         )
       : clsx(
           "text-yellow-300 hover:text-white",
-          "hover:bg-yellow-500/25 hover:backdrop-blur-sm hover:border-yellow-400/25",
+          "hover:bg-yellow-500/20 hover:border-yellow-400/25",
           "border border-transparent",
-          "hover:scale-[1.02] hover:-translate-y-0.5 active:scale-[0.98]",
-          "hover:shadow-lg hover:shadow-yellow-500/20"
+          "transition-colors duration-200 ease-out"
         ),
     danger: item.active
       ? clsx(
@@ -262,15 +254,14 @@ export function SidebarItem({
         )
       : clsx(
           "text-red-300 hover:text-white",
-          "hover:bg-red-500/25 hover:backdrop-blur-sm hover:border-red-400/25",
+          "hover:bg-red-500/20 hover:border-red-400/25",
           "border border-transparent",
-          "hover:scale-[1.02] hover:-translate-y-0.5 active:scale-[0.98]",
-          "hover:shadow-lg hover:shadow-red-500/20"
+          "transition-colors duration-200 ease-out"
         ),
   };
 
   const classes = clsx(
-    "w-full flex items-center px-3 py-2.5 rounded-xl transition-all duration-300 ease-out",
+    "w-full flex items-center px-3 py-2.5 rounded-xl transition-colors duration-200 ease-out",
     "relative group overflow-hidden",
     isCollapsed ? "justify-center" : "space-x-3",
     variants[variant],
@@ -285,18 +276,11 @@ export function SidebarItem({
           <div class="absolute inset-0 rounded-xl bg-gradient-to-r from-white/20 via-white/10 to-transparent opacity-60 pointer-events-none" />
         )}
         
-        {/* Hover shimmer effect for non-active items */}
-        {!item.active && (
-          <div class={clsx(
-            "absolute top-0 -left-full w-full h-full",
-            "bg-gradient-to-r from-transparent via-white/15 to-transparent",
-            "group-hover:left-full transition-all duration-500 ease-out pointer-events-none"
-          )} />
-        )}
+        {/* Simplified: removed shimmer overlay */}
         
         <span class={clsx(
-          "relative text-xl drop-shadow-sm transition-all duration-200",
-          "group-hover:scale-110"
+          "relative text-xl drop-shadow-sm transition-colors duration-200",
+          "group-hover:opacity-90"
         )}>{item.icon}</span>
         {!isCollapsed && (
           <>
@@ -306,7 +290,7 @@ export function SidebarItem({
                 "relative bg-gradient-to-r from-red-500 to-red-600 text-white text-xs",
                 "rounded-full px-2 py-1 min-w-[20px] text-center drop-shadow-lg",
                 "border border-red-400/50 backdrop-blur-sm",
-                "group-hover:scale-105 transition-transform duration-200"
+                "transition-colors duration-200 group-hover:opacity-90"
               )}>
                 {item.badge}
               </span>
@@ -365,7 +349,7 @@ export function SidebarGroup({
       {title && !isCollapsed && (
         <div class="px-3 mb-3">
           <div class={clsx(
-            "p-2 rounded-lg bg-white/5 backdrop-blur-sm",
+            "p-2 rounded-lg backdrop-blur-sm",
             "border border-white/10"
           )}>
             <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider drop-shadow-sm">
