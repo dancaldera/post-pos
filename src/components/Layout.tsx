@@ -17,9 +17,7 @@ export default function Layout({ children, currentPage, onNavigate }: LayoutProp
     { id: "dashboard", label: "Dashboard", icon: "📊" },
     { id: "sales", label: "Sales", icon: "💰" },
     { id: "products", label: "Products", icon: "📦" },
-    { id: "inventory", label: "Inventory", icon: "📋" },
     { id: "customers", label: "Customers", icon: "👥" },
-    { id: "reports", label: "Reports", icon: "📈" },
     { id: "members", label: "Members", icon: "👤" },
     { id: "settings", label: "Settings", icon: "⚙️" },
   ].filter(item => {

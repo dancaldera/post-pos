@@ -3,9 +3,7 @@ import Layout from "./components/Layout";
 import Dashboard from "./pages/Dashboard";
 import Sales from "./pages/Sales";
 import Products from "./pages/Products";
-import Inventory from "./pages/Inventory";
 import Customers from "./pages/Customers";
-import Reports from "./pages/Reports";
 import Members from "./pages/Members";
 import Settings from "./pages/Settings";
 import ComponentShowcase from "./pages/ComponentShowcase";
@@ -52,12 +50,8 @@ function App() {
         return <Sales />;
       case "products":
         return <Products />;
-      case "inventory":
-        return <Inventory />;
       case "customers":
         return <Customers />;
-      case "reports":
-        return <Reports />;
       case "members":
         return <Members />;
       case "settings":
