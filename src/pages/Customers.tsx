@@ -1,5 +1,5 @@
 import { useEffect, useState } from "preact/hooks";
-import { Button, Container, Dialog, DialogBody, DialogFooter, DialogConfirm, Heading, Input, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui";
+import { Button, Container, Dialog, DialogBody, DialogConfirm, DialogFooter, Input, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui";
 import { Customer, customerService } from "../services/customers-sqlite";
 
 export default function Customers() {
