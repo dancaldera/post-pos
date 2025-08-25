@@ -12,9 +12,13 @@
   "app": {
     "windows": [
       {
-        "title": "post-pos",
+        "title": "Post POS",
         "width": 800,
-        "height": 600
+        "height": 600,
+        "backgroundColor": "#00000000",
+        "transparent": true,
+        "decorations": true,
+        "resizable": true
       }
     ],
     "security": {
