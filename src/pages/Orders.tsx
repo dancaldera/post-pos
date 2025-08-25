@@ -1,5 +1,5 @@
-import { useState, useEffect } from "preact/hooks";
-import { Button, Container, Dialog, DialogBody, DialogFooter, Select, Input, Table, TableHead, TableBody, TableRow, TableHeader, TableCell, Text, Heading, Form, FormField, FormGroup, FormActions, DialogConfirm } from "../components/ui";
+import { useEffect, useState } from "preact/hooks";
+import { Button, Container, Dialog, DialogBody, DialogConfirm, DialogFooter, Form, FormField, FormGroup, Heading, Input, Select, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Text } from "../components/ui";
 import { Order, orderService } from "../services/orders";
 import { Product, productService } from "../services/products";
 
@@ -11,7 +11,7 @@ export default function Orders() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<Order['status'] | 'all'>('all');
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
-  
+
   const [newOrder, setNewOrder] = useState({
     items: [] as Array<{ productId: string; quantity: number }>,
     paymentMethod: 'cash' as 'cash' | 'card' | 'transfer',
@@ -39,8 +39,8 @@ export default function Orders() {
     }
   };
 
-  const filteredOrders = selectedStatus === 'all' 
-    ? orders 
+  const filteredOrders = selectedStatus === 'all'
+    ? orders
     : orders.filter(order => order.status === selectedStatus);
 
   const handleCreateOrder = async () => {
@@ -52,7 +52,7 @@ export default function Orders() {
     try {
       setIsLoading(true);
       const result = await orderService.createOrder(newOrder);
-      
+
       if (result.success && result.order) {
         setOrders([...orders, result.order]);
         setIsCreateModalOpen(false);
@@ -101,7 +101,7 @@ export default function Orders() {
 
   const addItemToOrder = (productId: string, quantity: number = 1) => {
     const existingItem = newOrder.items.find(item => item.productId === productId);
-    
+
     if (existingItem) {
       setNewOrder({
         ...newOrder,
@@ -273,7 +273,7 @@ export default function Orders() {
             {selectedStatus === 'all' ? 'No orders found' : `No ${selectedStatus} orders`}
           </Heading>
           <Text>
-            {selectedStatus === 'all' 
+            {selectedStatus === 'all'
               ? 'Get started by creating your first order.'
               : `No orders with status "${selectedStatus}" found.`
             }
@@ -371,7 +371,7 @@ export default function Orders() {
                 <Select
                   label="Payment Method"
                   value={newOrder.paymentMethod}
-                  onChange={(e) => setNewOrder({...newOrder, paymentMethod: (e.target as HTMLSelectElement).value as 'cash' | 'card' | 'transfer'})}
+                  onChange={(e) => setNewOrder({ ...newOrder, paymentMethod: (e.target as HTMLSelectElement).value as 'cash' | 'card' | 'transfer' })}
                   options={[
                     { value: 'cash', label: 'Cash' },
                     { value: 'card', label: 'Card' },
@@ -384,7 +384,7 @@ export default function Orders() {
                 <Input
                   label="Notes"
                   value={newOrder.notes}
-                  onInput={(e) => setNewOrder({...newOrder, notes: (e.target as HTMLInputElement).value})}
+                  onInput={(e) => setNewOrder({ ...newOrder, notes: (e.target as HTMLInputElement).value })}
                   placeholder="Optional order notes"
                 />
               </FormField>
