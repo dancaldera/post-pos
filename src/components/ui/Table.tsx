@@ -84,7 +84,7 @@ export function TableHeader({ class: className = "", ...props }: JSX.HTMLAttribu
       {...props}
       class={clsx(
         className,
-        'border-b border-b-gray-200 px-4 py-2 font-medium first:pl-4 last:pr-4 dark:border-b-gray-700',
+        'border-b border-b-gray-200 px-4 py-2 font-medium text-gray-900 first:pl-4 last:pr-4 dark:border-b-gray-700',
         grid && 'border-l border-l-gray-200 first:border-l-0 dark:border-l-gray-700',
         !bleed && 'sm:first:pl-2 sm:last:pr-2'
       )}
@@ -103,7 +103,7 @@ export function TableCell({ class: className = "", children, ...props }: JSX.HTM
       {...props}
       class={clsx(
         className,
-        'relative px-4 first:pl-4 last:pr-4',
+        'relative px-4 first:pl-4 last:pr-4 text-gray-900',
         !striped && 'border-b border-gray-100 dark:border-gray-800',
         grid && 'border-l border-l-gray-200 first:border-l-0 dark:border-l-gray-700',
         dense ? 'py-2.5' : 'py-3',
