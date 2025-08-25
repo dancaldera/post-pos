@@ -1,5 +1,5 @@
 import { useState, useEffect } from "preact/hooks";
-import { Button, Input, Select, Dialog, DialogBody, DialogFooter, DialogConfirm } from "../components/ui";
+import { Button, Input, Select, Textarea, Dialog, DialogBody, DialogFooter, DialogConfirm } from "../components/ui";
 import { Product, productService, PRODUCT_CATEGORIES } from "../services/products";
 import { useAuth } from "../hooks/useAuth";
 
@@ -140,10 +140,9 @@ function EditProductModal({ product, isOpen, onClose, onSave }: EditProductModal
             <label class="block text-sm font-medium text-gray-700 mb-2">
               Description
             </label>
-            <textarea
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            <Textarea
               value={formData.description}
-              onInput={(e) => setFormData({...formData, description: (e.target as HTMLTextAreaElement).value})}
+              onInput={(e) => setFormData({ ...formData, description: (e.target as HTMLTextAreaElement).value })}
               rows={3}
             />
           </div>
