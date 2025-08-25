@@ -1,5 +1,5 @@
 import { useState, useEffect } from "preact/hooks";
-import { dashboardService } from "../services/dashboard";
+import { dashboardService } from "../services/dashboard-sqlite";
 import { Container } from "../components/ui";
 
 export default function Dashboard() {
@@ -39,16 +39,33 @@ export default function Dashboard() {
   if (isLoading) {
     return (
       <Container size="xl">
+        <div class="mb-6">
+          <h1 class="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
+          <p class="text-gray-600">Loading your business overview...</p>
+        </div>
+        
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} class="bg-white rounded-lg shadow p-6">
+            <div key={i} class="backdrop-blur-md bg-white/70 rounded-xl shadow-lg border border-white/40 p-6 animate-pulse">
               <div class="flex items-center justify-between">
-                <div>
-                  <div class="h-4 bg-gray-200 rounded w-20 mb-2"></div>
-                  <div class="h-8 bg-gray-200 rounded w-16"></div>
+                <div class="flex-1">
+                  <div class="h-4 bg-gray-300/50 rounded-lg w-20 mb-3"></div>
+                  <div class="h-8 bg-gray-300/50 rounded-lg w-16"></div>
                 </div>
-                <div class="h-8 w-8 bg-gray-200 rounded"></div>
+                <div class="w-12 h-12 bg-gray-300/50 rounded-full"></div>
               </div>
+            </div>
+          ))}
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[1, 2, 3].map((i) => (
+            <div key={i} class="backdrop-blur-md bg-white/70 rounded-xl shadow-lg border border-white/40 p-6 animate-pulse">
+              <div class="flex items-center justify-between mb-4">
+                <div class="h-4 bg-gray-300/50 rounded-lg w-24"></div>
+                <div class="w-8 h-8 bg-gray-300/50 rounded-full"></div>
+              </div>
+              <div class="h-8 bg-gray-300/50 rounded-lg w-20"></div>
             </div>
           ))}
         </div>
@@ -59,8 +76,19 @@ export default function Dashboard() {
   if (error) {
     return (
       <Container size="xl">
-        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
-          {error}
+        <div class="mb-6">
+          <h1 class="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
+          <p class="text-gray-600">Unable to load dashboard data</p>
+        </div>
+        
+        <div class="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-xl backdrop-blur-sm">
+          <div class="flex items-center">
+            <span class="text-red-500 mr-3 text-xl">⚠️</span>
+            <div>
+              <h3 class="font-semibold">Dashboard Error</h3>
+              <p class="text-sm mt-1">{error}</p>
+            </div>
+          </div>
         </div>
       </Container>
     );
@@ -68,77 +96,103 @@ export default function Dashboard() {
 
   return (
     <Container size="xl">
+      <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
+        <p class="text-gray-600">Welcome back! Here's what's happening with your business today.</p>
+      </div>
+
       {error && (
-        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
-          {error}
+        <div class="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-xl mb-6 backdrop-blur-sm">
+          <div class="flex items-center">
+            <span class="text-red-500 mr-3 text-xl">⚠️</span>
+            <div>
+              <h3 class="font-semibold">Dashboard Error</h3>
+              <p class="text-sm mt-1">{error}</p>
+            </div>
+          </div>
         </div>
       )}
 
+      {/* Main Stats Cards */}
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div class="bg-white rounded-lg shadow p-6">
+        <div class="group backdrop-blur-md bg-gradient-to-br from-emerald-100/80 to-green-100/60 rounded-2xl shadow-xl border border-emerald-200/50 p-6 hover:shadow-2xl transition-all duration-300 hover:scale-105">
           <div class="flex items-center justify-between">
-            <div>
-              <p class="text-sm font-medium text-gray-600">Total Sales</p>
-              <p class="text-2xl font-bold text-gray-900">{formatCurrency(stats.totalSales)}</p>
+            <div class="flex-1">
+              <p class="text-sm font-semibold text-emerald-700 uppercase tracking-wide mb-2">Total Sales</p>
+              <p class="text-3xl font-bold text-gray-900 drop-shadow-sm">{formatCurrency(stats.totalSales)}</p>
+              <p class="text-xs text-emerald-600 mt-1">Completed & Paid Orders</p>
             </div>
-            <div class="text-3xl">💰</div>
+            <div class="text-4xl opacity-80 group-hover:scale-110 transition-transform">💰</div>
           </div>
         </div>
         
-        <div class="bg-white rounded-lg shadow p-6">
+        <div class="group backdrop-blur-md bg-gradient-to-br from-blue-100/80 to-indigo-100/60 rounded-2xl shadow-xl border border-blue-200/50 p-6 hover:shadow-2xl transition-all duration-300 hover:scale-105">
           <div class="flex items-center justify-between">
-            <div>
-              <p class="text-sm font-medium text-gray-600">Orders Today</p>
-              <p class="text-2xl font-bold text-gray-900">{stats.ordersToday}</p>
+            <div class="flex-1">
+              <p class="text-sm font-semibold text-blue-700 uppercase tracking-wide mb-2">Orders Today</p>
+              <p class="text-3xl font-bold text-gray-900 drop-shadow-sm">{stats.ordersToday}</p>
+              <p class="text-xs text-blue-600 mt-1">Today's Activity</p>
             </div>
-            <div class="text-3xl">📦</div>
+            <div class="text-4xl opacity-80 group-hover:scale-110 transition-transform">📦</div>
           </div>
         </div>
         
-        <div class="bg-white rounded-lg shadow p-6">
+        <div class="group backdrop-blur-md bg-gradient-to-br from-purple-100/80 to-pink-100/60 rounded-2xl shadow-xl border border-purple-200/50 p-6 hover:shadow-2xl transition-all duration-300 hover:scale-105">
           <div class="flex items-center justify-between">
-            <div>
-              <p class="text-sm font-medium text-gray-600">Customers</p>
-              <p class="text-2xl font-bold text-gray-900">{stats.totalCustomers}</p>
+            <div class="flex-1">
+              <p class="text-sm font-semibold text-purple-700 uppercase tracking-wide mb-2">Active Customers</p>
+              <p class="text-3xl font-bold text-gray-900 drop-shadow-sm">{stats.totalCustomers}</p>
+              <p class="text-xs text-purple-600 mt-1">Customer Base</p>
             </div>
-            <div class="text-3xl">👥</div>
+            <div class="text-4xl opacity-80 group-hover:scale-110 transition-transform">👥</div>
           </div>
         </div>
         
-        <div class="bg-white rounded-lg shadow p-6">
+        <div class="group backdrop-blur-md bg-gradient-to-br from-orange-100/80 to-yellow-100/60 rounded-2xl shadow-xl border border-orange-200/50 p-6 hover:shadow-2xl transition-all duration-300 hover:scale-105">
           <div class="flex items-center justify-between">
-            <div>
-              <p class="text-sm font-medium text-gray-600">Revenue</p>
-              <p class="text-2xl font-bold text-gray-900">{formatCurrency(stats.totalRevenue)}</p>
+            <div class="flex-1">
+              <p class="text-sm font-semibold text-orange-700 uppercase tracking-wide mb-2">Total Revenue</p>
+              <p class="text-3xl font-bold text-gray-900 drop-shadow-sm">{formatCurrency(stats.totalRevenue)}</p>
+              <p class="text-xs text-orange-600 mt-1">Gross Revenue</p>
             </div>
-            <div class="text-3xl">📈</div>
+            <div class="text-4xl opacity-80 group-hover:scale-110 transition-transform">📈</div>
           </div>
         </div>
       </div>
 
+      {/* Secondary Stats */}
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="bg-white rounded-lg shadow p-6">
+        <div class="group backdrop-blur-md bg-gradient-to-br from-cyan-100/80 to-blue-100/60 rounded-2xl shadow-xl border border-cyan-200/50 p-6 hover:shadow-2xl transition-all duration-300">
           <div class="flex items-center justify-between mb-4">
-            <p class="text-sm font-medium text-gray-600">Average Order Value</p>
-            <div class="text-2xl">📊</div>
+            <div class="flex items-center">
+              <div class="text-3xl mr-3 group-hover:scale-110 transition-transform">📊</div>
+              <p class="text-sm font-semibold text-cyan-700 uppercase tracking-wide">Average Order Value</p>
+            </div>
           </div>
-          <p class="text-2xl font-bold text-gray-900">{formatCurrency(stats.averageOrderValue)}</p>
+          <p class="text-2xl font-bold text-gray-900 drop-shadow-sm">{formatCurrency(stats.averageOrderValue)}</p>
+          <p class="text-xs text-cyan-600 mt-2">Per Completed Order</p>
         </div>
         
-        <div class="bg-white rounded-lg shadow p-6">
+        <div class="group backdrop-blur-md bg-gradient-to-br from-amber-100/80 to-orange-100/60 rounded-2xl shadow-xl border border-amber-200/50 p-6 hover:shadow-2xl transition-all duration-300">
           <div class="flex items-center justify-between mb-4">
-            <p class="text-sm font-medium text-gray-600">Low Stock Products</p>
-            <div class="text-2xl">⚠️</div>
+            <div class="flex items-center">
+              <div class="text-3xl mr-3 group-hover:scale-110 transition-transform">⚠️</div>
+              <p class="text-sm font-semibold text-amber-700 uppercase tracking-wide">Low Stock Alert</p>
+            </div>
           </div>
-          <p class="text-2xl font-bold text-gray-900">{stats.lowStockProducts}</p>
+          <p class="text-2xl font-bold text-gray-900 drop-shadow-sm">{stats.lowStockProducts}</p>
+          <p class="text-xs text-amber-600 mt-2">Products need restocking</p>
         </div>
         
-        <div class="bg-white rounded-lg shadow p-6">
+        <div class="group backdrop-blur-md bg-gradient-to-br from-rose-100/80 to-red-100/60 rounded-2xl shadow-xl border border-rose-200/50 p-6 hover:shadow-2xl transition-all duration-300">
           <div class="flex items-center justify-between mb-4">
-            <p class="text-sm font-medium text-gray-600">Pending Orders</p>
-            <div class="text-2xl">⏳</div>
+            <div class="flex items-center">
+              <div class="text-3xl mr-3 group-hover:scale-110 transition-transform">⏳</div>
+              <p class="text-sm font-semibold text-rose-700 uppercase tracking-wide">Pending Orders</p>
+            </div>
           </div>
-          <p class="text-2xl font-bold text-gray-900">{stats.pendingOrders}</p>
+          <p class="text-2xl font-bold text-gray-900 drop-shadow-sm">{stats.pendingOrders}</p>
+          <p class="text-xs text-rose-600 mt-2">Awaiting processing</p>
         </div>
       </div>
     </Container>
