@@ -1,0 +1,501 @@
+import Database from '@tauri-apps/plugin-sql';
+import { productService } from "./products-sqlite";
+
+export interface OrderItem {
+  productId: string;
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+}
+
+export interface Order {
+  id: string;
+  customerId?: string;
+  customerName?: string;
+  items: OrderItem[];
+  subtotal: number;
+  tax: number;
+  total: number;
+  status: 'pending' | 'paid' | 'cancelled' | 'completed';
+  paymentMethod?: 'cash' | 'card' | 'transfer';
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+  completedAt?: string;
+}
+
+export interface CreateOrderRequest {
+  customerId?: string;
+  items: Array<{
+    productId: string;
+    quantity: number;
+  }>;
+  paymentMethod?: 'cash' | 'card' | 'transfer';
+  notes?: string;
+}
+
+interface DatabaseOrder {
+  id: number;
+  customer_id?: number;
+  customer_name?: string;
+  subtotal: number;
+  tax: number;
+  total: number;
+  status: 'pending' | 'paid' | 'cancelled' | 'completed';
+  payment_method?: 'cash' | 'card' | 'transfer';
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+  completed_at?: string;
+}
+
+interface DatabaseOrderItem {
+  id: number;
+  order_id: number;
+  product_id: number;
+  product_name: string;
+  quantity: number;
+  unit_price: number;
+  total_price: number;
+}
+
+export class OrderService {
+  private static instance: OrderService;
+  private db: Database | null = null;
+
+  static getInstance(): OrderService {
+    if (!OrderService.instance) {
+      OrderService.instance = new OrderService();
+    }
+    return OrderService.instance;
+  }
+
+  private async getDatabase(): Promise<Database> {
+    if (!this.db) {
+      this.db = await Database.load('sqlite:postpos.db');
+    }
+    return this.db;
+  }
+
+  private async convertDbOrder(dbOrder: DatabaseOrder): Promise<Order> {
+    const db = await this.getDatabase();
+    
+    // Get order items
+    const orderItems = await db.select<DatabaseOrderItem[]>(
+      'SELECT * FROM order_items WHERE order_id = ?',
+      [dbOrder.id]
+    );
+
+    const items: OrderItem[] = orderItems.map(item => ({
+      productId: item.product_id.toString(),
+      productName: item.product_name,
+      quantity: item.quantity,
+      unitPrice: item.unit_price,
+      totalPrice: item.total_price
+    }));
+
+    return {
+      id: dbOrder.id.toString(),
+      customerId: dbOrder.customer_id?.toString(),
+      customerName: dbOrder.customer_name,
+      items,
+      subtotal: dbOrder.subtotal,
+      tax: dbOrder.tax,
+      total: dbOrder.total,
+      status: dbOrder.status,
+      paymentMethod: dbOrder.payment_method,
+      notes: dbOrder.notes,
+      createdAt: dbOrder.created_at,
+      updatedAt: dbOrder.updated_at,
+      completedAt: dbOrder.completed_at
+    };
+  }
+
+  async getOrders(): Promise<Order[]> {
+    try {
+      const db = await this.getDatabase();
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      const orders = await db.select<DatabaseOrder[]>(
+        'SELECT * FROM orders ORDER BY created_at DESC'
+      );
+      
+      const convertedOrders = [];
+      for (const order of orders) {
+        convertedOrders.push(await this.convertDbOrder(order));
+      }
+      
+      return convertedOrders;
+    } catch (error) {
+      console.error('Get orders error:', error);
+      throw new Error("Failed to fetch orders");
+    }
+  }
+
+  async getOrder(id: string): Promise<Order | null> {
+    try {
+      const db = await this.getDatabase();
+      await new Promise(resolve => setTimeout(resolve, 150));
+      
+      const orders = await db.select<DatabaseOrder[]>(
+        'SELECT * FROM orders WHERE id = ? LIMIT 1',
+        [parseInt(id)]
+      );
+      
+      if (orders.length === 0) {
+        return null;
+      }
+      
+      return await this.convertDbOrder(orders[0]);
+    } catch (error) {
+      console.error('Get order error:', error);
+      throw new Error("Failed to fetch order");
+    }
+  }
+
+  async createOrder(orderData: CreateOrderRequest): Promise<{ success: boolean; order?: Order; error?: string }> {
+    if (!orderData.items.length) {
+      return { success: false, error: "Order must contain at least one item" };
+    }
+
+    try {
+      const db = await this.getDatabase();
+      await new Promise(resolve => setTimeout(resolve, 400));
+
+      // Check stock availability first
+      const stockCheck = await this.checkStockAvailability(orderData.items);
+      if (!stockCheck.success) {
+        return { success: false, error: stockCheck.error };
+      }
+
+      // Build order items with product details
+      const orderItems: OrderItem[] = [];
+      let subtotal = 0;
+
+      for (const item of orderData.items) {
+        const product = await productService.getProduct(item.productId);
+        if (!product) {
+          return { success: false, error: `Product ${item.productId} not found` };
+        }
+
+        const itemTotal = product.price * item.quantity;
+        orderItems.push({
+          productId: product.id,
+          productName: product.name,
+          quantity: item.quantity,
+          unitPrice: product.price,
+          totalPrice: itemTotal
+        });
+
+        subtotal += itemTotal;
+      }
+
+      const tax = subtotal * 0.1; // 10% tax
+      const total = subtotal + tax;
+      const now = new Date().toISOString();
+
+      // Get customer name if customerId is provided
+      let customerName = undefined;
+      if (orderData.customerId) {
+        const customers = await db.select<{first_name: string, last_name: string}[]>(
+          'SELECT first_name, last_name FROM customers WHERE id = ? LIMIT 1',
+          [parseInt(orderData.customerId)]
+        );
+        if (customers.length > 0) {
+          customerName = `${customers[0].first_name} ${customers[0].last_name}`;
+        }
+      }
+
+      // Create order
+      const orderResult = await db.execute(
+        `INSERT INTO orders (
+          customer_id, customer_name, subtotal, tax, total, status, 
+          payment_method, notes, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          orderData.customerId ? parseInt(orderData.customerId) : null,
+          customerName,
+          subtotal,
+          tax,
+          total,
+          'pending',
+          orderData.paymentMethod || null,
+          orderData.notes || null,
+          now,
+          now
+        ]
+      );
+
+      const orderId = orderResult.lastInsertId ?? 0;
+
+      // Create order items
+      for (const item of orderItems) {
+        await db.execute(
+          `INSERT INTO order_items (
+            order_id, product_id, product_name, quantity, unit_price, total_price
+          ) VALUES (?, ?, ?, ?, ?, ?)`,
+          [
+            orderId,
+            parseInt(item.productId),
+            item.productName,
+            item.quantity,
+            item.unitPrice,
+            item.totalPrice
+          ]
+        );
+      }
+
+      const newOrder: Order = {
+        id: orderId.toString(),
+        customerId: orderData.customerId,
+        customerName,
+        items: orderItems,
+        subtotal,
+        tax,
+        total,
+        status: 'pending',
+        paymentMethod: orderData.paymentMethod,
+        notes: orderData.notes,
+        createdAt: now,
+        updatedAt: now
+      };
+
+      return { success: true, order: newOrder };
+    } catch (error) {
+      console.error('Create order error:', error);
+      return { success: false, error: "Failed to create order" };
+    }
+  }
+
+  async updateOrderStatus(id: string, status: Order['status'], paymentMethod?: Order['paymentMethod']): Promise<{ success: boolean; order?: Order; error?: string }> {
+    try {
+      const db = await this.getDatabase();
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      // Get current order
+      const currentOrder = await this.getOrder(id);
+      if (!currentOrder) {
+        return { success: false, error: "Order not found" };
+      }
+
+      const oldStatus = currentOrder.status;
+      const now = new Date().toISOString();
+      const completedAt = (status === 'completed' || status === 'paid') ? now : null;
+
+      // Handle stock management based on status change
+      if (status === 'completed' || status === 'paid') {
+        // Deduct stock when order is completed/paid
+        if (oldStatus !== 'completed' && oldStatus !== 'paid') {
+          const stockResult = await this.deductStockFromOrder(currentOrder);
+          if (!stockResult.success) {
+            return { success: false, error: stockResult.error };
+          }
+        }
+      } else if ((status === 'cancelled' || status === 'pending') && (oldStatus === 'completed' || oldStatus === 'paid')) {
+        // Restore stock if order is cancelled or set back to pending after being completed/paid
+        await this.restoreStockFromOrder(currentOrder);
+      }
+
+      // Update order status
+      await db.execute(
+        `UPDATE orders SET 
+         status = ?, payment_method = ?, updated_at = ?, completed_at = ? 
+         WHERE id = ?`,
+        [status, paymentMethod || currentOrder.paymentMethod, now, completedAt, parseInt(id)]
+      );
+
+      // Return updated order
+      const updatedOrder = await this.getOrder(id);
+      return { success: true, order: updatedOrder! };
+    } catch (error) {
+      console.error('Update order status error:', error);
+      return { success: false, error: "Failed to update order status" };
+    }
+  }
+
+  async deleteOrder(id: string): Promise<{ success: boolean; error?: string }> {
+    try {
+      const db = await this.getDatabase();
+      await new Promise(resolve => setTimeout(resolve, 250));
+
+      // Get order before deleting to restore stock if needed
+      const order = await this.getOrder(id);
+      if (!order) {
+        return { success: false, error: "Order not found" };
+      }
+
+      // Restore stock if order was completed/paid
+      if (order.status === 'completed' || order.status === 'paid') {
+        await this.restoreStockFromOrder(order);
+      }
+
+      // Delete order (order_items will be deleted automatically due to CASCADE)
+      const result = await db.execute(
+        'DELETE FROM orders WHERE id = ?',
+        [parseInt(id)]
+      );
+
+      if (result.rowsAffected === 0) {
+        return { success: false, error: "Order not found" };
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error('Delete order error:', error);
+      return { success: false, error: "Failed to delete order" };
+    }
+  }
+
+  private async checkStockAvailability(items: Array<{ productId: string; quantity: number }>): Promise<{ success: boolean; error?: string }> {
+    for (const item of items) {
+      const product = await productService.getProduct(item.productId);
+      if (!product) {
+        return { success: false, error: `Product ${item.productId} not found` };
+      }
+
+      if (!product.isActive) {
+        return { success: false, error: `Product ${product.name} is not active` };
+      }
+
+      if (product.stock < item.quantity) {
+        return { success: false, error: `Insufficient stock for ${product.name}. Available: ${product.stock}, Requested: ${item.quantity}` };
+      }
+    }
+    return { success: true };
+  }
+
+  private async deductStockFromOrder(order: Order): Promise<{ success: boolean; error?: string }> {
+    for (const item of order.items) {
+      const product = await productService.getProduct(item.productId);
+      if (!product) {
+        return { success: false, error: `Product ${item.productId} not found` };
+      }
+
+      if (product.stock < item.quantity) {
+        return { success: false, error: `Insufficient stock for ${product.name}. Available: ${product.stock}, Needed: ${item.quantity}` };
+      }
+
+      // Update product stock
+      const updateResult = await productService.updateProduct(product.id, {
+        stock: product.stock - item.quantity,
+        updatedAt: new Date().toISOString()
+      });
+
+      if (!updateResult.success) {
+        return { success: false, error: updateResult.error || "Failed to update product stock" };
+      }
+    }
+    return { success: true };
+  }
+
+  private async restoreStockFromOrder(order: Order): Promise<void> {
+    for (const item of order.items) {
+      const product = await productService.getProduct(item.productId);
+      if (product) {
+        await productService.updateProduct(product.id, {
+          stock: product.stock + item.quantity,
+          updatedAt: new Date().toISOString()
+        });
+      }
+    }
+  }
+
+  async getOrdersByStatus(status: Order['status']): Promise<Order[]> {
+    try {
+      const db = await this.getDatabase();
+      await new Promise(resolve => setTimeout(resolve, 150));
+      
+      const orders = await db.select<DatabaseOrder[]>(
+        'SELECT * FROM orders WHERE status = ? ORDER BY created_at DESC',
+        [status]
+      );
+      
+      const convertedOrders = [];
+      for (const order of orders) {
+        convertedOrders.push(await this.convertDbOrder(order));
+      }
+      
+      return convertedOrders;
+    } catch (error) {
+      console.error('Get orders by status error:', error);
+      throw new Error("Failed to fetch orders by status");
+    }
+  }
+
+  async getTotalSales(): Promise<number> {
+    try {
+      const db = await this.getDatabase();
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      const result = await db.select<{total_sales: number}[]>(
+        `SELECT COALESCE(SUM(total), 0) as total_sales 
+         FROM orders 
+         WHERE status IN ('completed', 'paid')`
+      );
+      
+      return result[0]?.total_sales || 0;
+    } catch (error) {
+      console.error('Get total sales error:', error);
+      return 0;
+    }
+  }
+
+  async getOrdersByDateRange(startDate: string, endDate: string): Promise<Order[]> {
+    try {
+      const db = await this.getDatabase();
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      const orders = await db.select<DatabaseOrder[]>(
+        `SELECT * FROM orders 
+         WHERE created_at >= ? AND created_at <= ? 
+         ORDER BY created_at DESC`,
+        [startDate, endDate]
+      );
+      
+      const convertedOrders = [];
+      for (const order of orders) {
+        convertedOrders.push(await this.convertDbOrder(order));
+      }
+      
+      return convertedOrders;
+    } catch (error) {
+      console.error('Get orders by date range error:', error);
+      throw new Error("Failed to fetch orders by date range");
+    }
+  }
+
+  async getTopSellingProducts(limit: number = 10): Promise<Array<{productId: string; productName: string; totalSold: number; totalRevenue: number}>> {
+    try {
+      const db = await this.getDatabase();
+      await new Promise(resolve => setTimeout(resolve, 150));
+      
+      const results = await db.select<{product_id: number; product_name: string; total_sold: number; total_revenue: number}[]>(
+        `SELECT 
+           oi.product_id,
+           oi.product_name,
+           SUM(oi.quantity) as total_sold,
+           SUM(oi.total_price) as total_revenue
+         FROM order_items oi
+         JOIN orders o ON oi.order_id = o.id
+         WHERE o.status IN ('completed', 'paid')
+         GROUP BY oi.product_id, oi.product_name
+         ORDER BY total_sold DESC
+         LIMIT ?`,
+        [limit]
+      );
+      
+      return results.map(r => ({
+        productId: r.product_id.toString(),
+        productName: r.product_name,
+        totalSold: r.total_sold,
+        totalRevenue: r.total_revenue
+      }));
+    } catch (error) {
+      console.error('Get top selling products error:', error);
+      return [];
+    }
+  }
+}
+
+export const orderService = OrderService.getInstance();

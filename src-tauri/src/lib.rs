@@ -107,6 +107,59 @@ pub fn run() {
                 (9, 'Paper Towels (6-pack)', 'Ultra-absorbent paper towels', 12.99, 7.20, 28, 'Household Items', '5555666677778', NULL, 1, '2024-01-09T00:00:00.000Z', '2024-01-23T09:30:00.000Z'),
                 (10, 'Shampoo & Conditioner Set', 'Moisturizing hair care set', 15.99, 8.90, 22, 'Personal Care', '6666777788889', NULL, 1, '2024-01-10T00:00:00.000Z', '2024-01-24T14:20:00.000Z');",
             kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 7,
+            description: "create_orders_table",
+            sql: "CREATE TABLE IF NOT EXISTS orders (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                customer_id INTEGER,
+                customer_name TEXT,
+                subtotal REAL NOT NULL,
+                tax REAL NOT NULL,
+                total REAL NOT NULL,
+                status TEXT NOT NULL CHECK (status IN ('pending', 'paid', 'cancelled', 'completed')),
+                payment_method TEXT CHECK (payment_method IN ('cash', 'card', 'transfer')),
+                notes TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                completed_at DATETIME,
+                FOREIGN KEY (customer_id) REFERENCES customers (id)
+            );",
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 8,
+            description: "create_order_items_table",
+            sql: "CREATE TABLE IF NOT EXISTS order_items (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                order_id INTEGER NOT NULL,
+                product_id INTEGER NOT NULL,
+                product_name TEXT NOT NULL,
+                quantity INTEGER NOT NULL,
+                unit_price REAL NOT NULL,
+                total_price REAL NOT NULL,
+                FOREIGN KEY (order_id) REFERENCES orders (id) ON DELETE CASCADE,
+                FOREIGN KEY (product_id) REFERENCES products (id)
+            );",
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 9,
+            description: "insert_default_orders",
+            sql: "INSERT OR IGNORE INTO orders (id, customer_name, subtotal, tax, total, status, payment_method, created_at, updated_at, completed_at) VALUES
+                (1, 'John Doe', 8.99, 0.90, 9.89, 'completed', 'cash', '2024-01-15T10:30:00.000Z', '2024-01-15T10:35:00.000Z', '2024-01-15T10:35:00.000Z'),
+                (2, 'Jane Smith', 24.99, 2.50, 27.49, 'paid', 'card', '2024-01-16T14:45:00.000Z', '2024-01-16T14:50:00.000Z', '2024-01-16T14:50:00.000Z');",
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 10,
+            description: "insert_default_order_items",
+            sql: "INSERT OR IGNORE INTO order_items (id, order_id, product_id, product_name, quantity, unit_price, total_price) VALUES
+                (1, 1, 1, 'Coca Cola 500ml', 2, 2.50, 5.00),
+                (2, 1, 2, 'Bread Loaf', 1, 3.99, 3.99),
+                (3, 2, 3, 'Premium Coffee Beans 1kg', 1, 24.99, 24.99);",
+            kind: MigrationKind::Up,
         }
     ];
 

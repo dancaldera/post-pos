@@ -59,7 +59,7 @@ function DialogHeader({ children, onClose }: DialogHeaderProps) {
 
 function DialogBody({ children }: DialogBodyProps) {
   return (
-    <div class="p-6">
+    <div class="p-6 max-h-[70vh] overflow-y-auto">
       {children}
     </div>
   );
@@ -97,29 +97,32 @@ function Dialog({ isOpen, onClose, title, children, size = "md" }: DialogProps) 
   return (
     <div 
       class={clsx(
-        "fixed inset-0 flex items-center justify-center z-50 p-4",
+        "fixed inset-0 z-50 overflow-y-auto",
         // Overlay with visible frame border and added transparency
         "bg-black/40 backdrop-blur-sm transition-all duration-300 ease-out border-2 border-white/20",
         isOpen ? "opacity-100" : "opacity-0"
       )}
       onClick={onClose}
     >
-      <div 
-        class={clsx(
-          // Dialog card with added transparency and refined border
-          "w-full bg-white/60 backdrop-blur-xl border-2 border-white/50 rounded-2xl shadow-2xl",
-          "transition-all duration-300 ease-out transform will-change-transform will-change-opacity",
-          isOpen ? "scale-100 opacity-100" : "scale-95 opacity-0",
-          sizeClasses[size]
-        )}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {title && (
-          <DialogHeader onClose={onClose}>
-            {title}
-          </DialogHeader>
-        )}
-        {children}
+      <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div 
+          class={clsx(
+            // Dialog card with added transparency and refined border
+            "relative w-full bg-white/60 backdrop-blur-xl border-2 border-white/50 rounded-2xl shadow-2xl",
+            "transition-all duration-300 ease-out transform will-change-transform will-change-opacity",
+            "my-8 overflow-hidden text-left align-middle sm:my-8",
+            isOpen ? "scale-100 opacity-100" : "scale-95 opacity-0",
+            sizeClasses[size]
+          )}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {title && (
+            <DialogHeader onClose={onClose}>
+              {title}
+            </DialogHeader>
+          )}
+          {children}
+        </div>
       </div>
     </div>
   );
