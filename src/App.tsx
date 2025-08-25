@@ -7,6 +7,7 @@ import Inventory from "./pages/Inventory";
 import Customers from "./pages/Customers";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
+import ComponentShowcase from "./pages/ComponentShowcase";
 import "./App.css"
 
 function App() {
@@ -31,7 +32,9 @@ function App() {
       case "reports":
         return <Reports />;
       case "settings":
-        return <Settings />;
+        return <Settings onNavigate={handleNavigate} />;
+      case "component-showcase":
+        return <ComponentShowcase />;
       default:
         return (
           <div class="bg-white rounded-lg shadow p-6">
