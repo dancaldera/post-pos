@@ -21,3 +21,12 @@ export {
   DialogFooter, 
   DialogConfirm 
 } from "./Dialog";
+export { Link } from "./Link";
+export { 
+  Table, 
+  TableHead, 
+  TableBody, 
+  TableRow, 
+  TableHeader, 
+  TableCell 
+} from "./Table";
