@@ -1,33 +1,19 @@
-import { useState, useEffect } from "preact/hooks";
+import { useState } from "preact/hooks";
 import preactLogo from "./assets/preact.svg";
 import { invoke } from "@tauri-apps/api/core";
-import { getCurrentWindow } from "@tauri-apps/api/window";
 import "./App.css"
 
 function App() {
   const [greetMsg, setGreetMsg] = useState("");
   const [name, setName] = useState("");
 
-  useEffect(() => {
-    // Optional: Add decorations back after component mounts for better transparency support
-    const setupWindow = async () => {
-      const appWindow = getCurrentWindow();
-      try {
-        await appWindow.setDecorations(true);
-      } catch (error) {
-        console.log("Could not set decorations:", error);
-      }
-    };
-    setupWindow();
-  }, []);
-
   async function greet() {
     setGreetMsg(await invoke("greet", { name }));
   }
 
   return (
-    <main class="min-h-screen bg-transparent flex items-center justify-center p-4">
-      <div class="max-w-2xl w-full bg-white/90 backdrop-blur-lg rounded-lg shadow-2xl border-2 border-gray-300/50 p-8">
+    <main class="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+      <div class="max-w-2xl w-full bg-white rounded-lg shadow-lg border p-8">
         <h1 class="text-4xl font-bold text-center text-gray-800 mb-8">
           Welcome to Tauri + Preact
         </h1>
