@@ -10,7 +10,7 @@
     "tauri": "tauri",
     "lint": "biome lint src --write",
     "format": "biome format src --write",
-    "check": "biome check src"
+    "check": "biome check src --write"
   },
   "dependencies": {
     "@preact/signals": "^2.3.1",

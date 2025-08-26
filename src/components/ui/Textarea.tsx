@@ -1,25 +1,25 @@
-import type { JSX } from "preact";
+import type { JSX } from 'preact'
 
 interface TextareaProps {
-  label?: string;
-  placeholder?: string;
-  value?: string;
-  disabled?: boolean;
-  required?: boolean;
-  error?: string;
-  helperText?: string;
-  size?: "sm" | "md" | "lg";
-  rows?: number;
-  onInput?: (e: Event) => void;
-  onChange?: (e: Event) => void;
-  onFocus?: (e: Event) => void;
-  onBlur?: (e: Event) => void;
-  class?: string;
-  id?: string;
+  label?: string
+  placeholder?: string
+  value?: string
+  disabled?: boolean
+  required?: boolean
+  error?: string
+  helperText?: string
+  size?: 'sm' | 'md' | 'lg'
+  rows?: number
+  onInput?: (e: Event) => void
+  onChange?: (e: Event) => void
+  onFocus?: (e: Event) => void
+  onBlur?: (e: Event) => void
+  class?: string
+  id?: string
 }
 
 function clsx(...classes: (string | undefined | boolean)[]): string {
-  return classes.filter(Boolean).join(' ');
+  return classes.filter(Boolean).join(' ')
 }
 
 export default function Textarea({
@@ -30,60 +30,57 @@ export default function Textarea({
   required = false,
   error,
   helperText,
-  size = "md",
+  size = 'md',
   rows = 3,
   onInput,
   onChange,
   onFocus,
   onBlur,
-  class: className = "",
+  class: className = '',
   id,
   ...props
 }: TextareaProps & Omit<JSX.HTMLAttributes<HTMLTextAreaElement>, 'size'>) {
-  const textareaId = id || `textarea-${Math.random().toString(36).substring(2, 11)}`;
+  const textareaId = id || `textarea-${Math.random().toString(36).substring(2, 11)}`
 
   const baseClasses = clsx(
     // Base layout and glass effect
-    "relative w-full rounded-xl transition-colors duration-150",
-    "backdrop-blur-md bg-white/10 border border-white/20",
+    'relative w-full rounded-xl transition-colors duration-150',
+    'backdrop-blur-md bg-white/10 border border-white/20',
     // Accessible focus-visible ring (matches Button/Input)
-    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-white/10",
-    "hover:bg-white/15",
+    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-white/10',
+    'hover:bg-white/15',
     // Disabled state
-    disabled ? "opacity-40 cursor-not-allowed" : "",
+    disabled ? 'opacity-40 cursor-not-allowed' : '',
     // Shadow for depth
-    "shadow-lg"
-  );
+    'shadow-lg',
+  )
 
   const sizes = {
-    sm: "px-4 py-2 text-sm",
-    md: "px-4 py-2.5 text-sm",
-    lg: "px-5 py-3 text-base",
-  } as const;
+    sm: 'px-4 py-2 text-sm',
+    md: 'px-4 py-2.5 text-sm',
+    lg: 'px-5 py-3 text-base',
+  } as const
 
   const stateClasses = error
     ? clsx(
-        "border-red-400/50",
-        "bg-red-50/10",
+        'border-red-400/50',
+        'bg-red-50/10',
         // Red focus ring when invalid
-        "focus-visible:ring-red-500/60"
+        'focus-visible:ring-red-500/60',
       )
     : clsx(
-        "border-white/20",
-        "hover:border-white/30",
+        'border-white/20',
+        'hover:border-white/30',
         // Blue focus ring by default
-        "focus-visible:ring-blue-500/60"
-      );
+        'focus-visible:ring-blue-500/60',
+      )
 
-  const classes = clsx(baseClasses, sizes[size], stateClasses, className);
+  const classes = clsx(baseClasses, sizes[size], stateClasses, className)
 
   return (
     <div class="w-full">
       {label && (
-        <label
-          for={textareaId}
-          class="block text-sm font-medium text-gray-700 mb-2 drop-shadow-sm"
-        >
+        <label for={textareaId} class="block text-sm font-medium text-gray-700 mb-2 drop-shadow-sm">
           {label}
           {required && <span class="text-red-500 ml-1 drop-shadow-sm">*</span>}
         </label>
@@ -109,7 +106,7 @@ export default function Textarea({
           class={clsx(
             'absolute inset-0 rounded-xl pointer-events-none',
             'bg-gradient-to-b from-white/10 via-transparent to-transparent',
-            'opacity-60'
+            'opacity-60',
           )}
         />
       </div>
@@ -123,10 +120,7 @@ export default function Textarea({
         </div>
       )}
 
-      {helperText && !error && (
-        <p class="mt-1 text-sm text-gray-600 drop-shadow-sm">{helperText}</p>
-      )}
+      {helperText && !error && <p class="mt-1 text-sm text-gray-600 drop-shadow-sm">{helperText}</p>}
     </div>
-  );
+  )
 }
-

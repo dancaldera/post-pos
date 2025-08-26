@@ -1,8 +1,3 @@
-import { useState } from "preact/hooks";
-import Sidebar, { SidebarNav, SidebarItem, SidebarGroup } from "./ui/Sidebar";
-import { useAuth } from "../hooks/useAuth";
-import { Button, Heading, Text } from "./ui";
-
 /**
  * Props for the Layout component
  * @interface LayoutProps
@@ -10,23 +5,29 @@ import { Button, Heading, Text } from "./ui";
  * @property {string} currentPage - The currently active page identifier
  * @property {(page: string) => void} onNavigate - Callback function for navigation events
  */
+import type { ComponentChildren } from 'preact'
+import { useState } from 'preact/hooks'
+import { useAuth } from '../hooks/useAuth'
+import { Button, Heading, Text } from './ui'
+import Sidebar, { SidebarGroup, SidebarItem, SidebarNav } from './ui/Sidebar'
+
 interface LayoutProps {
-  children: any;
-  currentPage: string;
-  onNavigate: (page: string) => void;
+  children: ComponentChildren
+  currentPage: string
+  onNavigate: (page: string) => void
 }
 
 /**
  * Main application layout component that provides the overall structure
  * including sidebar navigation, header with user controls, and content area.
- * 
+ *
  * Features:
  * - Responsive sidebar with collapsible navigation
  * - Role-based menu item filtering (e.g., Members section for admins/managers only)
  * - User profile dropdown with settings and logout
  * - Notification bell with badge indicator
  * - Dynamic page title based on current route
- * 
+ *
  * @component
  * @param {LayoutProps} props - Component properties
  * @returns {JSX.Element} The complete application layout structure
@@ -36,15 +37,15 @@ export default function Layout({ children, currentPage, onNavigate }: LayoutProp
    * State for controlling the user profile dropdown visibility
    * @type {[boolean, function]} isDropdownOpen - Dropdown open state and setter
    */
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+
   /**
    * Authentication context providing user information and signOut function
    * @type {object} auth - Authentication context object
    * @property {object|null} user - Current authenticated user information
    * @property {function} signOut - Function to sign out the current user
    */
-  const { user, signOut } = useAuth();
+  const { user, signOut } = useAuth()
 
   /**
    * Navigation menu items configuration with role-based filtering
@@ -52,19 +53,49 @@ export default function Layout({ children, currentPage, onNavigate }: LayoutProp
    * @type {Array<{id: string, label: string, icon: string}>}
    */
   const menuItems = [
-    { id: "dashboard", label: "Dashboard", icon: "📊", description: "Overview of store performance and analytics" },
-    { id: "orders", label: "Orders", icon: "📋", description: "Manage customer orders and transactions" },
-    { id: "products", label: "Products", icon: "📦", description: "Product catalog and inventory management" },
-    { id: "customers", label: "Customers", icon: "👥", description: "Customer database and relationship management" },
-    { id: "members", label: "Members", icon: "👤", description: "Staff member management and permissions" },
-    { id: "settings", label: "Settings", icon: "⚙️", description: "Application configuration and preferences" },
-  ].filter(item => {
+    {
+      id: 'dashboard',
+      label: 'Dashboard',
+      icon: '📊',
+      description: 'Overview of store performance and analytics',
+    },
+    {
+      id: 'orders',
+      label: 'Orders',
+      icon: '📋',
+      description: 'Manage customer orders and transactions',
+    },
+    {
+      id: 'products',
+      label: 'Products',
+      icon: '📦',
+      description: 'Product catalog and inventory management',
+    },
+    {
+      id: 'customers',
+      label: 'Customers',
+      icon: '👥',
+      description: 'Customer database and relationship management',
+    },
+    {
+      id: 'members',
+      label: 'Members',
+      icon: '👤',
+      description: 'Staff member management and permissions',
+    },
+    {
+      id: 'settings',
+      label: 'Settings',
+      icon: '⚙️',
+      description: 'Application configuration and preferences',
+    },
+  ].filter((item) => {
     // Filter out Members section for non-admin/non-manager users
-    if (item.id === "members") {
-      return user && (user.role === "admin" || user.role === "manager");
+    if (item.id === 'members') {
+      return user && (user.role === 'admin' || user.role === 'manager')
     }
-    return true;
-  });
+    return true
+  })
 
   return (
     // Main layout container with sidebar and content area
@@ -82,12 +113,12 @@ export default function Layout({ children, currentPage, onNavigate }: LayoutProp
           <SidebarNav>
             <SidebarGroup title="Navigation" isCollapsed={isCollapsed}>
               {menuItems.map((item) => (
-                <SidebarItem 
+                <SidebarItem
                   key={item.id}
-                  item={{ 
+                  item={{
                     ...item,
                     active: currentPage === item.id,
-                    onClick: () => onNavigate(item.id)
+                    onClick: () => onNavigate(item.id),
                   }}
                   isCollapsed={isCollapsed}
                 />
@@ -96,7 +127,7 @@ export default function Layout({ children, currentPage, onNavigate }: LayoutProp
           </SidebarNav>
         )}
       </Sidebar>
-      
+
       {/* Main content area with header and scrollable content */}
       <div class="flex-1 flex flex-col overflow-hidden">
         {/* 
@@ -106,14 +137,10 @@ export default function Layout({ children, currentPage, onNavigate }: LayoutProp
         <header class="bg-white shadow-sm border-b border-gray-200">
           <div class="flex items-center justify-between px-6 py-4">
             <div>
-              <Heading>
-                {menuItems.find((item) => item.id === currentPage)?.label}
-              </Heading>
-              <Text>
-                {menuItems.find((item) => item.id === currentPage)?.description}
-              </Text>
+              <Heading>{menuItems.find((item) => item.id === currentPage)?.label}</Heading>
+              <Text>{menuItems.find((item) => item.id === currentPage)?.description}</Text>
             </div>
-            
+
             {/* Header right section with notifications and user profile */}
             <div class="flex items-center space-x-4">
               {/* 
@@ -121,7 +148,8 @@ export default function Layout({ children, currentPage, onNavigate }: LayoutProp
                 Contains user avatar, name, email, and dropdown menu
               */}
               <div class="relative">
-                <button 
+                <button
+                  type="button"
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   class="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
                 >
@@ -129,7 +157,7 @@ export default function Layout({ children, currentPage, onNavigate }: LayoutProp
                     A
                   </div>
                   <div class="flex flex-col items-start">
-                    <span class="font-medium">{user?.name || "User"}</span>
+                    <span class="font-medium">{user?.name || 'User'}</span>
                     <span class="text-xs text-gray-500">{user?.email}</span>
                   </div>
                   <span class={`text-gray-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}>▼</span>
@@ -142,27 +170,27 @@ export default function Layout({ children, currentPage, onNavigate }: LayoutProp
                 */}
                 {isDropdownOpen && (
                   <div class="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
-                    <div class="p-2">                      
+                    <div class="p-2">
                       {/* Settings navigation button */}
                       <Button
                         variant="outline"
                         onClick={() => {
-                          onNavigate('settings');
-                          setIsDropdownOpen(false);
+                          onNavigate('settings')
+                          setIsDropdownOpen(false)
                         }}
                         class="w-full"
                       >
                         <span>⚙️</span>
                         <span>Settings</span>
                       </Button>
-                      
+
                       {/* Sign out section with visual separator */}
                       <div class="border-t border-gray-100 mt-2 pt-2">
-                        <Button 
+                        <Button
                           variant="danger"
                           onClick={() => {
-                            signOut();
-                            setIsDropdownOpen(false);
+                            signOut()
+                            setIsDropdownOpen(false)
                           }}
                           class="w-full"
                         >
@@ -183,11 +211,9 @@ export default function Layout({ children, currentPage, onNavigate }: LayoutProp
           Uses container class for proper horizontal centering and padding
         */}
         <main class="flex-1 overflow-x-hidden overflow-y-auto">
-          <div class="container mx-auto px-6 py-8">
-            {children}
-          </div>
+          <div class="container mx-auto px-6 py-8">{children}</div>
         </main>
       </div>
     </div>
-  );
+  )
 }

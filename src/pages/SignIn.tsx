@@ -1,79 +1,85 @@
-import { useState } from "preact/hooks";
-import { Button, Input, Heading, Text, Container, Form, FormField, FormActions } from "../components/ui";
+import { useState } from 'preact/hooks'
+import { Button, Container, Form, FormActions, FormField, Heading, Input, Text } from '../components/ui'
 
 interface SignInProps {
-  onSignIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  onSignIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>
 }
 
 export default function SignIn({ onSignIn }: SignInProps) {
   const [formData, setFormData] = useState({
-    email: "",
-    password: ""
-  });
+    email: '',
+    password: '',
+  })
   const [errors, setErrors] = useState({
-    email: "",
-    password: "",
-    general: ""
-  });
-  const [isLoading, setIsLoading] = useState(false);
+    email: '',
+    password: '',
+    general: '',
+  })
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleInputChange = (field: string) => (e: Event) => {
-    const value = (e.target as HTMLInputElement).value;
-    setFormData(prev => ({ ...prev, [field]: value }));
-    
+    const value = (e.target as HTMLInputElement).value
+    setFormData((prev) => ({ ...prev, [field]: value }))
+
     // Clear field error when user starts typing
     if (errors[field as keyof typeof errors]) {
-      setErrors(prev => ({ ...prev, [field]: "", general: "" }));
+      setErrors((prev) => ({ ...prev, [field]: '', general: '' }))
     }
-  };
+  }
 
   const validateForm = () => {
     const newErrors = {
-      email: "",
-      password: "",
-      general: ""
-    };
+      email: '',
+      password: '',
+      general: '',
+    }
 
     if (!formData.email) {
-      newErrors.email = "Email is required";
+      newErrors.email = 'Email is required'
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Please enter a valid email address";
+      newErrors.email = 'Please enter a valid email address'
     }
 
     if (!formData.password) {
-      newErrors.password = "Password is required";
+      newErrors.password = 'Password is required'
     } else if (formData.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
+      newErrors.password = 'Password must be at least 6 characters'
     }
 
-    setErrors(newErrors);
-    return !newErrors.email && !newErrors.password;
-  };
+    setErrors(newErrors)
+    return !newErrors.email && !newErrors.password
+  }
 
   const handleSubmit = async () => {
-    if (!validateForm()) return;
+    if (!validateForm()) return
 
-    setIsLoading(true);
+    setIsLoading(true)
     try {
-      const result = await onSignIn(formData.email, formData.password);
-      
+      const result = await onSignIn(formData.email, formData.password)
+
       if (!result.success) {
-        setErrors(prev => ({ ...prev, general: result.error || "Sign in failed" }));
+        setErrors((prev) => ({
+          ...prev,
+          general: result.error || 'Sign in failed',
+        }))
       }
-    } catch (error) {
-      setErrors(prev => ({ ...prev, general: "An unexpected error occurred" }));
+    } catch (_error) {
+      setErrors((prev) => ({
+        ...prev,
+        general: 'An unexpected error occurred',
+      }))
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   const fillDemoCredentials = () => {
     setFormData({
-      email: "admin@postpos.com",
-      password: "admin123"
-    });
-    setErrors({ email: "", password: "", general: "" });
-  };
+      email: 'admin@postpos.com',
+      password: 'admin123',
+    })
+    setErrors({ email: '', password: '', general: '' })
+  }
 
   return (
     <div class="min-h-screen bg-gray-100 flex items-center justify-center p-4">
@@ -82,9 +88,13 @@ export default function SignIn({ onSignIn }: SignInProps) {
           {/* Logo and Title */}
           <div class="text-center mb-8">
             <div class="w-16 h-16 bg-blue-600 rounded-lg flex items-center justify-center mx-auto mb-4">
-              <Text color="white" weight="bold" size="xl">P</Text>
+              <Text color="white" weight="bold" size="xl">
+                P
+              </Text>
             </div>
-            <Heading level={1} size="2xl" color="primary">Post POS</Heading>
+            <Heading level={1} size="2xl" color="primary">
+              Post POS
+            </Heading>
             <Text variant="caption" color="muted" class="mt-2">
               Sign in to your account
             </Text>
@@ -97,15 +107,11 @@ export default function SignIn({ onSignIn }: SignInProps) {
                 Demo Credentials
               </Text>
               <Text variant="small" color="muted" class="mb-3">
-                Email: admin@postpos.com<br/>
+                Email: admin@postpos.com
+                <br />
                 Password: admin123
               </Text>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={fillDemoCredentials}
-                class="w-full"
-              >
+              <Button variant="outline" size="sm" onClick={fillDemoCredentials} class="w-full">
                 Use Demo Credentials
               </Button>
             </div>
@@ -128,7 +134,7 @@ export default function SignIn({ onSignIn }: SignInProps) {
                 type="email"
                 placeholder="Enter your email"
                 value={formData.email}
-                onInput={handleInputChange("email")}
+                onInput={handleInputChange('email')}
                 error={errors.email}
                 required
               />
@@ -140,25 +146,18 @@ export default function SignIn({ onSignIn }: SignInProps) {
                 type="password"
                 placeholder="Enter your password"
                 value={formData.password}
-                onInput={handleInputChange("password")}
+                onInput={handleInputChange('password')}
                 error={errors.password}
                 required
               />
             </FormField>
 
             <FormActions align="center">
-              <Button 
-                type="submit" 
-                variant="primary" 
-                size="lg"
-                disabled={isLoading}
-                class="w-full"
-              >
-                {isLoading ? "Signing in..." : "Sign In"}
+              <Button type="submit" variant="primary" size="lg" disabled={isLoading} class="w-full">
+                {isLoading ? 'Signing in...' : 'Sign In'}
               </Button>
             </FormActions>
           </Form>
-
 
           {/* Footer */}
           <div class="mt-8 pt-6 border-t border-gray-200 text-center">
@@ -169,5 +168,5 @@ export default function SignIn({ onSignIn }: SignInProps) {
         </div>
       </Container>
     </div>
-  );
+  )
 }

@@ -1,29 +1,29 @@
-import type { JSX } from "preact";
+import type { JSX } from 'preact'
 
 interface SelectOption {
-  value: string;
-  label: string;
+  value: string
+  label: string
 }
 
 interface SelectProps {
-  label?: string;
-  placeholder?: string;
-  value?: string;
-  disabled?: boolean;
-  required?: boolean;
-  error?: string;
-  helperText?: string;
-  multiple?: boolean;
-  options: SelectOption[];
-  onChange?: (e: Event) => void;
-  onFocus?: (e: Event) => void;
-  onBlur?: (e: Event) => void;
-  class?: string;
-  id?: string;
+  label?: string
+  placeholder?: string
+  value?: string
+  disabled?: boolean
+  required?: boolean
+  error?: string
+  helperText?: string
+  multiple?: boolean
+  options: SelectOption[]
+  onChange?: (e: Event) => void
+  onFocus?: (e: Event) => void
+  onBlur?: (e: Event) => void
+  class?: string
+  id?: string
 }
 
 function clsx(...classes: (string | undefined | boolean)[]): string {
-  return classes.filter(Boolean).join(' ');
+  return classes.filter(Boolean).join(' ')
 }
 
 export default function Select({
@@ -39,11 +39,11 @@ export default function Select({
   onChange,
   onFocus,
   onBlur,
-  class: className = "",
+  class: className = '',
   id,
   ...props
 }: SelectProps & Omit<JSX.HTMLAttributes<HTMLSelectElement>, 'size'>) {
-  const selectId = id || `select-${Math.random().toString(36).substring(2, 11)}`;
+  const selectId = id || `select-${Math.random().toString(36).substring(2, 11)}`
 
   // Unify with Input styles: glass border on the element, accessible focus-visible ring
   const baseClasses = clsx(
@@ -51,31 +51,19 @@ export default function Select({
     'backdrop-blur-md bg-white/10 border border-white/20',
     'focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-offset-2 focus-visible:ring-offset-white/10',
     'shadow-lg',
-    disabled && 'opacity-40 cursor-not-allowed'
-  );
+    disabled && 'opacity-40 cursor-not-allowed',
+  )
 
   const stateClasses = error
-    ? clsx(
-        'border-red-400/50',
-        'bg-red-50/10',
-        'focus-visible:ring-red-500/60'
-      )
-    : clsx(
-        'border-white/20',
-        'focus-visible:ring-blue-500/60'
-      );
+    ? clsx('border-red-400/50', 'bg-red-50/10', 'focus-visible:ring-red-500/60')
+    : clsx('border-white/20', 'focus-visible:ring-blue-500/60')
 
-  const paddingClasses = multiple
-    ? 'px-4 py-2.5 text-sm'
-    : 'pl-4 pr-10 py-2.5 text-sm';
+  const paddingClasses = multiple ? 'px-4 py-2.5 text-sm' : 'pl-4 pr-10 py-2.5 text-sm'
 
   return (
     <div class="w-full">
       {label && (
-        <label
-          for={selectId}
-          class="block text-sm font-medium text-gray-700 mb-2 drop-shadow-sm"
-        >
+        <label for={selectId} class="block text-sm font-medium text-gray-700 mb-2 drop-shadow-sm">
           {label}
           {required && <span class="text-red-500 ml-1 drop-shadow-sm">*</span>}
         </label>
@@ -96,7 +84,7 @@ export default function Select({
             paddingClasses,
             // Match Input: no explicit text color/placeholder styling
             stateClasses,
-            className
+            className,
           )}
           {...props}
         >
@@ -115,10 +103,7 @@ export default function Select({
         {!multiple && (
           <span class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 z-10">
             <svg
-              class={clsx(
-                'w-4 h-4 stroke-gray-600 sm:w-3.5 sm:h-3.5 drop-shadow-sm',
-                disabled && 'stroke-gray-400'
-              )}
+              class={clsx('w-4 h-4 stroke-gray-600 sm:w-3.5 sm:h-3.5 drop-shadow-sm', disabled && 'stroke-gray-400')}
               viewBox="0 0 16 16"
               aria-hidden="true"
               fill="none"
@@ -134,7 +119,7 @@ export default function Select({
           class={clsx(
             'absolute inset-0 rounded-xl pointer-events-none',
             'bg-gradient-to-b from-white/10 via-transparent to-transparent',
-            'opacity-60'
+            'opacity-60',
           )}
         />
       </div>
@@ -148,9 +133,7 @@ export default function Select({
         </div>
       )}
 
-      {helperText && !error && (
-        <p class="mt-1 text-sm text-gray-600 drop-shadow-sm">{helperText}</p>
-      )}
+      {helperText && !error && <p class="mt-1 text-sm text-gray-600 drop-shadow-sm">{helperText}</p>}
     </div>
-  );
+  )
 }

@@ -1,28 +1,44 @@
-import { useState, useEffect } from "preact/hooks";
-import { Button, Input, Select, Textarea, Dialog, DialogBody, DialogFooter, DialogConfirm, Container, Table, TableHead, TableBody, TableRow, TableHeader, TableCell } from "../components/ui";
-import { type Product, productService, PRODUCT_CATEGORIES } from "../services/products-sqlite";
-import { useAuth } from "../hooks/useAuth";
+import { useEffect, useState } from 'preact/hooks'
+import {
+  Button,
+  Container,
+  Dialog,
+  DialogBody,
+  DialogConfirm,
+  DialogFooter,
+  Input,
+  Select,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  Textarea,
+} from '../components/ui'
+import { useAuth } from '../hooks/useAuth'
+import { PRODUCT_CATEGORIES, type Product, productService } from '../services/products-sqlite'
 
 interface EditProductModalProps {
-  product: Product | null;
-  isOpen: boolean;
-  onClose: () => void;
-  onSave: (product: Product) => void;
+  product: Product | null
+  isOpen: boolean
+  onClose: () => void
+  onSave: (product: Product) => void
 }
 
 function EditProductModal({ product, isOpen, onClose, onSave }: EditProductModalProps) {
   const [formData, setFormData] = useState({
-    name: "",
-    description: "",
+    name: '',
+    description: '',
     price: 0,
     cost: 0,
     stock: 0,
-    category: "",
-    barcode: "",
-    isActive: true
-  });
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
+    category: '',
+    barcode: '',
+    isActive: true,
+  })
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     if (product && isOpen) {
@@ -33,31 +49,31 @@ function EditProductModal({ product, isOpen, onClose, onSave }: EditProductModal
         cost: product.cost,
         stock: product.stock,
         category: product.category,
-        barcode: product.barcode || "",
-        isActive: product.isActive
-      });
+        barcode: product.barcode || '',
+        isActive: product.isActive,
+      })
     } else if (isOpen) {
       setFormData({
-        name: "",
-        description: "",
+        name: '',
+        description: '',
         price: 0,
         cost: 0,
         stock: 0,
-        category: "",
-        barcode: "",
-        isActive: true
-      });
+        category: '',
+        barcode: '',
+        isActive: true,
+      })
     }
-    setError("");
-  }, [product, isOpen]);
+    setError('')
+  }, [product, isOpen])
 
   const handleSubmit = async (e: Event) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError("");
+    e.preventDefault()
+    setIsLoading(true)
+    setError('')
 
     try {
-      let result;
+      let result: { success: boolean; product?: Product; error?: string }
       if (product) {
         result = await productService.updateProduct(product.id, {
           name: formData.name,
@@ -67,8 +83,8 @@ function EditProductModal({ product, isOpen, onClose, onSave }: EditProductModal
           stock: formData.stock,
           category: formData.category,
           barcode: formData.barcode || undefined,
-          isActive: formData.isActive
-        });
+          isActive: formData.isActive,
+        })
       } else {
         result = await productService.createProduct({
           name: formData.name,
@@ -78,30 +94,25 @@ function EditProductModal({ product, isOpen, onClose, onSave }: EditProductModal
           stock: formData.stock,
           category: formData.category,
           barcode: formData.barcode || undefined,
-          isActive: formData.isActive
-        });
+          isActive: formData.isActive,
+        })
       }
 
       if (result.success && result.product) {
-        onSave(result.product);
-        onClose();
+        onSave(result.product)
+        onClose()
       } else {
-        setError(result.error || "An error occurred");
+        setError(result.error || 'An error occurred')
       }
-    } catch (err) {
-      setError("An error occurred");
+    } catch (_err) {
+      setError('An error occurred')
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   return (
-    <Dialog
-      isOpen={isOpen}
-      onClose={onClose}
-      title={product ? "Edit Product" : "Create Product"}
-      size="md"
-    >
+    <Dialog isOpen={isOpen} onClose={onClose} title={product ? 'Edit Product' : 'Create Product'} size="md">
       <DialogBody>
         {error && (
           <div class="bg-red-500/10 backdrop-blur-sm border border-red-400/20 text-red-700 px-4 py-3 rounded-xl mb-6">
@@ -116,12 +127,15 @@ function EditProductModal({ product, isOpen, onClose, onSave }: EditProductModal
           <form onSubmit={handleSubmit} class="space-y-6">
             <div class="grid grid-cols-2 gap-6">
               <div>
-                <label class="block text-sm font-semibold text-gray-800 mb-3 drop-shadow-sm">
-                  📦 Product Name
-                </label>
                 <Input
+                  label="📦 Product Name"
                   value={formData.name}
-                  onInput={(e) => setFormData({ ...formData, name: (e.target as HTMLInputElement).value })}
+                  onInput={(e) =>
+                    setFormData({
+                      ...formData,
+                      name: (e.target as HTMLInputElement).value,
+                    })
+                  }
                   required
                   class="bg-white/80 text-gray-900"
                   placeholder="Enter product name"
@@ -129,27 +143,36 @@ function EditProductModal({ product, isOpen, onClose, onSave }: EditProductModal
               </div>
 
               <div>
-                <label class="block text-sm font-semibold text-gray-800 mb-3 drop-shadow-sm">
-                  🏷️ Category
-                </label>
                 <Select
+                  label="🏷️ Category"
                   value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: (e.target as HTMLSelectElement).value })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      category: (e.target as HTMLSelectElement).value,
+                    })
+                  }
                   required
                   placeholder="Select a category"
-                  options={PRODUCT_CATEGORIES.map(category => ({ value: category, label: category }))}
+                  options={PRODUCT_CATEGORIES.map((category) => ({
+                    value: category,
+                    label: category,
+                  }))}
                   class="bg-white/80"
                 />
               </div>
             </div>
 
             <div>
-              <label class="block text-sm font-semibold text-gray-800 mb-3 drop-shadow-sm">
-                📝 Description
-              </label>
               <Textarea
+                label="📝 Description"
                 value={formData.description}
-                onInput={(e) => setFormData({ ...formData, description: (e.target as HTMLTextAreaElement).value })}
+                onInput={(e) =>
+                  setFormData({
+                    ...formData,
+                    description: (e.target as HTMLTextAreaElement).value,
+                  })
+                }
                 rows={3}
                 class="bg-white/80 text-gray-900"
                 placeholder="Enter product description"
@@ -158,13 +181,16 @@ function EditProductModal({ product, isOpen, onClose, onSave }: EditProductModal
 
             <div class="grid grid-cols-3 gap-4">
               <div>
-                <label class="block text-sm font-semibold text-gray-800 mb-3 drop-shadow-sm">
-                  💰 Price
-                </label>
                 <Input
+                  label="💰 Price"
                   type="number"
                   value={formData.price.toString()}
-                  onInput={(e) => setFormData({ ...formData, price: parseFloat((e.target as HTMLInputElement).value) || 0 })}
+                  onInput={(e) =>
+                    setFormData({
+                      ...formData,
+                      price: parseFloat((e.target as HTMLInputElement).value) || 0,
+                    })
+                  }
                   required
                   class="bg-white/80 text-gray-900"
                   placeholder="0.00"
@@ -172,13 +198,16 @@ function EditProductModal({ product, isOpen, onClose, onSave }: EditProductModal
               </div>
 
               <div>
-                <label class="block text-sm font-semibold text-gray-800 mb-3 drop-shadow-sm">
-                  🏭 Cost
-                </label>
                 <Input
+                  label="🏭 Cost"
                   type="number"
                   value={formData.cost.toString()}
-                  onInput={(e) => setFormData({ ...formData, cost: parseFloat((e.target as HTMLInputElement).value) || 0 })}
+                  onInput={(e) =>
+                    setFormData({
+                      ...formData,
+                      cost: parseFloat((e.target as HTMLInputElement).value) || 0,
+                    })
+                  }
                   required
                   class="bg-white/80 text-gray-900"
                   placeholder="0.00"
@@ -186,13 +215,16 @@ function EditProductModal({ product, isOpen, onClose, onSave }: EditProductModal
               </div>
 
               <div>
-                <label class="block text-sm font-semibold text-gray-800 mb-3 drop-shadow-sm">
-                  📊 Stock
-                </label>
                 <Input
+                  label="📊 Stock"
                   type="number"
                   value={formData.stock.toString()}
-                  onInput={(e) => setFormData({ ...formData, stock: parseInt((e.target as HTMLInputElement).value) || 0 })}
+                  onInput={(e) =>
+                    setFormData({
+                      ...formData,
+                      stock: parseInt((e.target as HTMLInputElement).value, 10) || 0,
+                    })
+                  }
                   required
                   class="bg-white/80 text-gray-900"
                   placeholder="0"
@@ -202,27 +234,39 @@ function EditProductModal({ product, isOpen, onClose, onSave }: EditProductModal
 
             <div class="grid grid-cols-2 gap-6">
               <div>
-                <label class="block text-sm font-semibold text-gray-800 mb-3 drop-shadow-sm">
-                  📊 Barcode (Optional)
-                </label>
                 <Input
+                  label="📊 Barcode (Optional)"
                   value={formData.barcode}
-                  onInput={(e) => setFormData({ ...formData, barcode: (e.target as HTMLInputElement).value })}
+                  onInput={(e) =>
+                    setFormData({
+                      ...formData,
+                      barcode: (e.target as HTMLInputElement).value,
+                    })
+                  }
                   placeholder="Enter barcode"
                   class="bg-white/80 text-gray-900"
                 />
               </div>
 
               <div>
-                <label class="block text-sm font-semibold text-gray-800 mb-3 drop-shadow-sm">
-                  ✅ Status
-                </label>
                 <Select
-                  value={formData.isActive ? "active" : "inactive"}
-                  onChange={(e) => setFormData({ ...formData, isActive: (e.target as HTMLSelectElement).value === "active" })}
+                  label="✅ Status"
+                  value={formData.isActive ? 'active' : 'inactive'}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      isActive: (e.target as HTMLSelectElement).value === 'active',
+                    })
+                  }
                   options={[
-                    { value: "active", label: "✅ Active - Available for sale" },
-                    { value: "inactive", label: "⛔ Inactive - Hidden from sales" }
+                    {
+                      value: 'active',
+                      label: '✅ Active - Available for sale',
+                    },
+                    {
+                      value: 'inactive',
+                      label: '⛔ Inactive - Hidden from sales',
+                    },
                   ]}
                   class="bg-white/80"
                 />
@@ -235,7 +279,7 @@ function EditProductModal({ product, isOpen, onClose, onSave }: EditProductModal
                 <div class="flex justify-between items-center">
                   <span class="font-semibold text-emerald-800">Profit Margin:</span>
                   <span class="text-xl font-bold text-emerald-600">
-                    {((formData.price - formData.cost) / formData.cost * 100).toFixed(1)}%
+                    {(((formData.price - formData.cost) / formData.cost) * 100).toFixed(1)}%
                   </span>
                 </div>
                 <div class="text-sm text-emerald-700 mt-1">
@@ -248,154 +292,142 @@ function EditProductModal({ product, isOpen, onClose, onSave }: EditProductModal
       </DialogBody>
 
       <DialogFooter>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onClose}
-          disabled={isLoading}
-        >
+        <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
           Cancel
         </Button>
-        <Button
-          type="button"
-          onClick={() => handleSubmit(new Event('submit'))}
-          disabled={isLoading}
-        >
-          {isLoading ? "Saving..." : product ? "Update" : "Create"}
+        <Button type="button" onClick={() => handleSubmit(new Event('submit'))} disabled={isLoading}>
+          {isLoading ? 'Saving...' : product ? 'Update' : 'Create'}
         </Button>
       </DialogFooter>
     </Dialog>
-  );
+  )
 }
 
 export default function Products() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [allProducts, setAllProducts] = useState<Product[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [products, setProducts] = useState<Product[]>([])
+  const [allProducts, setAllProducts] = useState<Product[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
 
-  const { user: currentUser, hasRole, hasPermission } = useAuth();
+  const { user: currentUser, hasRole, hasPermission } = useAuth()
 
-  const canManageProducts = currentUser && (
-    hasRole("admin") ||
-    hasRole("manager") ||
-    hasPermission("products.view")
-  );
+  const canManageProducts = currentUser && (hasRole('admin') || hasRole('manager') || hasPermission('products.view'))
 
   useEffect(() => {
-    loadProducts();
-  }, []);
+    loadProducts()
+  }, [])
 
   const loadProducts = async () => {
     if (!canManageProducts) {
-      setError("You don't have permission to view products");
-      setIsLoading(false);
-      return;
+      setError("You don't have permission to view products")
+      setIsLoading(false)
+      return
     }
 
     try {
-      const productsList = await productService.getProducts();
-      setAllProducts(productsList);
-      setProducts(productsList);
-    } catch (err: any) {
-      setError(err.message || "Failed to load products");
+      const productsList = await productService.getProducts()
+      setAllProducts(productsList)
+      setProducts(productsList)
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to load products'
+      setError(message)
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   const handleSearch = async (query: string) => {
-    setSearchQuery(query);
-    if (query.trim() === "") {
-      setProducts(allProducts);
-      return;
+    setSearchQuery(query)
+    if (query.trim() === '') {
+      setProducts(allProducts)
+      return
     }
 
     try {
-      const searchResults = await productService.searchProducts(query);
-      setProducts(searchResults);
-    } catch (err) {
-      setError("Search failed");
+      const searchResults = await productService.searchProducts(query)
+      setProducts(searchResults)
+    } catch (_err) {
+      setError('Search failed')
     }
-  };
+  }
 
   const handleCreateProduct = () => {
-    setEditingProduct(null);
-    setIsModalOpen(true);
-  };
+    setEditingProduct(null)
+    setIsModalOpen(true)
+  }
 
   const handleEditProduct = (product: Product) => {
-    setEditingProduct(product);
-    setIsModalOpen(true);
-  };
+    setEditingProduct(product)
+    setIsModalOpen(true)
+  }
 
   const handleDeleteProduct = async (productId: string) => {
     try {
-      const result = await productService.deleteProduct(productId);
+      const result = await productService.deleteProduct(productId)
       if (result.success) {
-        setAllProducts(allProducts.filter(p => p.id !== productId));
-        setProducts(products.filter(p => p.id !== productId));
-        setDeleteConfirm(null);
+        setAllProducts(allProducts.filter((p) => p.id !== productId))
+        setProducts(products.filter((p) => p.id !== productId))
+        setDeleteConfirm(null)
       } else {
-        setError(result.error || "Failed to delete product");
+        setError(result.error || 'Failed to delete product')
       }
-    } catch (err) {
-      setError("Failed to delete product");
+    } catch (_err) {
+      setError('Failed to delete product')
     }
-  };
+  }
 
   const handleSaveProduct = (savedProduct: Product) => {
     if (editingProduct) {
-      const updatedProducts = allProducts.map(p => p.id === savedProduct.id ? savedProduct : p);
-      setAllProducts(updatedProducts);
-      setProducts(products.map(p => p.id === savedProduct.id ? savedProduct : p));
+      const updatedProducts = allProducts.map((p) => (p.id === savedProduct.id ? savedProduct : p))
+      setAllProducts(updatedProducts)
+      setProducts(products.map((p) => (p.id === savedProduct.id ? savedProduct : p)))
     } else {
-      setAllProducts([...allProducts, savedProduct]);
-      setProducts([...products, savedProduct]);
+      setAllProducts([...allProducts, savedProduct])
+      setProducts([...products, savedProduct])
     }
-  };
+  }
 
   const getStockColor = (stock: number) => {
-    if (stock === 0) return "bg-gradient-to-r from-red-100 to-red-200 text-red-800 border border-red-300";
-    if (stock < 10) return "bg-gradient-to-r from-yellow-100 to-yellow-200 text-yellow-800 border border-yellow-300";
-    return "bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300";
-  };
+    if (stock === 0) return 'bg-gradient-to-r from-red-100 to-red-200 text-red-800 border border-red-300'
+    if (stock < 10) return 'bg-gradient-to-r from-yellow-100 to-yellow-200 text-yellow-800 border border-yellow-300'
+    return 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300'
+  }
 
   const getStatusColor = (isActive: boolean) => {
     return isActive
-      ? "bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300 shadow-sm"
-      : "bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-300 shadow-sm";
-  };
+      ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300 shadow-sm'
+      : 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 border border-gray-300 shadow-sm'
+  }
 
   const getStockIcon = (stock: number) => {
-    if (stock === 0) return "❌";
-    if (stock < 10) return "⚠️";
-    return "✅";
-  };
+    if (stock === 0) return '❌'
+    if (stock < 10) return '⚠️'
+    return '✅'
+  }
 
   const getCategoryIcon = (category: string) => {
-    const icons: {[key: string]: string} = {
-      "Beverages": "🥤",
-      "Bakery": "🍞",
-      "Coffee & Tea": "☕",
-      "Dairy": "🥛",
-      "Snacks": "🍫",
-      "Seafood": "🐟",
-      "Frozen Foods": "🧊",
-      "Fresh Produce": "🍎",
-      "Household Items": "🧽",
-      "Personal Care": "🧴"
-    };
-    return icons[category] || "📦";
-  };
+    const icons: { [key: string]: string } = {
+      Beverages: '🥤',
+      Bakery: '🍞',
+      'Coffee & Tea': '☕',
+      Dairy: '🥛',
+      Snacks: '🍫',
+      Seafood: '🐟',
+      'Frozen Foods': '🧊',
+      'Fresh Produce': '🍎',
+      'Household Items': '🧽',
+      'Personal Care': '🧴',
+    }
+    return icons[category] || '📦'
+  }
 
   const formatCurrency = (amount: number) => {
-    return `$${amount.toFixed(2)}`;
-  };
+    return `$${amount.toFixed(2)}`
+  }
 
   if (!canManageProducts) {
     return (
@@ -410,7 +442,7 @@ export default function Products() {
           </div>
         </div>
       </Container>
-    );
+    )
   }
 
   if (isLoading) {
@@ -423,7 +455,7 @@ export default function Products() {
           </div>
         </div>
       </Container>
-    );
+    )
   }
 
   return (
@@ -436,7 +468,7 @@ export default function Products() {
             {searchQuery && ` • ${products.length} found`}
           </p>
         </div>
-        {(hasPermission("products.create") || hasRole("admin") || hasRole("manager")) && (
+        {(hasPermission('products.create') || hasRole('admin') || hasRole('manager')) && (
           <Button onClick={handleCreateProduct}>
             <span class="mr-2">➕</span>
             Add Product
@@ -457,7 +489,8 @@ export default function Products() {
         />
         {searchQuery && (
           <button
-            onClick={() => handleSearch("")}
+            type="button"
+            onClick={() => handleSearch('')}
             class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
           >
             <span class="text-lg">❌</span>
@@ -487,108 +520,105 @@ export default function Products() {
               <TableHeader class="font-semibold text-gray-900">Actions</TableHeader>
             </TableRow>
           </TableHead>
-        <TableBody>
-          {products.map((product, index) => (
-            <TableRow 
-              key={product.id} 
-              class="hover:bg-gray-50 transition-all duration-200 hover:shadow-sm"
-              style={`animation-delay: ${index * 50}ms`}
-            >
-              <TableCell>
-                <div class="flex items-start">
-                  <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center text-white text-lg font-bold mr-3 shadow-md">
-                    {getCategoryIcon(product.category)}
+          <TableBody>
+            {products.map((product, index) => (
+              <TableRow
+                key={product.id}
+                class="hover:bg-gray-50 transition-all duration-200 hover:shadow-sm"
+                style={`animation-delay: ${index * 50}ms`}
+              >
+                <TableCell>
+                  <div class="flex items-start">
+                    <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center text-white text-lg font-bold mr-3 shadow-md">
+                      {getCategoryIcon(product.category)}
+                    </div>
+                    <div class="min-w-0 flex-1">
+                      <div class="font-semibold text-gray-900 truncate">{product.name}</div>
+                      {product.description && (
+                        <div class="text-sm text-gray-600 truncate max-w-xs mt-1">{product.description}</div>
+                      )}
+                      {product.barcode && (
+                        <div class="text-xs text-gray-500 mt-1 font-mono bg-gray-100 px-2 py-1 rounded w-fit">
+                          📊 {product.barcode}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <div class="min-w-0 flex-1">
-                    <div class="font-semibold text-gray-900 truncate">{product.name}</div>
-                    {product.description && (
-                      <div class="text-sm text-gray-600 truncate max-w-xs mt-1">{product.description}</div>
+                </TableCell>
+                <TableCell>
+                  <div class="inline-flex items-center px-3 py-2 rounded-full text-xs font-semibold bg-gradient-to-r from-blue-100 to-indigo-200 text-blue-800 border border-blue-300 shadow-sm">
+                    <span class="mr-1">{getCategoryIcon(product.category)}</span>
+                    {product.category}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div class="text-lg font-bold text-emerald-600 drop-shadow-sm">{formatCurrency(product.price)}</div>
+                </TableCell>
+                <TableCell>
+                  <div class="text-gray-600 font-medium">{formatCurrency(product.cost)}</div>
+                  <div class="text-xs text-gray-500">
+                    Margin: {(((product.price - product.cost) / product.cost) * 100).toFixed(1)}%
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div
+                    class={`inline-flex items-center px-3 py-2 rounded-full text-xs font-semibold transition-all hover:scale-105 ${getStockColor(product.stock)} shadow-sm`}
+                  >
+                    <span class="mr-1">{getStockIcon(product.stock)}</span>
+                    {product.stock} units
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div
+                    class={`inline-flex items-center px-3 py-2 rounded-full text-xs font-semibold uppercase tracking-wide ${getStatusColor(product.isActive)} transition-all hover:scale-105`}
+                  >
+                    <span class="mr-1">{product.isActive ? '✅' : '⛔'}</span>
+                    {product.isActive ? 'Active' : 'Inactive'}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div class="flex space-x-2">
+                    {(hasPermission('products.edit') || hasRole('admin') || hasRole('manager')) && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleEditProduct(product)}
+                        class="text-blue-600 border-blue-200 hover:bg-blue-50 hover:border-blue-300 transition-all hover:shadow-md mr-2"
+                      >
+                        ✏️ Edit
+                      </Button>
                     )}
-                    {product.barcode && (
-                      <div class="text-xs text-gray-500 mt-1 font-mono bg-gray-100 px-2 py-1 rounded w-fit">
-                        📊 {product.barcode}
-                      </div>
+                    {(hasPermission('products.delete') || hasRole('admin') || hasRole('manager')) && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setDeleteConfirm(product.id)}
+                        class="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 transition-all hover:shadow-md"
+                      >
+                        🗑️ Delete
+                      </Button>
                     )}
                   </div>
-                </div>
-              </TableCell>
-              <TableCell>
-                <div class="inline-flex items-center px-3 py-2 rounded-full text-xs font-semibold bg-gradient-to-r from-blue-100 to-indigo-200 text-blue-800 border border-blue-300 shadow-sm">
-                  <span class="mr-1">{getCategoryIcon(product.category)}</span>
-                  {product.category}
-                </div>
-              </TableCell>
-              <TableCell>
-                <div class="text-lg font-bold text-emerald-600 drop-shadow-sm">
-                  {formatCurrency(product.price)}
-                </div>
-              </TableCell>
-              <TableCell>
-                <div class="text-gray-600 font-medium">
-                  {formatCurrency(product.cost)}
-                </div>
-                <div class="text-xs text-gray-500">
-                  Margin: {((product.price - product.cost) / product.cost * 100).toFixed(1)}%
-                </div>
-              </TableCell>
-              <TableCell>
-                <div class={`inline-flex items-center px-3 py-2 rounded-full text-xs font-semibold transition-all hover:scale-105 ${getStockColor(product.stock)} shadow-sm`}>
-                  <span class="mr-1">{getStockIcon(product.stock)}</span>
-                  {product.stock} units
-                </div>
-              </TableCell>
-              <TableCell>
-                <div class={`inline-flex items-center px-3 py-2 rounded-full text-xs font-semibold uppercase tracking-wide ${getStatusColor(product.isActive)} transition-all hover:scale-105`}>
-                  <span class="mr-1">{product.isActive ? "✅" : "⛔"}</span>
-                  {product.isActive ? "Active" : "Inactive"}
-                </div>
-              </TableCell>
-              <TableCell>
-                <div class="flex space-x-2">
-                  {(hasPermission("products.edit") || hasRole("admin") || hasRole("manager")) && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleEditProduct(product)}
-                      class="text-blue-600 border-blue-200 hover:bg-blue-50 hover:border-blue-300 transition-all hover:shadow-md mr-2"
-                    >
-                      ✏️ Edit
-                    </Button>
-                  )}
-                  {(hasPermission("products.delete") || hasRole("admin") || hasRole("manager")) && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => setDeleteConfirm(product.id)}
-                      class="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 transition-all hover:shadow-md"
-                    >
-                      🗑️ Delete
-                    </Button>
-                  )}
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
         </Table>
       </div>
 
       {products.length === 0 && (
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-12">
           <div class="text-center">
-            <div class="text-6xl mb-6">
-              {searchQuery ? "🔍" : "📦"}
-            </div>
+            <div class="text-6xl mb-6">{searchQuery ? '🔍' : '📦'}</div>
             <h3 class="text-2xl font-bold text-gray-900 mb-3">
-              {searchQuery ? "No products found" : "No products in catalog"}
+              {searchQuery ? 'No products found' : 'No products in catalog'}
             </h3>
             <p class="text-gray-600 mb-6 max-w-md mx-auto">
-              {searchQuery 
+              {searchQuery
                 ? `We couldn't find any products matching "${searchQuery}". Try adjusting your search terms.`
-                : "Your product catalog is empty. Add your first product to get started with inventory management."
-              }
+                : 'Your product catalog is empty. Add your first product to get started with inventory management.'}
             </p>
-            {!searchQuery && (hasPermission("products.create") || hasRole("admin") || hasRole("manager")) && (
+            {!searchQuery && (hasPermission('products.create') || hasRole('admin') || hasRole('manager')) && (
               <Button onClick={handleCreateProduct} class="mt-4">
                 <span class="mr-2">➕</span>
                 Add First Product
@@ -615,5 +645,5 @@ export default function Products() {
         variant="danger"
       />
     </Container>
-  );
+  )
 }

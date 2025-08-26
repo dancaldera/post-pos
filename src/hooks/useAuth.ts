@@ -1,20 +1,20 @@
-import { user, isLoading, error, isAuthenticated, isAdmin, isManager, isUser } from '../stores/auth/authStore';
-import { authActions } from '../stores/auth/authActions';
-import type { User } from '../services/auth-sqlite';
+import type { User } from '../services/auth-sqlite'
+import { authActions } from '../stores/auth/authActions'
+import { error, isAdmin, isAuthenticated, isLoading, isManager, isUser, user } from '../stores/auth/authStore'
 
 interface UseAuthReturn {
-  user: User | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  error: string | null;
-  isAdmin: boolean;
-  isManager: boolean;
-  isUser: boolean;
-  signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  signOut: () => void;
-  hasPermission: (permission: string) => boolean;
-  hasRole: (role: User["role"]) => boolean;
-  clearError: () => void;
+  user: User | null
+  isAuthenticated: boolean
+  isLoading: boolean
+  error: string | null
+  isAdmin: boolean
+  isManager: boolean
+  isUser: boolean
+  signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>
+  signOut: () => void
+  hasPermission: (permission: string) => boolean
+  hasRole: (role: User['role']) => boolean
+  clearError: () => void
 }
 
 export function useAuth(): UseAuthReturn {
@@ -27,12 +27,12 @@ export function useAuth(): UseAuthReturn {
     isAdmin: isAdmin.value,
     isManager: isManager.value,
     isUser: isUser.value,
-    
+
     // Actions
     signIn: authActions.signIn,
     signOut: authActions.signOut,
     hasPermission: authActions.hasPermission,
     hasRole: authActions.hasRole,
     clearError: authActions.clearError,
-  };
+  }
 }

@@ -1,17 +1,17 @@
-import { useState } from "preact/hooks";
-import { invoke } from "@tauri-apps/api/core";
-import { Button, Container, Heading, Input, Text } from "../components/ui";
+import { invoke } from '@tauri-apps/api/core'
+import { useState } from 'preact/hooks'
+import { Button, Container, Heading, Input, Text } from '../components/ui'
 
 interface SettingsProps {
-  onNavigate: (page: string) => void;
+  onNavigate: (page: string) => void
 }
 
 export default function Settings({ onNavigate }: SettingsProps) {
-  const [greetMsg, setGreetMsg] = useState("");
-  const [name, setName] = useState("");
+  const [greetMsg, setGreetMsg] = useState('')
+  const [name, setName] = useState('')
 
   async function greet() {
-    setGreetMsg(await invoke("greet", { name }));
+    setGreetMsg(await invoke('greet', { name }))
   }
 
   return (
@@ -22,11 +22,8 @@ export default function Settings({ onNavigate }: SettingsProps) {
         <Text>Configure your POS system preferences here.</Text>
       </div>
 
-
       <Heading level={4}>🛠️ Developer Tools</Heading>
-      <Text class="mb-4">
-        Tools and utilities for development and testing.
-      </Text>
+      <Text class="mb-4">Tools and utilities for development and testing.</Text>
 
       <div class="space-y-4">
         <div>
@@ -34,8 +31,8 @@ export default function Settings({ onNavigate }: SettingsProps) {
           <form
             class="flex gap-4 mb-4"
             onSubmit={(e) => {
-              e.preventDefault();
-              greet();
+              e.preventDefault()
+              greet()
             }}
           >
             <Input
@@ -50,19 +47,14 @@ export default function Settings({ onNavigate }: SettingsProps) {
           </form>
 
           {greetMsg && (
-            <p class="text-center text-lg font-medium text-green-600 bg-green-50 p-4 rounded-lg">
-              {greetMsg}
-            </p>
+            <p class="text-center text-lg font-medium text-green-600 bg-green-50 p-4 rounded-lg">{greetMsg}</p>
           )}
         </div>
 
-        <Button
-          variant="outline"
-          onClick={() => onNavigate('component-showcase')}
-        >
+        <Button variant="outline" onClick={() => onNavigate('component-showcase')}>
           🎨 UI Components Showcase
         </Button>
       </div>
     </Container>
-  );
+  )
 }
