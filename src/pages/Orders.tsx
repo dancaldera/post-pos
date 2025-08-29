@@ -22,6 +22,7 @@ import {
 import { type Order, orderService } from '../services/orders-sqlite'
 import { type Product, productService } from '../services/products-sqlite'
 import { companySettingsService } from '../services/company-settings-sqlite'
+import { userService } from '../services/users-sqlite'
 
 export default function Orders() {
   const [orders, setOrders] = useState<Order[]>([])
@@ -42,6 +43,7 @@ export default function Orders() {
   const [currencySymbol, setCurrencySymbol] = useState<string>('$')
   const [productSearch, setProductSearch] = useState('')
   const [editProductSearch, setEditProductSearch] = useState('')
+  const [users, setUsers] = useState<{ [key: string]: string }>({}) // userId -> userName mapping
 
   const [newOrder, setNewOrder] = useState({
     items: [] as Array<{ productId: string; quantity: number }>,
@@ -49,7 +51,7 @@ export default function Orders() {
     notes: '',
   })
 
-  const [editOrderItems, setEditOrderItems] = useState<Array<{ productId: string; quantity: number }>>([])  
+  const [editOrderItems, setEditOrderItems] = useState<Array<{ productId: string; quantity: number }>>([])
   const [editPaymentMethod, setEditPaymentMethod] = useState<'cash' | 'card' | 'transfer'>('cash')
   const [editNotes, setEditNotes] = useState('')
 
@@ -60,10 +62,11 @@ export default function Orders() {
   const loadData = async () => {
     try {
       setIsLoading(true)
-      const [ordersData, productsData, settings] = await Promise.all([
+      const [ordersData, productsData, settings, usersData] = await Promise.all([
         orderService.getOrders(),
         productService.getProducts(),
-        companySettingsService.getSettings()
+        companySettingsService.getSettings(),
+        userService.getUsers()
       ])
       setAllOrders(ordersData)
       setOrders(ordersData)
@@ -71,6 +74,14 @@ export default function Orders() {
       setTaxEnabled(settings.taxEnabled)
       setTaxRate(settings.taxEnabled ? settings.taxPercentage / 100 : 0)
       setCurrencySymbol(settings.currencySymbol)
+
+      // Create user mapping
+      const userMapping: { [key: string]: string } = {}
+      usersData.forEach(user => {
+        userMapping[user.id] = user.name
+      })
+      setUsers(userMapping)
+
       setError('')
     } catch (err: unknown) {
       setError((err as Error)?.message || 'Failed to load data')
@@ -268,7 +279,7 @@ export default function Orders() {
 
     try {
       setIsLoading(true)
-      const result = await orderService.updateOrder(editingOrder.id, { 
+      const result = await orderService.updateOrder(editingOrder.id, {
         items: editOrderItems,
         paymentMethod: editPaymentMethod,
         notes: editNotes
@@ -296,14 +307,14 @@ export default function Orders() {
   const addItemToEditOrder = (productId: string, quantity: number = 1) => {
     const existingItem = editOrderItems.find((item) => item.productId === productId)
     const originalItem = editingOrder?.items.find((item) => item.productId === productId)
-    
+
     if (existingItem) {
       // Only allow increasing quantities, not decreasing below original amount
       const newQuantity = Math.max(
         existingItem.quantity + quantity,
         originalItem?.quantity || 1
       )
-      
+
       setEditOrderItems(
         editOrderItems.map((item) =>
           item.productId === productId ? { ...item, quantity: newQuantity } : item,
@@ -410,7 +421,7 @@ export default function Orders() {
         id: `separator-${order.id}`,
         label: '',
         icon: '',
-        onClick: () => {},
+        onClick: () => { },
         separator: true,
       },
       {
@@ -586,13 +597,9 @@ export default function Orders() {
                 onClick={() => setSelectedOrder(order)}
               >
                 <TableCell>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedOrder(order)}
-                    class="font-mono text-lg font-bold text-blue-600 hover:text-blue-800 hover:underline cursor-pointer transition-all hover:scale-105"
-                  >
+                  <Text>
                     #{order.id}
-                  </button>
+                  </Text>
                 </TableCell>
                 <TableCell>
                   <div class="max-w-xs">
@@ -802,10 +809,10 @@ export default function Orders() {
                               </div>
                               <div
                                 class={`text-sm px-3 py-1.5 rounded-full font-semibold backdrop-blur-sm border transition-all ${product.stock > 10
-                                    ? 'bg-emerald-100/80 text-emerald-800 border-emerald-200/50 shadow-emerald-100/50'
-                                    : product.stock > 0
-                                      ? 'bg-amber-100/80 text-amber-800 border-amber-200/50 shadow-amber-100/50'
-                                      : 'bg-red-100/80 text-red-800 border-red-200/50 shadow-red-100/50'
+                                  ? 'bg-emerald-100/80 text-emerald-800 border-emerald-200/50 shadow-emerald-100/50'
+                                  : product.stock > 0
+                                    ? 'bg-amber-100/80 text-amber-800 border-amber-200/50 shadow-amber-100/50'
+                                    : 'bg-red-100/80 text-red-800 border-red-200/50 shadow-red-100/50'
                                   } shadow-lg`}
                               >
                                 📦 {product.stock}
@@ -905,8 +912,8 @@ export default function Orders() {
 
                       return (
                         <div class={`backdrop-blur-md rounded-xl p-5 border shadow-lg ${taxEnabled
-                            ? 'bg-white/60 border-white/50'
-                            : 'bg-gray-50/60 border-gray-200/50'
+                          ? 'bg-white/60 border-white/50'
+                          : 'bg-gray-50/60 border-gray-200/50'
                           }`}>
                           <div class="space-y-3">
                             <div class="flex justify-between text-gray-700 text-lg">
@@ -1074,13 +1081,12 @@ export default function Orders() {
                                 {formatCurrency(product.price)}
                               </div>
                               <div
-                                class={`text-sm px-3 py-1.5 rounded-full font-semibold backdrop-blur-sm border transition-all ${
-                                  product.stock > 10
+                                class={`text-sm px-3 py-1.5 rounded-full font-semibold backdrop-blur-sm border transition-all ${product.stock > 10
                                     ? 'bg-emerald-100/80 text-emerald-800 border-emerald-200/50 shadow-emerald-100/50'
                                     : product.stock > 0
                                       ? 'bg-amber-100/80 text-amber-800 border-amber-200/50 shadow-amber-100/50'
                                       : 'bg-red-100/80 text-red-800 border-red-200/50 shadow-red-100/50'
-                                } shadow-lg`}
+                                  } shadow-lg`}
                               >
                                 📦 {product.stock}
                               </div>
@@ -1129,7 +1135,7 @@ export default function Orders() {
                           {(() => {
                             const originalItem = editingOrder?.items.find((origItem) => origItem.productId === item.productId)
                             const canDecrease = item.quantity > (originalItem?.quantity || 1)
-                            
+
                             return (
                               <>
                                 <Button
@@ -1178,11 +1184,10 @@ export default function Orders() {
 
                       return (
                         <div
-                          class={`backdrop-blur-md rounded-xl p-5 border shadow-lg ${
-                            taxEnabled
+                          class={`backdrop-blur-md rounded-xl p-5 border shadow-lg ${taxEnabled
                               ? 'bg-white/60 border-white/50'
                               : 'bg-gray-50/60 border-gray-200/50'
-                          }`}
+                            }`}
                         >
                           <div class="space-y-3">
                             <div class="flex justify-between text-gray-700 text-lg">
@@ -1303,6 +1308,11 @@ export default function Orders() {
                   {selectedOrder.completedAt && (
                     <div class="text-sm text-gray-600">
                       Completed: {new Date(selectedOrder.completedAt).toLocaleString()}
+                    </div>
+                  )}
+                  {selectedOrder.userId && users[selectedOrder.userId] && (
+                    <div class="text-sm text-gray-600">
+                      Created by: <span class="font-medium text-gray-700">{users[selectedOrder.userId]}</span>
                     </div>
                   )}
                 </div>

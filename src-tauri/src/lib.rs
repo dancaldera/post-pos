@@ -146,6 +146,18 @@ pub fn run() {
             sql: "INSERT OR IGNORE INTO company_settings (id, name, description, tax_enabled, tax_percentage, currency_symbol, language, created_at, updated_at) VALUES
                 (1, 'Post POS', 'Modern Point of Sale System', 1, 10.0, '$', 'en', '2024-01-01T00:00:00.000Z', '2024-01-01T00:00:00.000Z');",
             kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 11,
+            description: "add_user_id_to_orders",
+            sql: "ALTER TABLE orders ADD COLUMN user_id INTEGER REFERENCES users(id);",
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 12,
+            description: "update_existing_orders_with_default_user",
+            sql: "UPDATE orders SET user_id = 1 WHERE user_id IS NULL;",
+            kind: MigrationKind::Up,
         }
     ];
 

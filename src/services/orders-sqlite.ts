@@ -14,6 +14,7 @@ export interface Order {
   id: string
   customerId?: string
   customerName?: string
+  userId?: string
   items: OrderItem[]
   subtotal: number
   tax: number
@@ -49,6 +50,7 @@ interface DatabaseOrder {
   id: number
   customer_id?: number
   customer_name?: string
+  user_id?: number
   subtotal: number
   tax: number
   total: number
@@ -108,6 +110,7 @@ export class OrderService {
       id: dbOrder.id.toString(),
       customerId: dbOrder.customer_id?.toString(),
       customerName: dbOrder.customer_name,
+      userId: dbOrder.user_id?.toString(),
       items,
       subtotal: dbOrder.subtotal,
       tax: dbOrder.tax,
@@ -214,15 +217,16 @@ export class OrderService {
         }
       }
 
-      // Create order
+      // Create order with default user (Admin User with id=1)
       const orderResult = await db.execute(
         `INSERT INTO orders (
-          customer_id, customer_name, subtotal, tax, total, status, 
+          customer_id, customer_name, user_id, subtotal, tax, total, status, 
           payment_method, notes, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           orderData.customerId ? parseInt(orderData.customerId, 10) : null,
           customerName,
+          1, // Default to Admin User (id=1)
           subtotal,
           taxAmount,
           total,
@@ -250,6 +254,7 @@ export class OrderService {
         id: orderId.toString(),
         customerId: orderData.customerId,
         customerName,
+        userId: '1', // Default to Admin User (id=1)
         items: orderItems,
         subtotal,
         tax: taxAmount,
