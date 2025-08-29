@@ -16,6 +16,9 @@ interface InputProps {
   onBlur?: (e: Event) => void
   class?: string
   id?: string
+  leftIcon?: JSX.Element
+  rightIcon?: JSX.Element
+  onRightIconClick?: () => void
 }
 
 function clsx(...classes: (string | undefined | boolean)[]): string {
@@ -38,6 +41,9 @@ export default function Input({
   onBlur,
   class: className = '',
   id,
+  leftIcon,
+  rightIcon,
+  onRightIconClick,
   ...props
 }: InputProps & Omit<JSX.HTMLAttributes<HTMLInputElement>, 'size'>) {
   const inputId = id || `input-${Math.random().toString(36).substring(2, 11)}`
@@ -56,9 +62,9 @@ export default function Input({
   )
 
   const sizes = {
-    sm: 'px-4 py-2 text-sm',
-    md: 'px-4 py-2.5 text-sm',
-    lg: 'px-5 py-3 text-base',
+    sm: leftIcon ? 'pl-10 pr-4 py-2 text-sm' : rightIcon ? 'pl-4 pr-10 py-2 text-sm' : 'px-4 py-2 text-sm',
+    md: leftIcon ? 'pl-10 pr-4 py-2.5 text-sm' : rightIcon ? 'pl-4 pr-10 py-2.5 text-sm' : 'px-4 py-2.5 text-sm',
+    lg: leftIcon ? 'pl-12 pr-5 py-3 text-base' : rightIcon ? 'pl-5 pr-12 py-3 text-base' : 'px-5 py-3 text-base',
   }
 
   const stateClasses = error
@@ -87,6 +93,15 @@ export default function Input({
       )}
 
       <div class="relative">
+        {/* Left Icon */}
+        {leftIcon && (
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+            <div class="h-5 w-5 text-gray-400 flex items-center justify-center [&>svg]:w-full [&>svg]:h-full">
+              {leftIcon}
+            </div>
+          </div>
+        )}
+        
         <input
           id={inputId}
           type={type}
@@ -101,10 +116,26 @@ export default function Input({
           class={classes}
           {...props}
         />
+        
+        {/* Right Icon */}
+        {rightIcon && (
+          <div 
+            class={clsx(
+              "absolute inset-y-0 right-0 pr-3 flex items-center z-10",
+              onRightIconClick ? "cursor-pointer text-gray-400 hover:text-gray-600 transition-colors" : "pointer-events-none text-gray-400"
+            )}
+            onClick={onRightIconClick}
+          >
+            <div class="h-4 w-4 flex items-center justify-center [&>svg]:w-full [&>svg]:h-full">
+              {rightIcon}
+            </div>
+          </div>
+        )}
+        
         {/* Glass highlight overlay */}
         <div
           class={clsx(
-            'absolute inset-0 rounded-xl pointer-events-none',
+            'absolute inset-0 rounded-xl pointer-events-none z-0',
             'bg-gradient-to-b from-white/10 via-transparent to-transparent',
             'opacity-60',
           )}

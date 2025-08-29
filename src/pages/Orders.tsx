@@ -37,6 +37,7 @@ export default function Orders() {
   const [taxRate, setTaxRate] = useState<number>(0.1)
   const [taxEnabled, setTaxEnabled] = useState<boolean>(true)
   const [currencySymbol, setCurrencySymbol] = useState<string>('$')
+  const [productSearch, setProductSearch] = useState('')
 
   const [newOrder, setNewOrder] = useState({
     items: [] as Array<{ productId: string; quantity: number }>,
@@ -52,7 +53,7 @@ export default function Orders() {
     try {
       setIsLoading(true)
       const [ordersData, productsData, settings] = await Promise.all([
-        orderService.getOrders(), 
+        orderService.getOrders(),
         productService.getProducts(),
         companySettingsService.getSettings()
       ])
@@ -110,6 +111,20 @@ export default function Orders() {
     })
 
     return filtered
+  })()
+
+  const filteredProducts = (() => {
+    if (!productSearch.trim()) {
+      return products
+    }
+
+    const query = productSearch.toLowerCase()
+    return products.filter(
+      (product) =>
+        product.name.toLowerCase().includes(query) ||
+        product.category.toLowerCase().includes(query) ||
+        product.price.toString().includes(query)
+    )
   })()
 
   const handleCreateOrder = async () => {
@@ -294,27 +309,28 @@ export default function Orders() {
 
       <div class="mb-6 space-y-4">
         <div class="flex gap-4">
-          <div class="flex-1 relative">
-            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <span class="text-gray-400 text-lg">🔍</span>
-            </div>
+          <div class="flex-1">
             <Input
               type="search"
               placeholder="Search orders by ID, customer name, items, or total..."
               value={searchQuery}
               onInput={(e) => setSearchQuery((e.target as HTMLInputElement).value)}
               onChange={(e) => setSearchQuery((e.target as HTMLInputElement).value)}
-              class="bg-white text-gray-900 placeholder-gray-500 pl-10 pr-10"
+              leftIcon={
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              }
+              rightIcon={
+                searchQuery ? (
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                ) : undefined
+              }
+              onRightIconClick={searchQuery ? () => setSearchQuery('') : undefined}
+              class="bg-white text-gray-900 placeholder-gray-500"
             />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => setSearchQuery('')}
-                class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
-              >
-                <span class="text-lg">❌</span>
-              </button>
-            )}
           </div>
           <div class="w-auto">
             <Select
@@ -606,66 +622,103 @@ export default function Orders() {
         </div>
       )}
 
-      <Dialog isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} title="Create New Order" size="lg">
+      {/*  Create Order Modal */}
+      <Dialog isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} title="Create New Order" size="full">
         <DialogBody>
           <div class="space-y-6">
             {/* Available Products */}
             <div>
-              <div class="flex items-center justify-between mb-4">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-4">
                 <h3 class="text-lg font-semibold text-gray-900">Available Products</h3>
-                <div class="text-sm text-gray-500">{products.length} products available</div>
-              </div>
-              <div class="max-h-64 overflow-y-auto backdrop-blur-lg bg-gradient-to-br from-white/20 to-white/10 border border-white/30 rounded-2xl p-6 shadow-2xl">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {products.map((product) => (
-                    <div
-                      key={product.id}
-                      class="group relative backdrop-blur-md bg-white/70 border border-white/40 rounded-xl p-4 hover:bg-white/80 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
-                    >
-                      {/* Glass highlight overlay */}
-                      <div class="absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-transparent rounded-xl opacity-60 pointer-events-none"></div>
-
-                      <div class="relative flex justify-between items-start">
-                        <div class="flex-1">
-                          <div class="font-semibold text-gray-900 mb-1 drop-shadow-sm">{product.name}</div>
-                          <div class="text-sm text-gray-700 mb-3 font-medium backdrop-blur-sm bg-white/40 px-2 py-1 rounded-full w-fit">
-                            {product.category}
-                          </div>
-                          <div class="flex items-center justify-between">
-                            <div class="text-xl font-bold text-emerald-600 drop-shadow-md">
-                              {formatCurrency(product.price)}
-                            </div>
-                            <div
-                              class={`text-sm px-3 py-1.5 rounded-full font-semibold backdrop-blur-sm border transition-all ${
-                                product.stock > 10
-                                  ? 'bg-emerald-100/80 text-emerald-800 border-emerald-200/50 shadow-emerald-100/50'
-                                  : product.stock > 0
-                                    ? 'bg-amber-100/80 text-amber-800 border-amber-200/50 shadow-amber-100/50'
-                                    : 'bg-red-100/80 text-red-800 border-red-200/50 shadow-red-100/50'
-                              } shadow-lg`}
-                            >
-                              📦 {product.stock}
-                            </div>
-                          </div>
-                        </div>
-                        <Button
-                          size="sm"
-                          onClick={() => addItemToOrder(product.id)}
-                          disabled={product.stock === 0}
-                          class="ml-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 backdrop-blur-sm"
-                        >
-                          <span class="drop-shadow-sm">➕ Add</span>
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
+                <div class="flex items-center gap-3">
+                  <div class="w-64">
+                    <Input
+                      type="search"
+                      placeholder="Search products..."
+                      value={productSearch}
+                      onInput={(e) => setProductSearch((e.target as HTMLInputElement).value)}
+                      leftIcon={
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                        </svg>
+                      }
+                      rightIcon={
+                        productSearch ? (
+                          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        ) : undefined
+                      }
+                      onRightIconClick={productSearch ? () => setProductSearch('') : undefined}
+                      class="text-sm"
+                    />
+                  </div>
+                  <div class="text-sm text-gray-500">
+                    {filteredProducts.length} of {products.length} products
+                  </div>
                 </div>
-                {products.length === 0 && (
+              </div>
+              <div class="max-h-96 overflow-y-auto backdrop-blur-lg bg-gradient-to-br from-white/20 to-white/10 border border-white/30 rounded-2xl p-6 shadow-2xl">
+                {filteredProducts.length === 0 ? (
                   <div class="text-center py-12">
-                    <div class="backdrop-blur-md bg-white/50 rounded-2xl p-8 border border-white/40">
-                      <div class="text-6xl mb-4 drop-shadow-lg">📦</div>
-                      <p class="text-gray-700 font-medium drop-shadow-sm">No products available</p>
-                    </div>
+                    <div class="text-6xl mb-4">🔍</div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">No products found</h3>
+                    <p class="text-gray-500">
+                      {productSearch ? `No products match "${productSearch}"` : 'No products available'}
+                    </p>
+                    {productSearch && (
+                      <button
+                        type="button"
+                        onClick={() => setProductSearch('')}
+                        class="mt-4 text-blue-600 hover:text-blue-800 font-medium"
+                      >
+                        Clear search
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
+                    {filteredProducts.map((product) => (
+                      <div
+                        key={product.id}
+                        class="group relative backdrop-blur-md bg-white/70 border border-white/40 rounded-xl p-4 hover:bg-white/80 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
+                      >
+                        {/* Glass highlight overlay */}
+                        <div class="absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-transparent rounded-xl opacity-60 pointer-events-none"></div>
+
+                        <div class="relative flex justify-between items-start">
+                          <div class="flex-1">
+                            <div class="font-semibold text-gray-900 mb-1 drop-shadow-sm">{product.name}</div>
+                            <div class="text-sm text-gray-700 mb-3 font-medium backdrop-blur-sm bg-white/40 px-2 py-1 rounded-full w-fit">
+                              {product.category}
+                            </div>
+                            <div class="flex items-center justify-between">
+                              <div class="text-xl font-bold text-emerald-600 drop-shadow-md">
+                                {formatCurrency(product.price)}
+                              </div>
+                              <div
+                                class={`text-sm px-3 py-1.5 rounded-full font-semibold backdrop-blur-sm border transition-all ${product.stock > 10
+                                    ? 'bg-emerald-100/80 text-emerald-800 border-emerald-200/50 shadow-emerald-100/50'
+                                    : product.stock > 0
+                                      ? 'bg-amber-100/80 text-amber-800 border-amber-200/50 shadow-amber-100/50'
+                                      : 'bg-red-100/80 text-red-800 border-red-200/50 shadow-red-100/50'
+                                  } shadow-lg`}
+                              >
+                                📦 {product.stock}
+                              </div>
+                            </div>
+                          </div>
+                          <Button
+                            size="sm"
+                            onClick={() => addItemToOrder(product.id)}
+                            disabled={product.stock === 0}
+                            class="ml-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 backdrop-blur-sm"
+                          >
+                            <span class="drop-shadow-sm">➕ Add</span>
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
@@ -746,11 +799,10 @@ export default function Orders() {
                       const total = subtotal + tax
 
                       return (
-                        <div class={`backdrop-blur-md rounded-xl p-5 border shadow-lg ${
-                          taxEnabled 
-                            ? 'bg-white/60 border-white/50' 
+                        <div class={`backdrop-blur-md rounded-xl p-5 border shadow-lg ${taxEnabled
+                            ? 'bg-white/60 border-white/50'
                             : 'bg-gray-50/60 border-gray-200/50'
-                        }`}>
+                          }`}>
                           <div class="space-y-3">
                             <div class="flex justify-between text-gray-700 text-lg">
                               <span class="font-medium">Subtotal:</span>

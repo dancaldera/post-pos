@@ -7,7 +7,7 @@ interface DialogProps {
   onClose: () => void
   title?: string
   children: ComponentChildren
-  size?: 'sm' | 'md' | 'lg' | 'xl'
+  size?: 'sm' | 'md' | 'lg' | 'xl' | 'full'
 }
 
 interface DialogHeaderProps {
@@ -90,6 +90,7 @@ function Dialog({ isOpen, onClose, title, children, size = 'md' }: DialogProps) 
     md: 'max-w-md',
     lg: 'max-w-lg',
     xl: 'max-w-xl',
+    full: 'max-w-[95vw] max-h-[95vh]',
   }
 
   if (!shouldRender) return null
