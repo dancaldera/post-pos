@@ -1,6 +1,6 @@
 import Database from '@tauri-apps/plugin-sql'
-import { productService } from './products-sqlite'
 import { companySettingsService } from './company-settings-sqlite'
+import { productService } from './products-sqlite'
 
 export interface OrderItem {
   productId: string
@@ -136,6 +136,53 @@ export class OrderService {
     }
   }
 
+  async getOrdersPaginated(
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<{
+    orders: Order[]
+    totalCount: number
+    totalPages: number
+    currentPage: number
+    hasNextPage: boolean
+    hasPreviousPage: boolean
+  }> {
+    try {
+      const db = await this.getDatabase()
+      await new Promise((resolve) => setTimeout(resolve, 200))
+
+      const offset = (page - 1) * limit
+
+      // Get total count
+      const countResult = await db.select<{ count: number }[]>('SELECT COUNT(*) as count FROM orders')
+      const totalCount = countResult[0]?.count || 0
+      const totalPages = Math.ceil(totalCount / limit)
+
+      // Get paginated orders
+      const orders = await db.select<DatabaseOrder[]>(
+        'SELECT * FROM orders ORDER BY created_at DESC LIMIT ? OFFSET ?',
+        [limit, offset],
+      )
+
+      const convertedOrders = []
+      for (const order of orders) {
+        convertedOrders.push(await this.convertDbOrder(order))
+      }
+
+      return {
+        orders: convertedOrders,
+        totalCount,
+        totalPages,
+        currentPage: page,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      }
+    } catch (error) {
+      console.error('Get paginated orders error:', error)
+      throw new Error('Failed to fetch paginated orders')
+    }
+  }
+
   async getOrder(id: string): Promise<Order | null> {
     try {
       const db = await this.getDatabase()
@@ -198,7 +245,6 @@ export class OrderService {
       const { tax: taxAmount, total } = await companySettingsService.calculateTotalWithTax(subtotal)
       const now = new Date().toISOString()
 
-
       // Create order (with user_id if column exists, without if it doesn't)
       let orderResult: any
       try {
@@ -228,16 +274,7 @@ export class OrderService {
               subtotal, tax, total, status, 
               payment_method, notes, created_at, updated_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-            [
-              subtotal,
-              taxAmount,
-              total,
-              'pending',
-              orderData.paymentMethod || null,
-              orderData.notes || null,
-              now,
-              now,
-            ],
+            [subtotal, taxAmount, total, 'pending', orderData.paymentMethod || null, orderData.notes || null, now, now],
           )
         } else {
           throw error
@@ -535,6 +572,78 @@ export class OrderService {
     }
   }
 
+  async getOrdersByDateFilterPaginated(
+    dateFilter: 'today' | 'yesterday' | string,
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<{
+    orders: Order[]
+    totalCount: number
+    totalPages: number
+    currentPage: number
+    hasNextPage: boolean
+    hasPreviousPage: boolean
+  }> {
+    try {
+      const db = await this.getDatabase()
+      await new Promise((resolve) => setTimeout(resolve, 200))
+
+      let startDate: string
+      let endDate: string
+      const now = new Date()
+
+      if (dateFilter === 'today') {
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+        startDate = today.toISOString()
+        endDate = new Date(today.getTime() + 24 * 60 * 60 * 1000 - 1).toISOString()
+      } else if (dateFilter === 'yesterday') {
+        const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1)
+        startDate = yesterday.toISOString()
+        endDate = new Date(yesterday.getTime() + 24 * 60 * 60 * 1000 - 1).toISOString()
+      } else {
+        // Handle specific date (YYYY-MM-DD format)
+        const targetDate = new Date(dateFilter + 'T00:00:00.000Z')
+        startDate = targetDate.toISOString()
+        endDate = new Date(targetDate.getTime() + 24 * 60 * 60 * 1000 - 1).toISOString()
+      }
+
+      const offset = (page - 1) * limit
+
+      // Get total count for the date filter
+      const countResult = await db.select<{ count: number }[]>(
+        'SELECT COUNT(*) as count FROM orders WHERE created_at >= ? AND created_at <= ?',
+        [startDate, endDate],
+      )
+      const totalCount = countResult[0]?.count || 0
+      const totalPages = Math.ceil(totalCount / limit)
+
+      // Get paginated orders with date filter
+      const orders = await db.select<DatabaseOrder[]>(
+        `SELECT * FROM orders 
+         WHERE created_at >= ? AND created_at <= ? 
+         ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+        [startDate, endDate, limit, offset],
+      )
+
+      const convertedOrders = []
+      for (const order of orders) {
+        convertedOrders.push(await this.convertDbOrder(order))
+      }
+
+      return {
+        orders: convertedOrders,
+        totalCount,
+        totalPages,
+        currentPage: page,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      }
+    } catch (error) {
+      console.error('Get orders by date filter paginated error:', error)
+      throw new Error('Failed to fetch paginated orders by date filter')
+    }
+  }
+
   async getTopSellingProducts(limit: number = 10): Promise<
     Array<{
       productId: string
@@ -663,13 +772,13 @@ export class OrderService {
       await db.execute(
         'UPDATE orders SET subtotal = ?, tax = ?, total = ?, payment_method = ?, notes = ?, updated_at = ? WHERE id = ?',
         [
-          newSubtotal, 
-          newTaxAmount, 
-          newTotal, 
-          updateData.paymentMethod || currentOrder.paymentMethod, 
-          updateData.notes !== undefined ? updateData.notes : currentOrder.notes, 
-          now, 
-          parseInt(orderId, 10)
+          newSubtotal,
+          newTaxAmount,
+          newTotal,
+          updateData.paymentMethod || currentOrder.paymentMethod,
+          updateData.notes !== undefined ? updateData.notes : currentOrder.notes,
+          now,
+          parseInt(orderId, 10),
         ],
       )
 

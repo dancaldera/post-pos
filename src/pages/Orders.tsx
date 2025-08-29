@@ -10,6 +10,7 @@ import {
   type DropdownItem,
   Heading,
   Input,
+  Pagination,
   Select,
   Table,
   TableBody,
@@ -19,11 +20,11 @@ import {
   TableRow,
   Text,
 } from '../components/ui'
+import { authService } from '../services/auth-sqlite'
+import { companySettingsService } from '../services/company-settings-sqlite'
 import { type Order, orderService } from '../services/orders-sqlite'
 import { type Product, productService } from '../services/products-sqlite'
-import { companySettingsService } from '../services/company-settings-sqlite'
 import { userService } from '../services/users-sqlite'
-import { authService } from '../services/auth-sqlite'
 
 export default function Orders() {
   const [orders, setOrders] = useState<Order[]>([])
@@ -48,6 +49,18 @@ export default function Orders() {
   const [users, setUsers] = useState<{ [key: string]: string }>({}) // userId -> userName mapping
   const [currentUserRole, setCurrentUserRole] = useState<'admin' | 'manager' | 'user' | null>(null)
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalCount, setTotalCount] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
+  const [pageSize] = useState(10)
+  const [orderStats, setOrderStats] = useState({
+    pending: 0,
+    completed: 0,
+    paid: 0,
+    cancelled: 0,
+  })
+
   const [newOrder, setNewOrder] = useState({
     items: [] as Array<{ productId: string; quantity: number }>,
     paymentMethod: 'cash' as 'cash' | 'card' | 'transfer',
@@ -68,8 +81,13 @@ export default function Orders() {
   }, [])
 
   useEffect(() => {
-    loadData(selectedDateFilter)
+    loadData(selectedDateFilter, 1) // Reset to page 1 when date filter changes
+    setCurrentPage(1)
   }, [selectedDateFilter])
+
+  useEffect(() => {
+    loadData(selectedDateFilter, currentPage)
+  }, [currentPage])
 
   const getDateFilterOptions = () => {
     const options = [
@@ -83,34 +101,52 @@ export default function Orders() {
     for (let i = 2; i <= 6; i++) {
       const date = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i)
       const dateString = date.toISOString().split('T')[0]
-      const formattedDate = date.toLocaleDateString('en-US', { 
-        weekday: 'short', 
-        month: 'short', 
-        day: 'numeric' 
+      const formattedDate = date.toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
       })
       options.push({
         value: dateString,
-        label: `📅 ${formattedDate}`
+        label: `📅 ${formattedDate}`,
       })
     }
 
-    
     return options
   }
 
-  const loadData = async (dateFilter?: string) => {
+  const loadData = async (dateFilter?: string, page?: number) => {
     try {
       setIsLoading(true)
       const filterToUse = dateFilter || selectedDateFilter
-      
-      const [ordersData, productsData, settings, usersData] = await Promise.all([
-        filterToUse === 'all' ? orderService.getOrders() : orderService.getOrdersByDateFilter(filterToUse),
+      const pageToUse = page || currentPage
+
+      const [ordersResult, productsData, settings, usersData, allOrdersForStats] = await Promise.all([
+        filterToUse === 'all'
+          ? orderService.getOrdersPaginated(pageToUse, pageSize)
+          : orderService.getOrdersByDateFilterPaginated(filterToUse, pageToUse, pageSize),
         productService.getProducts(),
         companySettingsService.getSettings(),
-        userService.getUsers()
+        userService.getUsers(),
+        filterToUse === 'all' ? orderService.getOrders() : orderService.getOrdersByDateFilter(filterToUse),
       ])
-      setAllOrders(ordersData)
-      setOrders(ordersData)
+
+      // Set pagination data
+      setOrders(ordersResult.orders)
+      setAllOrders(allOrdersForStats) // All orders for filtering and statistics
+      setTotalCount(ordersResult.totalCount)
+      setTotalPages(ordersResult.totalPages)
+      setCurrentPage(ordersResult.currentPage)
+
+      // Calculate statistics from all orders
+      const stats = {
+        pending: allOrdersForStats.filter((o) => o.status === 'pending').length,
+        completed: allOrdersForStats.filter((o) => o.status === 'completed').length,
+        paid: allOrdersForStats.filter((o) => o.status === 'paid').length,
+        cancelled: allOrdersForStats.filter((o) => o.status === 'cancelled').length,
+      }
+      setOrderStats(stats)
+
       setProducts(productsData.filter((p) => p.isActive && p.stock > 0))
       setTaxEnabled(settings.taxEnabled)
       setTaxRate(settings.taxEnabled ? settings.taxPercentage / 100 : 0)
@@ -118,7 +154,7 @@ export default function Orders() {
 
       // Create user mapping
       const userMapping: { [key: string]: string } = {}
-      usersData.forEach(user => {
+      usersData.forEach((user) => {
         userMapping[user.id] = user.name
       })
       setUsers(userMapping)
@@ -176,7 +212,7 @@ export default function Orders() {
       (product) =>
         product.name.toLowerCase().includes(query) ||
         product.category.toLowerCase().includes(query) ||
-        product.price.toString().includes(query)
+        product.price.toString().includes(query),
     )
   })()
 
@@ -190,7 +226,7 @@ export default function Orders() {
       (product) =>
         product.name.toLowerCase().includes(query) ||
         product.category.toLowerCase().includes(query) ||
-        product.price.toString().includes(query)
+        product.price.toString().includes(query),
     )
   })()
 
@@ -302,7 +338,7 @@ export default function Orders() {
 
   const handleEditOrder = (order: Order) => {
     setEditingOrder(order)
-    setEditOrderItems(order.items.map(item => ({ productId: item.productId, quantity: item.quantity })))
+    setEditOrderItems(order.items.map((item) => ({ productId: item.productId, quantity: item.quantity })))
     setEditPaymentMethod(order.paymentMethod || 'cash')
     setEditNotes(order.notes || '')
     setEditProductSearch('')
@@ -319,7 +355,7 @@ export default function Orders() {
       const result = await orderService.updateOrder(editingOrder.id, {
         items: editOrderItems,
         paymentMethod: editPaymentMethod,
-        notes: editNotes
+        notes: editNotes,
       })
 
       if (result.success && result.order) {
@@ -347,15 +383,10 @@ export default function Orders() {
 
     if (existingItem) {
       // Only allow increasing quantities, not decreasing below original amount
-      const newQuantity = Math.max(
-        existingItem.quantity + quantity,
-        originalItem?.quantity || 1
-      )
+      const newQuantity = Math.max(existingItem.quantity + quantity, originalItem?.quantity || 1)
 
       setEditOrderItems(
-        editOrderItems.map((item) =>
-          item.productId === productId ? { ...item, quantity: newQuantity } : item,
-        )
+        editOrderItems.map((item) => (item.productId === productId ? { ...item, quantity: newQuantity } : item)),
       )
     } else {
       setEditOrderItems([...editOrderItems, { productId, quantity }])
@@ -410,6 +441,10 @@ export default function Orders() {
     return sortOrder === 'asc' ? '↑' : '↓'
   }
 
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+  }
+
   const getOrderActionItems = (order: Order): DropdownItem[] => {
     const items: DropdownItem[] = [
       {
@@ -440,7 +475,7 @@ export default function Orders() {
           icon: '❌',
           onClick: () => handleUpdateStatus(order.id, 'cancelled'),
           variant: 'danger',
-        }
+        },
       )
     }
 
@@ -460,7 +495,7 @@ export default function Orders() {
           id: `separator-${order.id}`,
           label: '',
           icon: '',
-          onClick: () => { },
+          onClick: () => {},
           separator: true,
         },
         {
@@ -469,7 +504,7 @@ export default function Orders() {
           icon: '🗑️',
           onClick: () => setDeleteConfirm(order.id),
           variant: 'danger',
-        }
+        },
       )
     }
 
@@ -493,15 +528,19 @@ export default function Orders() {
         <div>
           <h1 class="text-2xl font-bold text-gray-900 mb-2">Orders</h1>
           <p class="text-gray-600">
-            {allOrders.length} {allOrders.length === 1 ? 'order' : 'orders'} 
-            {selectedDateFilter === 'today' ? ' today' : 
-             selectedDateFilter === 'yesterday' ? ' yesterday' : 
-             selectedDateFilter === 'all' ? ' total' : 
-             ` on ${new Date(selectedDateFilter + 'T00:00:00').toLocaleDateString('en-US', { 
-               weekday: 'short', 
-               month: 'short', 
-               day: 'numeric' 
-             })}`}
+            {totalCount} {totalCount === 1 ? 'order' : 'orders'}
+            {selectedDateFilter === 'today'
+              ? ' today'
+              : selectedDateFilter === 'yesterday'
+                ? ' yesterday'
+                : selectedDateFilter === 'all'
+                  ? ' total'
+                  : ` on ${new Date(selectedDateFilter + 'T00:00:00').toLocaleDateString('en-US', {
+                      weekday: 'short',
+                      month: 'short',
+                      day: 'numeric',
+                    })}`}
+            {totalPages > 1 && ` • Page ${currentPage} of ${totalPages}`}
             {searchQuery && ` • ${filteredOrders.length} found`}
           </p>
         </div>
@@ -518,13 +557,18 @@ export default function Orders() {
           <div class="flex-1">
             <Input
               type="search"
-              placeholder="Search orders by ID, customer name, items, or total..."
+              placeholder="Search orders by ID, items, or total..."
               value={searchQuery}
               onInput={(e) => setSearchQuery((e.target as HTMLInputElement).value)}
               onChange={(e) => setSearchQuery((e.target as HTMLInputElement).value)}
               leftIcon={
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
                 </svg>
               }
               rightIcon={
@@ -572,9 +616,7 @@ export default function Orders() {
           <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl border border-blue-200 hover:shadow-md transition-shadow">
             <div class="flex items-center justify-between">
               <div>
-                <div class="text-3xl font-bold text-blue-600">
-                  {allOrders.filter((o) => o.status === 'pending').length}
-                </div>
+                <div class="text-3xl font-bold text-blue-600">{orderStats.pending}</div>
                 <div class="text-sm font-medium text-blue-700">Pending Orders</div>
               </div>
               <div class="text-blue-400 text-2xl">⏳</div>
@@ -583,9 +625,7 @@ export default function Orders() {
           <div class="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl border border-green-200 hover:shadow-md transition-shadow">
             <div class="flex items-center justify-between">
               <div>
-                <div class="text-3xl font-bold text-green-600">
-                  {allOrders.filter((o) => o.status === 'completed').length}
-                </div>
+                <div class="text-3xl font-bold text-green-600">{orderStats.completed}</div>
                 <div class="text-sm font-medium text-green-700">Completed</div>
               </div>
               <div class="text-green-400 text-2xl">✅</div>
@@ -594,9 +634,7 @@ export default function Orders() {
           <div class="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-xl border border-purple-200 hover:shadow-md transition-shadow">
             <div class="flex items-center justify-between">
               <div>
-                <div class="text-3xl font-bold text-purple-600">
-                  {allOrders.filter((o) => o.status === 'paid').length}
-                </div>
+                <div class="text-3xl font-bold text-purple-600">{orderStats.paid}</div>
                 <div class="text-sm font-medium text-purple-700">Paid Orders</div>
               </div>
               <div class="text-purple-400 text-2xl">💳</div>
@@ -605,9 +643,7 @@ export default function Orders() {
           <div class="bg-gradient-to-br from-red-50 to-red-100 p-6 rounded-xl border border-red-200 hover:shadow-md transition-shadow">
             <div class="flex items-center justify-between">
               <div>
-                <div class="text-3xl font-bold text-red-600">
-                  {allOrders.filter((o) => o.status === 'cancelled').length}
-                </div>
+                <div class="text-3xl font-bold text-red-600">{orderStats.cancelled}</div>
                 <div class="text-sm font-medium text-red-700">Cancelled</div>
               </div>
               <div class="text-red-400 text-2xl">❌</div>
@@ -653,9 +689,7 @@ export default function Orders() {
                 onClick={() => setSelectedOrder(order)}
               >
                 <TableCell>
-                  <Text>
-                    #{order.id}
-                  </Text>
+                  <Text>#{order.id}</Text>
                 </TableCell>
                 <TableCell>
                   <div class="max-w-xs">
@@ -691,15 +725,9 @@ export default function Orders() {
                       {formatCurrency(taxEnabled ? order.total : order.subtotal)}
                     </div>
                     {taxEnabled && order.tax > 0 && (
-                      <div class="text-xs text-gray-500">
-                        Tax: {formatCurrency(order.tax)}
-                      </div>
+                      <div class="text-xs text-gray-500">Tax: {formatCurrency(order.tax)}</div>
                     )}
-                    {taxEnabled && order.tax === 0 && (
-                      <div class="text-xs text-gray-400 italic">
-                        No tax applied
-                      </div>
-                    )}
+                    {taxEnabled && order.tax === 0 && <div class="text-xs text-gray-400 italic">No tax applied</div>}
                   </div>
                 </TableCell>
                 <TableCell>
@@ -745,6 +773,18 @@ export default function Orders() {
         </Table>
       </div>
 
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+          totalCount={totalCount}
+          pageSize={pageSize}
+          isLoading={isLoading}
+        />
+      )}
+
       {filteredOrders.length === 0 && (
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-12">
           <div class="text-center">
@@ -786,7 +826,12 @@ export default function Orders() {
       )}
 
       {/*  Create Order Modal */}
-      <Dialog isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} title="Create New Order" size="full">
+      <Dialog
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        title="Create New Order"
+        size="full"
+      >
         <DialogBody>
           <div class="space-y-6">
             {/* Available Products */}
@@ -804,14 +849,29 @@ export default function Orders() {
                       value={productSearch}
                       onInput={(e) => setProductSearch((e.target as HTMLInputElement).value)}
                       leftIcon={
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke-width="1.5"
+                          stroke="currentColor"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+                          />
                         </svg>
                       }
                       rightIcon={
                         productSearch ? (
                           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M6 18L18 6M6 6l12 12"
+                            />
                           </svg>
                         ) : undefined
                       }
@@ -864,12 +924,13 @@ export default function Orders() {
                                 {formatCurrency(product.price)}
                               </div>
                               <div
-                                class={`text-sm px-3 py-1.5 rounded-full font-semibold backdrop-blur-sm border transition-all ${product.stock > 10
-                                  ? 'bg-emerald-100/80 text-emerald-800 border-emerald-200/50 shadow-emerald-100/50'
-                                  : product.stock > 0
-                                    ? 'bg-amber-100/80 text-amber-800 border-amber-200/50 shadow-amber-100/50'
-                                    : 'bg-red-100/80 text-red-800 border-red-200/50 shadow-red-100/50'
-                                  } shadow-lg`}
+                                class={`text-sm px-3 py-1.5 rounded-full font-semibold backdrop-blur-sm border transition-all ${
+                                  product.stock > 10
+                                    ? 'bg-emerald-100/80 text-emerald-800 border-emerald-200/50 shadow-emerald-100/50'
+                                    : product.stock > 0
+                                      ? 'bg-amber-100/80 text-amber-800 border-amber-200/50 shadow-amber-100/50'
+                                      : 'bg-red-100/80 text-red-800 border-red-200/50 shadow-red-100/50'
+                                } shadow-lg`}
                               >
                                 📦 {product.stock}
                               </div>
@@ -958,10 +1019,11 @@ export default function Orders() {
                       const total = subtotal + tax
 
                       return (
-                        <div class={`backdrop-blur-md rounded-xl p-5 border shadow-lg ${taxEnabled
-                          ? 'bg-white/60 border-white/50'
-                          : 'bg-gray-50/60 border-gray-200/50'
-                          }`}>
+                        <div
+                          class={`backdrop-blur-md rounded-xl p-5 border shadow-lg ${
+                            taxEnabled ? 'bg-white/60 border-white/50' : 'bg-gray-50/60 border-gray-200/50'
+                          }`}
+                        >
                           <div class="space-y-3">
                             <div class="flex justify-between text-gray-700 text-lg">
                               <span class="font-medium">Subtotal:</span>
@@ -1069,14 +1131,29 @@ export default function Orders() {
                       value={editProductSearch}
                       onInput={(e) => setEditProductSearch((e.target as HTMLInputElement).value)}
                       leftIcon={
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke-width="1.5"
+                          stroke="currentColor"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+                          />
                         </svg>
                       }
                       rightIcon={
                         editProductSearch ? (
                           <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M6 18L18 6M6 6l12 12"
+                            />
                           </svg>
                         ) : undefined
                       }
@@ -1128,12 +1205,13 @@ export default function Orders() {
                                 {formatCurrency(product.price)}
                               </div>
                               <div
-                                class={`text-sm px-3 py-1.5 rounded-full font-semibold backdrop-blur-sm border transition-all ${product.stock > 10
+                                class={`text-sm px-3 py-1.5 rounded-full font-semibold backdrop-blur-sm border transition-all ${
+                                  product.stock > 10
                                     ? 'bg-emerald-100/80 text-emerald-800 border-emerald-200/50 shadow-emerald-100/50'
                                     : product.stock > 0
                                       ? 'bg-amber-100/80 text-amber-800 border-amber-200/50 shadow-amber-100/50'
                                       : 'bg-red-100/80 text-red-800 border-red-200/50 shadow-red-100/50'
-                                  } shadow-lg`}
+                                } shadow-lg`}
                               >
                                 📦 {product.stock}
                               </div>
@@ -1172,7 +1250,9 @@ export default function Orders() {
                         </div>
                         <div class="relative flex items-center space-x-3">
                           {(() => {
-                            const originalItem = editingOrder?.items.find((origItem) => origItem.productId === item.productId)
+                            const originalItem = editingOrder?.items.find(
+                              (origItem) => origItem.productId === item.productId,
+                            )
                             const canDecrease = item.quantity > (originalItem?.quantity || 1)
 
                             return (
@@ -1223,10 +1303,9 @@ export default function Orders() {
 
                       return (
                         <div
-                          class={`backdrop-blur-md rounded-xl p-5 border shadow-lg ${taxEnabled
-                              ? 'bg-white/60 border-white/50'
-                              : 'bg-gray-50/60 border-gray-200/50'
-                            }`}
+                          class={`backdrop-blur-md rounded-xl p-5 border shadow-lg ${
+                            taxEnabled ? 'bg-white/60 border-white/50' : 'bg-gray-50/60 border-gray-200/50'
+                          }`}
                         >
                           <div class="space-y-3">
                             <div class="flex justify-between text-gray-700 text-lg">
@@ -1265,7 +1344,9 @@ export default function Orders() {
                 <Select
                   label="Payment Method"
                   value={editPaymentMethod}
-                  onChange={(e) => setEditPaymentMethod((e.target as HTMLSelectElement).value as 'cash' | 'card' | 'transfer')}
+                  onChange={(e) =>
+                    setEditPaymentMethod((e.target as HTMLSelectElement).value as 'cash' | 'card' | 'transfer')
+                  }
                   options={[
                     { value: 'cash', label: '💵 Cash' },
                     { value: 'card', label: '💳 Card' },
@@ -1300,11 +1381,7 @@ export default function Orders() {
           >
             Cancel
           </Button>
-          <Button
-            type="button"
-            onClick={handleUpdateOrder}
-            disabled={isLoading || editOrderItems.length === 0}
-          >
+          <Button type="button" onClick={handleUpdateOrder} disabled={isLoading || editOrderItems.length === 0}>
             {isLoading ? 'Updating...' : 'Update Order'}
           </Button>
         </DialogFooter>
@@ -1362,7 +1439,6 @@ export default function Orders() {
                   <div class="text-sm text-gray-500">Total Amount</div>
                 </div>
               </div>
-
 
               {/* Order Items */}
               <div>

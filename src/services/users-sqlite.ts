@@ -72,7 +72,7 @@ export class UserService {
       const db = await this.getDatabase()
       const users = await db.select<DatabaseUser[]>('SELECT * FROM users ORDER BY name')
 
-      return users.map(user => this.convertDbUser(user))
+      return users.map((user) => this.convertDbUser(user))
     } catch (error) {
       console.error('Get users error:', error)
       return []

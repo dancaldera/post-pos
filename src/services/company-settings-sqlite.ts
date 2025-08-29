@@ -228,21 +228,7 @@ export class CompanySettingsService {
          currency_symbol = ?, language = ?, logo_url = ?, address = ?, 
          phone = ?, email = ?, website = ?, updated_at = ? 
          WHERE id = ?`,
-        [
-          'Post POS',
-          'Modern Point of Sale System',
-          1,
-          10.0,
-          '$',
-          'en',
-          null,
-          null,
-          null,
-          null,
-          null,
-          now,
-          1,
-        ],
+        ['Post POS', 'Modern Point of Sale System', 1, 10.0, '$', 'en', null, null, null, null, null, now, 1],
       )
 
       const resetSettings = await db.select<DatabaseCompanySettings[]>(

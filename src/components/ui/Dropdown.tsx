@@ -1,4 +1,4 @@
-import { ComponentChildren } from 'preact'
+import type { ComponentChildren } from 'preact'
 import { useEffect, useRef, useState } from 'preact/hooks'
 
 export interface DropdownItem {
@@ -105,8 +105,9 @@ export default function Dropdown({
   }
 
   const getVariantClasses = (variant: DropdownItem['variant'] = 'default') => {
-    const baseClasses = 'w-full text-left px-3 py-2 text-sm rounded-md transition-colors duration-200 flex items-center space-x-2 min-w-0'
-    
+    const baseClasses =
+      'w-full text-left px-3 py-2 text-sm rounded-md transition-colors duration-200 flex items-center space-x-2 min-w-0'
+
     switch (variant) {
       case 'danger':
         return `${baseClasses} text-red-700 hover:bg-red-50 hover:text-red-800 focus:bg-red-50 focus:text-red-800`
@@ -116,9 +117,8 @@ export default function Dropdown({
   }
 
   const alignmentClasses = align === 'left' ? 'left-0' : 'right-0'
-  const positionClasses = dropDirection === 'up' 
-    ? `${alignmentClasses} bottom-full mb-2` 
-    : `${alignmentClasses} top-full mt-2`
+  const positionClasses =
+    dropDirection === 'up' ? `${alignmentClasses} bottom-full mb-2` : `${alignmentClasses} top-full mt-2`
 
   return (
     <div class="relative inline-block" ref={dropdownRef}>
@@ -127,23 +127,21 @@ export default function Dropdown({
       </div>
 
       {isOpen && (
-        <div 
+        <div
           ref={menuRef}
           class={`absolute ${positionClasses} ${width} min-w-max bg-white rounded-lg shadow-lg border border-gray-200 z-50 py-1`}
           style="animation: fadeIn 0.15s ease-out"
         >
           {items.map((item, index) => (
             <div key={item.id}>
-              {item.separator && index > 0 && (
-                <div class="border-t border-gray-100 my-1" />
-              )}
+              {item.separator && index > 0 && <div class="border-t border-gray-100 my-1" />}
               <button
                 type="button"
                 onClick={() => handleItemClick(item)}
                 disabled={item.disabled}
                 class={`${getVariantClasses(item.variant)} ${
-                  item.disabled 
-                    ? 'opacity-50 cursor-not-allowed' 
+                  item.disabled
+                    ? 'opacity-50 cursor-not-allowed'
                     : 'cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1'
                 }`}
               >

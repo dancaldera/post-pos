@@ -101,7 +101,7 @@ export default function Input({
             </div>
           </div>
         )}
-        
+
         <input
           id={inputId}
           type={type}
@@ -116,22 +116,22 @@ export default function Input({
           class={classes}
           {...props}
         />
-        
+
         {/* Right Icon */}
         {rightIcon && (
-          <div 
+          <div
             class={clsx(
-              "absolute inset-y-0 right-0 pr-3 flex items-center z-10",
-              onRightIconClick ? "cursor-pointer text-gray-400 hover:text-gray-600 transition-colors" : "pointer-events-none text-gray-400"
+              'absolute inset-y-0 right-0 pr-3 flex items-center z-10',
+              onRightIconClick
+                ? 'cursor-pointer text-gray-400 hover:text-gray-600 transition-colors'
+                : 'pointer-events-none text-gray-400',
             )}
             onClick={onRightIconClick}
           >
-            <div class="h-4 w-4 flex items-center justify-center [&>svg]:w-full [&>svg]:h-full">
-              {rightIcon}
-            </div>
+            <div class="h-4 w-4 flex items-center justify-center [&>svg]:w-full [&>svg]:h-full">{rightIcon}</div>
           </div>
         )}
-        
+
         {/* Glass highlight overlay */}
         <div
           class={clsx(

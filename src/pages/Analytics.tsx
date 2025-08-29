@@ -3,7 +3,6 @@ import {
   Button,
   Container,
   Heading,
-  Input,
   Select,
   Table,
   TableBody,
@@ -15,8 +14,8 @@ import {
 } from '../components/ui'
 import { useAuth } from '../hooks/useAuth'
 import {
-  analyticsService,
   type AnalyticsMetrics,
+  analyticsService,
   type SalesByMember,
   type TopProduct,
 } from '../services/analytics-sqlite'
@@ -30,7 +29,7 @@ export default function Analytics() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
   const [currencySymbol, setCurrencySymbol] = useState('$')
-  
+
   // Date filters
   const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d' | 'custom'>('30d')
   const [startDate, setStartDate] = useState('')
@@ -48,8 +47,8 @@ export default function Analytics() {
 
   const getDateRange = () => {
     const now = new Date()
-    let start = new Date()
-    
+    const start = new Date()
+
     if (customDateRange && startDate && endDate) {
       return { start: startDate, end: endDate }
     }
@@ -68,9 +67,9 @@ export default function Analytics() {
         start.setDate(now.getDate() - 30)
     }
 
-    return { 
-      start: start.toISOString(), 
-      end: now.toISOString() 
+    return {
+      start: start.toISOString(),
+      end: now.toISOString(),
     }
   }
 
@@ -84,19 +83,13 @@ export default function Analytics() {
     try {
       setIsLoading(true)
       const { start, end } = getDateRange()
-      
-      const [
-        metricsData,
-        salesData,
-        productsData,
-        activityData,
-        settings
-      ] = await Promise.all([
+
+      const [metricsData, salesData, productsData, activityData, settings] = await Promise.all([
         analyticsService.getOverallMetrics(start, end),
         analyticsService.getSalesByMembers(start, end),
         analyticsService.getTopProducts(10, start, end),
         analyticsService.getRecentActivity(10),
-        companySettingsService.getSettings()
+        companySettingsService.getSettings(),
       ])
 
       setMetrics(metricsData)
@@ -138,7 +131,6 @@ export default function Analytics() {
     }
   }
 
-
   if (!isAdmin) {
     return (
       <Container size="xl">
@@ -175,9 +167,7 @@ export default function Analytics() {
       <div class="flex justify-between items-center mb-6">
         <div>
           <h1 class="text-2xl font-bold text-gray-900 mb-2">📊 Analytics Dashboard</h1>
-          <p class="text-gray-600">
-            Comprehensive business insights and performance metrics
-          </p>
+          <p class="text-gray-600">Comprehensive business insights and performance metrics</p>
         </div>
         <Button onClick={loadAnalytics} disabled={isLoading}>
           <span class="mr-2">🔄</span>
@@ -376,7 +366,10 @@ export default function Analytics() {
         <h3 class="text-lg font-semibold text-gray-900 mb-4">🕒 Recent Activity</h3>
         <div class="space-y-3 max-h-96 overflow-y-auto">
           {recentActivity.map((activity) => (
-            <div key={`${activity.id}-${activity.type}`} class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <div
+              key={`${activity.id}-${activity.type}`}
+              class="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+            >
               <div class="flex items-center">
                 <span class="text-xl mr-3">{getActivityIcon(activity.type)}</span>
                 <div>
@@ -386,9 +379,7 @@ export default function Analytics() {
                   </div>
                 </div>
               </div>
-              {activity.amount && (
-                <div class="font-bold text-green-600">{formatCurrency(activity.amount)}</div>
-              )}
+              {activity.amount && <div class="font-bold text-green-600">{formatCurrency(activity.amount)}</div>}
             </div>
           ))}
         </div>

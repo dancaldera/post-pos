@@ -1,21 +1,11 @@
 import { invoke } from '@tauri-apps/api/core'
 import { useEffect, useState } from 'preact/hooks'
-import { 
-  Button, 
-  Container, 
-  Heading, 
-  Input, 
-  Text, 
-  Select,
-  Dialog,
-  DialogBody,
-  DialogFooter
-} from '../components/ui'
-import { 
-  type CompanySettings, 
-  companySettingsService, 
-  SUPPORTED_LANGUAGES, 
-  SUPPORTED_CURRENCIES 
+import { Button, Container, Dialog, DialogBody, DialogFooter, Heading, Input, Select, Text } from '../components/ui'
+import {
+  type CompanySettings,
+  companySettingsService,
+  SUPPORTED_CURRENCIES,
+  SUPPORTED_LANGUAGES,
 } from '../services/company-settings-sqlite'
 
 interface SettingsProps {
@@ -55,7 +45,7 @@ export default function Settings({ onNavigate }: SettingsProps) {
     try {
       setIsUpdating(true)
       const result = await companySettingsService.updateSettings({ [field]: value })
-      
+
       if (result.success && result.settings) {
         setSettings(result.settings)
         setSuccess(`${field.charAt(0).toUpperCase() + field.slice(1)} updated successfully`)
@@ -75,7 +65,7 @@ export default function Settings({ onNavigate }: SettingsProps) {
     try {
       setIsUpdating(true)
       const result = await companySettingsService.resetToDefaults()
-      
+
       if (result.success && result.settings) {
         setSettings(result.settings)
         setSuccess('Settings reset to defaults successfully')
@@ -117,8 +107,8 @@ export default function Settings({ onNavigate }: SettingsProps) {
             <Heading level={3}>Application Settings</Heading>
             <Text class="text-gray-600">Configure your POS system preferences and company information.</Text>
           </div>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={() => setIsResetDialogOpen(true)}
             disabled={isUpdating}
             class="text-red-600 border-red-200 hover:bg-red-50"
@@ -127,23 +117,19 @@ export default function Settings({ onNavigate }: SettingsProps) {
           </Button>
         </div>
 
-        {error && (
-          <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-            {error}
-          </div>
-        )}
+        {error && <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">{error}</div>}
 
         {success && (
-          <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
-            {success}
-          </div>
+          <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">{success}</div>
         )}
 
         {settings && (
           <div class="space-y-8">
             {/* Company Information */}
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <Heading level={4} class="mb-6">🏢 Company Information</Heading>
+              <Heading level={4} class="mb-6">
+                🏢 Company Information
+              </Heading>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <Input
@@ -218,7 +204,9 @@ export default function Settings({ onNavigate }: SettingsProps) {
 
             {/* Tax Configuration */}
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <Heading level={4} class="mb-6">💰 Tax Configuration</Heading>
+              <Heading level={4} class="mb-6">
+                💰 Tax Configuration
+              </Heading>
               <div class="space-y-6">
                 <div class="flex items-center space-x-4">
                   <label class="flex items-center space-x-2 cursor-pointer">
@@ -239,7 +227,9 @@ export default function Settings({ onNavigate }: SettingsProps) {
                         label="Tax Percentage"
                         type="number"
                         value={settings.taxPercentage.toString()}
-                        onBlur={(e) => handleUpdateSetting('taxPercentage', parseFloat((e.target as HTMLInputElement).value) || 0)}
+                        onBlur={(e) =>
+                          handleUpdateSetting('taxPercentage', parseFloat((e.target as HTMLInputElement).value) || 0)
+                        }
                         disabled={isUpdating}
                         class="mb-2"
                         placeholder="10.0"
@@ -260,7 +250,9 @@ export default function Settings({ onNavigate }: SettingsProps) {
 
             {/* System Preferences */}
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <Heading level={4} class="mb-6">⚙️ System Preferences</Heading>
+              <Heading level={4} class="mb-6">
+                ⚙️ System Preferences
+              </Heading>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <Select
@@ -268,9 +260,9 @@ export default function Settings({ onNavigate }: SettingsProps) {
                     value={settings.currencySymbol}
                     onChange={(e) => handleUpdateSetting('currencySymbol', (e.target as HTMLSelectElement).value)}
                     disabled={isUpdating}
-                    options={SUPPORTED_CURRENCIES.map(currency => ({
+                    options={SUPPORTED_CURRENCIES.map((currency) => ({
                       value: currency.symbol,
-                      label: `${currency.symbol} - ${currency.name}`
+                      label: `${currency.symbol} - ${currency.name}`,
                     }))}
                     class="mb-2"
                   />
@@ -282,9 +274,9 @@ export default function Settings({ onNavigate }: SettingsProps) {
                     value={settings.language}
                     onChange={(e) => handleUpdateSetting('language', (e.target as HTMLSelectElement).value)}
                     disabled={isUpdating}
-                    options={SUPPORTED_LANGUAGES.map(lang => ({
+                    options={SUPPORTED_LANGUAGES.map((lang) => ({
                       value: lang.code,
-                      label: lang.name
+                      label: lang.name,
                     }))}
                     class="mb-2"
                   />
@@ -295,7 +287,9 @@ export default function Settings({ onNavigate }: SettingsProps) {
 
             {/* Developer Tools */}
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <Heading level={4} class="mb-6">🛠️ Developer Tools</Heading>
+              <Heading level={4} class="mb-6">
+                🛠️ Developer Tools
+              </Heading>
               <Text class="mb-4 text-gray-600">Tools and utilities for development and testing.</Text>
 
               <div class="space-y-4">
@@ -334,9 +328,9 @@ export default function Settings({ onNavigate }: SettingsProps) {
       </div>
 
       {/* Reset Confirmation Dialog */}
-      <Dialog 
-        isOpen={isResetDialogOpen} 
-        onClose={() => setIsResetDialogOpen(false)} 
+      <Dialog
+        isOpen={isResetDialogOpen}
+        onClose={() => setIsResetDialogOpen(false)}
         title="Reset Settings to Defaults"
         size="md"
       >
@@ -346,12 +340,12 @@ export default function Settings({ onNavigate }: SettingsProps) {
               <span class="text-2xl">⚠️</span>
               <div>
                 <Text class="font-semibold">Warning: This action cannot be undone</Text>
-                <Text class="text-sm text-amber-700">All your custom settings will be reset to their default values.</Text>
+                <Text class="text-sm text-amber-700">
+                  All your custom settings will be reset to their default values.
+                </Text>
               </div>
             </div>
-            <Text class="text-gray-700">
-              This will reset the following settings to their default values:
-            </Text>
+            <Text class="text-gray-700">This will reset the following settings to their default values:</Text>
             <ul class="list-disc list-inside text-sm text-gray-600 space-y-1 ml-4">
               <li>Company name and description</li>
               <li>Tax configuration (enabled with 10% rate)</li>
@@ -359,24 +353,14 @@ export default function Settings({ onNavigate }: SettingsProps) {
               <li>Language (English)</li>
               <li>All contact information</li>
             </ul>
-            <Text class="text-gray-700 font-medium">
-              Are you sure you want to proceed?
-            </Text>
+            <Text class="text-gray-700 font-medium">Are you sure you want to proceed?</Text>
           </div>
         </DialogBody>
         <DialogFooter>
-          <Button 
-            variant="outline" 
-            onClick={() => setIsResetDialogOpen(false)}
-            disabled={isUpdating}
-          >
+          <Button variant="outline" onClick={() => setIsResetDialogOpen(false)} disabled={isUpdating}>
             Cancel
           </Button>
-          <Button 
-            onClick={handleResetToDefaults}
-            disabled={isUpdating}
-            class="bg-red-600 hover:bg-red-700 text-white"
-          >
+          <Button onClick={handleResetToDefaults} disabled={isUpdating} class="bg-red-600 hover:bg-red-700 text-white">
             {isUpdating ? 'Resetting...' : 'Reset Settings'}
           </Button>
         </DialogFooter>

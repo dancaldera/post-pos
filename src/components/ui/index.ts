@@ -7,11 +7,12 @@ export {
   DialogHeader,
   default as Dialog,
 } from './Dialog'
-export { default as Dropdown, type DropdownItem } from './Dropdown'
+export { type DropdownItem, default as Dropdown } from './Dropdown'
 export { default as Form, FormActions, FormField, FormGroup } from './Form'
 export { default as Heading } from './Heading'
 export { default as Input } from './Input'
 export { Link } from './Link'
+export { Pagination } from './Pagination'
 export { default as Select } from './Select'
 export {
   default as Sidebar,

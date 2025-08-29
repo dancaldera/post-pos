@@ -84,7 +84,7 @@ export default function Layout({ children, currentPage, onNavigate }: LayoutProp
       id: 'orders',
       label: 'Orders',
       icon: '📋',
-      description: 'Manage customer orders and transactions',
+      description: 'Manage orders and transactions',
     },
     {
       id: 'products',

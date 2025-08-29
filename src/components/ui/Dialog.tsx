@@ -85,7 +85,7 @@ function Dialog({ isOpen, onClose, title, children, size = 'md' }: DialogProps) 
       const timeout = setTimeout(() => setIsAnimating(true), 10)
       return () => clearTimeout(timeout)
     }
-    
+
     // Start close animation
     setIsAnimating(false)
     // Unmount after animation completes
@@ -134,9 +134,7 @@ function Dialog({ isOpen, onClose, title, children, size = 'md' }: DialogProps) 
             'relative w-full bg-white/60 backdrop-blur-xl border-2 border-white/50 rounded-2xl shadow-2xl',
             'transition-all duration-300 ease-out transform will-change-transform will-change-opacity',
             'my-8 overflow-hidden text-left align-middle sm:my-8',
-            isAnimating 
-              ? 'scale-100 opacity-100 translate-y-0' 
-              : 'scale-95 opacity-0 translate-y-4',
+            isAnimating ? 'scale-100 opacity-100 translate-y-0' : 'scale-95 opacity-0 translate-y-4',
             sizeClasses[size],
           )}
           role="dialog"

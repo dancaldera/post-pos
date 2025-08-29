@@ -33,7 +33,6 @@ export interface TopProduct {
   averagePrice: number
 }
 
-
 export class AnalyticsService {
   private static instance: AnalyticsService
   private db: Database | null = null
@@ -55,23 +54,26 @@ export class AnalyticsService {
   async getOverallMetrics(startDate?: string, endDate?: string): Promise<AnalyticsMetrics> {
     try {
       const db = await this.getDatabase()
-      
+
       let whereClause = ''
       const params: any[] = []
-      
+
       if (startDate && endDate) {
         whereClause = 'WHERE created_at >= ? AND created_at <= ?'
         params.push(startDate, endDate)
       }
 
       const [metricsResult, avgOrderResult] = await Promise.all([
-        db.select<{
-          total_orders: number
-          completed_orders: number
-          pending_orders: number
-          cancelled_orders: number
-          total_revenue: number
-        }[]>(`
+        db.select<
+          {
+            total_orders: number
+            completed_orders: number
+            pending_orders: number
+            cancelled_orders: number
+            total_revenue: number
+          }[]
+        >(
+          `
           SELECT 
             COUNT(*) as total_orders,
             SUM(CASE WHEN status = 'completed' OR status = 'paid' THEN 1 ELSE 0 END) as completed_orders,
@@ -79,14 +81,19 @@ export class AnalyticsService {
             SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) as cancelled_orders,
             COALESCE(SUM(CASE WHEN status = 'completed' OR status = 'paid' THEN total ELSE 0 END), 0) as total_revenue
           FROM orders ${whereClause}
-        `, params),
-        
-        db.select<{ avg_order_value: number }[]>(`
+        `,
+          params,
+        ),
+
+        db.select<{ avg_order_value: number }[]>(
+          `
           SELECT 
             COALESCE(AVG(total), 0) as avg_order_value
           FROM orders 
           WHERE status IN ('completed', 'paid') ${startDate && endDate ? 'AND created_at >= ? AND created_at <= ?' : ''}
-        `, startDate && endDate ? params : [])
+        `,
+          startDate && endDate ? params : [],
+        ),
       ])
 
       const metrics = metricsResult[0]
@@ -99,7 +106,7 @@ export class AnalyticsService {
         pendingOrders: metrics.pending_orders,
         cancelledOrders: metrics.cancelled_orders,
         averageOrderValue: avgOrder.avg_order_value,
-        totalRevenue: metrics.total_revenue
+        totalRevenue: metrics.total_revenue,
       }
     } catch (error) {
       console.error('Get overall metrics error:', error)
@@ -110,7 +117,7 @@ export class AnalyticsService {
         pendingOrders: 0,
         cancelledOrders: 0,
         averageOrderValue: 0,
-        totalRevenue: 0
+        totalRevenue: 0,
       }
     }
   }
@@ -118,22 +125,25 @@ export class AnalyticsService {
   async getSalesByMembers(startDate?: string, endDate?: string): Promise<SalesByMember[]> {
     try {
       const db = await this.getDatabase()
-      
-      let whereClause = 'WHERE o.status IN (\'completed\', \'paid\')'
+
+      let whereClause = "WHERE o.status IN ('completed', 'paid')"
       const params: any[] = []
-      
+
       if (startDate && endDate) {
         whereClause += ' AND o.created_at >= ? AND o.created_at <= ?'
         params.push(startDate, endDate)
       }
 
-      const results = await db.select<{
-        user_id: number
-        user_name: string
-        total_sales: number
-        total_orders: number
-        total_revenue: number
-      }[]>(`
+      const results = await db.select<
+        {
+          user_id: number
+          user_name: string
+          total_sales: number
+          total_orders: number
+          total_revenue: number
+        }[]
+      >(
+        `
         SELECT 
           COALESCE(o.user_id, 1) as user_id,
           COALESCE(u.name, 'Unknown User') as user_name,
@@ -145,14 +155,16 @@ export class AnalyticsService {
         ${whereClause}
         GROUP BY o.user_id, u.name
         ORDER BY total_revenue DESC
-      `, params)
+      `,
+        params,
+      )
 
-      return results.map(result => ({
+      return results.map((result) => ({
         userId: result.user_id.toString(),
         userName: result.user_name,
         totalSales: result.total_sales,
         totalOrders: result.total_orders,
-        totalRevenue: result.total_revenue
+        totalRevenue: result.total_revenue,
       }))
     } catch (error) {
       console.error('Get sales by members error:', error)
@@ -163,24 +175,27 @@ export class AnalyticsService {
   async getTopProducts(limit: number = 10, startDate?: string, endDate?: string): Promise<TopProduct[]> {
     try {
       const db = await this.getDatabase()
-      
-      let whereClause = 'WHERE o.status IN (\'completed\', \'paid\')'
+
+      let whereClause = "WHERE o.status IN ('completed', 'paid')"
       const params: any[] = []
-      
+
       if (startDate && endDate) {
         whereClause += ' AND o.created_at >= ? AND o.created_at <= ?'
         params.push(startDate, endDate)
       }
-      
+
       params.push(limit)
 
-      const results = await db.select<{
-        product_id: number
-        product_name: string
-        total_sold: number
-        total_revenue: number
-        avg_price: number
-      }[]>(`
+      const results = await db.select<
+        {
+          product_id: number
+          product_name: string
+          total_sold: number
+          total_revenue: number
+          avg_price: number
+        }[]
+      >(
+        `
         SELECT 
           oi.product_id,
           oi.product_name,
@@ -193,14 +208,16 @@ export class AnalyticsService {
         GROUP BY oi.product_id, oi.product_name
         ORDER BY total_sold DESC
         LIMIT ?
-      `, params)
+      `,
+        params,
+      )
 
-      return results.map(result => ({
+      return results.map((result) => ({
         productId: result.product_id.toString(),
         productName: result.product_name,
         totalSold: result.total_sold,
         totalRevenue: result.total_revenue,
-        averagePrice: result.avg_price
+        averagePrice: result.avg_price,
       }))
     } catch (error) {
       console.error('Get top products error:', error)
@@ -208,11 +225,14 @@ export class AnalyticsService {
     }
   }
 
-
-  async getSalesByPeriod(period: 'day' | 'week' | 'month', startDate?: string, endDate?: string): Promise<SalesByPeriod[]> {
+  async getSalesByPeriod(
+    period: 'day' | 'week' | 'month',
+    startDate?: string,
+    endDate?: string,
+  ): Promise<SalesByPeriod[]> {
     try {
       const db = await this.getDatabase()
-      
+
       let dateFormat = ''
       switch (period) {
         case 'day':
@@ -226,20 +246,23 @@ export class AnalyticsService {
           break
       }
 
-      let whereClause = 'WHERE status IN (\'completed\', \'paid\')'
+      let whereClause = "WHERE status IN ('completed', 'paid')"
       const params: any[] = []
-      
+
       if (startDate && endDate) {
         whereClause += ' AND created_at >= ? AND created_at <= ?'
         params.push(startDate, endDate)
       }
 
-      const results = await db.select<{
-        period: string
-        sales: number
-        orders: number
-        revenue: number
-      }[]>(`
+      const results = await db.select<
+        {
+          period: string
+          sales: number
+          orders: number
+          revenue: number
+        }[]
+      >(
+        `
         SELECT 
           ${dateFormat} as period,
           COUNT(*) as sales,
@@ -249,13 +272,15 @@ export class AnalyticsService {
         ${whereClause}
         GROUP BY ${dateFormat}
         ORDER BY period DESC
-      `, params)
+      `,
+        params,
+      )
 
-      return results.map(result => ({
+      return results.map((result) => ({
         period: result.period,
         sales: result.sales,
         orders: result.orders,
-        revenue: result.revenue
+        revenue: result.revenue,
       }))
     } catch (error) {
       console.error('Get sales by period error:', error)
@@ -263,26 +288,31 @@ export class AnalyticsService {
     }
   }
 
-  async getRecentActivity(limit: number = 10): Promise<Array<{
-    id: string
-    type: 'order_created' | 'order_completed' | 'order_cancelled'
-    description: string
-    amount?: number
-    timestamp: string
-    userName?: string
-  }>> {
+  async getRecentActivity(limit: number = 10): Promise<
+    Array<{
+      id: string
+      type: 'order_created' | 'order_completed' | 'order_cancelled'
+      description: string
+      amount?: number
+      timestamp: string
+      userName?: string
+    }>
+  > {
     try {
       const db = await this.getDatabase()
 
-      const results = await db.select<{
-        id: number
-        status: string
-        total: number
-        created_at: string
-        completed_at: string
-        user_id: number
-        user_name: string
-      }[]>(`
+      const results = await db.select<
+        {
+          id: number
+          status: string
+          total: number
+          created_at: string
+          completed_at: string
+          user_id: number
+          user_name: string
+        }[]
+      >(
+        `
         SELECT 
           o.id,
           o.status,
@@ -295,9 +325,11 @@ export class AnalyticsService {
         LEFT JOIN users u ON o.user_id = u.id
         ORDER BY o.updated_at DESC
         LIMIT ?
-      `, [limit])
+      `,
+        [limit],
+      )
 
-      return results.map(result => {
+      return results.map((result) => {
         let type: 'order_created' | 'order_completed' | 'order_cancelled' = 'order_created'
         let description = `Order #${result.id} created`
         let timestamp = result.created_at
@@ -317,7 +349,7 @@ export class AnalyticsService {
           description,
           amount: result.total,
           timestamp,
-          userName: result.user_name
+          userName: result.user_name,
         }
       })
     } catch (error) {

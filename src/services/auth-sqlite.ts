@@ -22,9 +22,6 @@ export const DEFAULT_PERMISSIONS = {
     'products.delete',
     'inventory.view',
     'inventory.edit',
-    'customers.view',
-    'customers.create',
-    'customers.edit',
     'reports.view',
     'reports.export',
     'users.view',
@@ -32,7 +29,7 @@ export const DEFAULT_PERMISSIONS = {
     'users.edit',
     'users.delete',
   ],
-  user: ['sales.view', 'sales.create', 'products.view', 'customers.view', 'customers.create'],
+  user: ['sales.view', 'sales.create', 'products.view'],
 }
 
 interface DatabaseUser {
@@ -199,6 +196,50 @@ export class AuthService {
     } catch (error) {
       console.error('Get users error:', error)
       throw new Error('Failed to fetch users')
+    }
+  }
+
+  async getUsersPaginated(
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<{
+    users: User[]
+    totalCount: number
+    totalPages: number
+    currentPage: number
+    hasNextPage: boolean
+    hasPreviousPage: boolean
+  }> {
+    if (!this.hasPermission('users.view') && !this.hasRole('admin')) {
+      throw new Error('Insufficient permissions')
+    }
+
+    try {
+      const db = await this.getDatabase()
+      const offset = (page - 1) * limit
+
+      // Get total count
+      const countResult = await db.select<{ count: number }[]>('SELECT COUNT(*) as count FROM users')
+      const totalCount = countResult[0]?.count || 0
+      const totalPages = Math.ceil(totalCount / limit)
+
+      // Get paginated users
+      const users = await db.select<DatabaseUser[]>('SELECT * FROM users ORDER BY created_at DESC LIMIT ? OFFSET ?', [
+        limit,
+        offset,
+      ])
+
+      return {
+        users: users.map((user) => this.convertDbUser(user)),
+        totalCount,
+        totalPages,
+        currentPage: page,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      }
+    } catch (error) {
+      console.error('Get paginated users error:', error)
+      throw new Error('Failed to fetch paginated users')
     }
   }
 

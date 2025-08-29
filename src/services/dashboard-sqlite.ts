@@ -43,10 +43,7 @@ export class DashboardService {
       await new Promise((resolve) => setTimeout(resolve, 200))
 
       // Get all data in parallel for better performance
-      const [orders, products] = await Promise.all([
-        orderService.getOrders(),
-        productService.getProducts(),
-      ])
+      const [orders, products] = await Promise.all([orderService.getOrders(), productService.getProducts()])
 
       // Get today's date range
       const today = new Date()
@@ -231,7 +228,6 @@ export class DashboardService {
       throw new Error('Failed to fetch order status breakdown')
     }
   }
-
 }
 
 export const dashboardService = DashboardService.getInstance()

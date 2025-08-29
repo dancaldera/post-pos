@@ -7,6 +7,7 @@ import {
   DialogConfirm,
   DialogFooter,
   Input,
+  Pagination,
   Select,
   Table,
   TableBody,
@@ -313,6 +314,12 @@ export default function Products() {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalCount, setTotalCount] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
+  const [pageSize] = useState(10)
+
   const { user: currentUser, hasRole, hasPermission } = useAuth()
 
   const canManageProducts = currentUser && (hasRole('admin') || hasRole('manager') || hasPermission('products.view'))
@@ -321,7 +328,16 @@ export default function Products() {
     loadProducts()
   }, [])
 
-  const loadProducts = async () => {
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+    if (searchQuery.trim()) {
+      handleSearch(searchQuery, page)
+    } else {
+      loadProducts(page)
+    }
+  }
+
+  const loadProducts = async (page: number = 1) => {
     if (!canManageProducts) {
       setError("You don't have permission to view products")
       setIsLoading(false)
@@ -329,9 +345,17 @@ export default function Products() {
     }
 
     try {
-      const productsList = await productService.getProducts()
-      setAllProducts(productsList)
-      setProducts(productsList)
+      setIsLoading(true)
+      const [paginatedResult, allProductsList] = await Promise.all([
+        productService.getProductsPaginated(page, pageSize),
+        productService.getProducts(), // For total count and filtering
+      ])
+
+      setProducts(paginatedResult.products)
+      setAllProducts(allProductsList)
+      setTotalCount(paginatedResult.totalCount)
+      setTotalPages(paginatedResult.totalPages)
+      setCurrentPage(paginatedResult.currentPage)
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to load products'
       setError(message)
@@ -340,18 +364,24 @@ export default function Products() {
     }
   }
 
-  const handleSearch = async (query: string) => {
+  const handleSearch = async (query: string, page: number = 1) => {
     setSearchQuery(query)
     if (query.trim() === '') {
-      setProducts(allProducts)
+      await loadProducts(page)
       return
     }
 
     try {
-      const searchResults = await productService.searchProducts(query)
-      setProducts(searchResults)
+      setIsLoading(true)
+      const searchResults = await productService.searchProductsPaginated(query, page, pageSize)
+      setProducts(searchResults.products)
+      setTotalCount(searchResults.totalCount)
+      setTotalPages(searchResults.totalPages)
+      setCurrentPage(searchResults.currentPage)
     } catch (_err) {
       setError('Search failed')
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -380,15 +410,14 @@ export default function Products() {
     }
   }
 
-  const handleSaveProduct = (savedProduct: Product) => {
-    if (editingProduct) {
-      const updatedProducts = allProducts.map((p) => (p.id === savedProduct.id ? savedProduct : p))
-      setAllProducts(updatedProducts)
-      setProducts(products.map((p) => (p.id === savedProduct.id ? savedProduct : p)))
+  const handleSaveProduct = async (_savedProduct: Product) => {
+    // Reload data to reflect changes with proper pagination
+    if (searchQuery.trim()) {
+      await handleSearch(searchQuery, currentPage)
     } else {
-      setAllProducts([...allProducts, savedProduct])
-      setProducts([...products, savedProduct])
+      await loadProducts(currentPage)
     }
+    setIsModalOpen(false)
   }
 
   const getStockColor = (stock: number) => {
@@ -464,8 +493,9 @@ export default function Products() {
         <div>
           <h1 class="text-2xl font-bold text-gray-900 mb-2">Products</h1>
           <p class="text-gray-600">
-            {allProducts.length} {allProducts.length === 1 ? 'product' : 'products'} total
-            {searchQuery && ` • ${products.length} found`}
+            {totalCount} {totalCount === 1 ? 'product' : 'products'} total
+            {totalPages > 1 && ` • Page ${currentPage} of ${totalPages}`}
+            {searchQuery && ` • Searching for "${searchQuery}"`}
           </p>
         </div>
         {(hasPermission('products.create') || hasRole('admin') || hasRole('manager')) && (
@@ -481,10 +511,23 @@ export default function Products() {
           type="search"
           placeholder="Search products by name, description, category, or barcode..."
           value={searchQuery}
-          onInput={(e) => handleSearch((e.target as HTMLInputElement).value)}
+          onInput={(e) => {
+            setCurrentPage(1)
+            handleSearch((e.target as HTMLInputElement).value, 1)
+          }}
           leftIcon={
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+              />
             </svg>
           }
           rightIcon={
@@ -494,7 +537,14 @@ export default function Products() {
               </svg>
             ) : undefined
           }
-          onRightIconClick={searchQuery ? () => handleSearch('') : undefined}
+          onRightIconClick={
+            searchQuery
+              ? () => {
+                  setCurrentPage(1)
+                  handleSearch('', 1)
+                }
+              : undefined
+          }
           class="w-full bg-white text-gray-900 placeholder-gray-500"
         />
       </div>
@@ -606,6 +656,18 @@ export default function Products() {
           </TableBody>
         </Table>
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+          totalCount={totalCount}
+          pageSize={pageSize}
+          isLoading={isLoading}
+        />
+      )}
 
       {products.length === 0 && (
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-12">

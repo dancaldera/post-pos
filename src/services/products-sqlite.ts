@@ -98,6 +98,48 @@ export class ProductService {
     }
   }
 
+  async getProductsPaginated(
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<{
+    products: Product[]
+    totalCount: number
+    totalPages: number
+    currentPage: number
+    hasNextPage: boolean
+    hasPreviousPage: boolean
+  }> {
+    try {
+      const db = await this.getDatabase()
+      await new Promise((resolve) => setTimeout(resolve, 200))
+
+      const offset = (page - 1) * limit
+
+      // Get total count
+      const countResult = await db.select<{ count: number }[]>('SELECT COUNT(*) as count FROM products')
+      const totalCount = countResult[0]?.count || 0
+      const totalPages = Math.ceil(totalCount / limit)
+
+      // Get paginated products
+      const products = await db.select<DatabaseProduct[]>('SELECT * FROM products ORDER BY name LIMIT ? OFFSET ?', [
+        limit,
+        offset,
+      ])
+
+      return {
+        products: products.map((product) => this.convertDbProduct(product)),
+        totalCount,
+        totalPages,
+        currentPage: page,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      }
+    } catch (error) {
+      console.error('Get paginated products error:', error)
+      throw new Error('Failed to fetch paginated products')
+    }
+  }
+
   async getProduct(id: string): Promise<Product | null> {
     try {
       const db = await this.getDatabase()
@@ -353,6 +395,62 @@ export class ProductService {
     } catch (error) {
       console.error('Search products error:', error)
       throw new Error('Failed to search products')
+    }
+  }
+
+  async searchProductsPaginated(
+    query: string,
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<{
+    products: Product[]
+    totalCount: number
+    totalPages: number
+    currentPage: number
+    hasNextPage: boolean
+    hasPreviousPage: boolean
+  }> {
+    try {
+      const db = await this.getDatabase()
+      await new Promise((resolve) => setTimeout(resolve, 200))
+
+      const offset = (page - 1) * limit
+      const searchTerm = `%${query.toLowerCase()}%`
+
+      // Get total count for search
+      const countResult = await db.select<{ count: number }[]>(
+        `SELECT COUNT(*) as count FROM products 
+         WHERE LOWER(name) LIKE ? 
+            OR LOWER(description) LIKE ? 
+            OR LOWER(category) LIKE ?
+            OR (barcode IS NOT NULL AND barcode LIKE ?)`,
+        [searchTerm, searchTerm, searchTerm, `%${query}%`],
+      )
+      const totalCount = countResult[0]?.count || 0
+      const totalPages = Math.ceil(totalCount / limit)
+
+      // Get paginated search results
+      const products = await db.select<DatabaseProduct[]>(
+        `SELECT * FROM products 
+         WHERE LOWER(name) LIKE ? 
+            OR LOWER(description) LIKE ? 
+            OR LOWER(category) LIKE ?
+            OR (barcode IS NOT NULL AND barcode LIKE ?)
+         ORDER BY name LIMIT ? OFFSET ?`,
+        [searchTerm, searchTerm, searchTerm, `%${query}%`, limit, offset],
+      )
+
+      return {
+        products: products.map((product) => this.convertDbProduct(product)),
+        totalCount,
+        totalPages,
+        currentPage: page,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      }
+    } catch (error) {
+      console.error('Search products paginated error:', error)
+      throw new Error('Failed to search products with pagination')
     }
   }
 

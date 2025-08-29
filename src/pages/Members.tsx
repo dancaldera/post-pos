@@ -8,6 +8,7 @@ import {
   DialogFooter,
   Heading,
   Input,
+  Pagination,
   Select,
   Table,
   TableBody,
@@ -196,6 +197,12 @@ export default function Members() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalCount, setTotalCount] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
+  const [pageSize] = useState(10)
+
   const { user: currentUser, hasRole, hasPermission } = useAuth()
 
   const canManageUsers = currentUser && (hasRole('admin') || hasRole('manager') || hasPermission('users.view'))
@@ -204,7 +211,12 @@ export default function Members() {
     loadUsers()
   }, [])
 
-  const loadUsers = async () => {
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+    loadUsers(page)
+  }
+
+  const loadUsers = async (page: number = 1) => {
     if (!canManageUsers) {
       setError("You don't have permission to view users")
       setIsLoading(false)
@@ -212,8 +224,12 @@ export default function Members() {
     }
 
     try {
-      const usersList = await authService.getUsers()
-      setUsers(usersList)
+      setIsLoading(true)
+      const paginatedResult = await authService.getUsersPaginated(page, pageSize)
+      setUsers(paginatedResult.users)
+      setTotalCount(paginatedResult.totalCount)
+      setTotalPages(paginatedResult.totalPages)
+      setCurrentPage(paginatedResult.currentPage)
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to load users'
       setError(message)
@@ -236,8 +252,9 @@ export default function Members() {
     try {
       const result = await authService.deleteUser(userId)
       if (result.success) {
-        setUsers(users.filter((u) => u.id !== userId))
         setDeleteConfirm(null)
+        // Reload data to reflect changes with proper pagination
+        await loadUsers(currentPage)
       } else {
         setError(result.error || 'Failed to delete user')
       }
@@ -246,12 +263,10 @@ export default function Members() {
     }
   }
 
-  const handleSaveUser = (savedUser: User) => {
-    if (editingUser) {
-      setUsers(users.map((u) => (u.id === savedUser.id ? savedUser : u)))
-    } else {
-      setUsers([...users, savedUser])
-    }
+  const handleSaveUser = async () => {
+    // Reload data to reflect changes with proper pagination
+    await loadUsers(currentPage)
+    setIsModalOpen(false)
   }
 
   const getRoleColor = (role: string) => {
@@ -317,7 +332,8 @@ export default function Members() {
         <div>
           <h1 class="text-2xl font-bold text-gray-900 mb-2">Team Members</h1>
           <p class="text-gray-600">
-            {users.length} {users.length === 1 ? 'member' : 'members'} total
+            {totalCount} {totalCount === 1 ? 'member' : 'members'} total
+            {totalPages > 1 && ` • Page ${currentPage} of ${totalPages}`}
           </p>
         </div>
         {(hasPermission('users.create') || hasRole('admin')) && (
@@ -414,16 +430,18 @@ export default function Members() {
                         ✏️ Edit
                       </Button>
                     )}
-                    {(hasPermission('users.delete') || hasRole('admin')) && user.id !== currentUser?.id && user.role !== 'admin' && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setDeleteConfirm(user.id)}
-                        class="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 transition-all hover:shadow-md"
-                      >
-                        🗑️ Delete
-                      </Button>
-                    )}
+                    {(hasPermission('users.delete') || hasRole('admin')) &&
+                      user.id !== currentUser?.id &&
+                      user.role !== 'admin' && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setDeleteConfirm(user.id)}
+                          class="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 transition-all hover:shadow-md"
+                        >
+                          🗑️ Delete
+                        </Button>
+                      )}
                   </div>
                 </TableCell>
               </TableRow>
@@ -431,6 +449,18 @@ export default function Members() {
           </TableBody>
         </Table>
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+          totalCount={totalCount}
+          pageSize={pageSize}
+          isLoading={isLoading}
+        />
+      )}
 
       {users.length === 0 && (
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-12">
