@@ -1081,7 +1081,6 @@ export default function Orders() {
                             size="sm"
                             onClick={() => addItemToEditOrder(product.id)}
                             disabled={product.stock === 0}
-                            class="ml-4 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 backdrop-blur-sm"
                           >
                             <span class="drop-shadow-sm">➕ Add</span>
                           </Button>
@@ -1251,7 +1250,6 @@ export default function Orders() {
             type="button"
             onClick={handleUpdateOrder}
             disabled={isLoading || editOrderItems.length === 0}
-            class="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white"
           >
             {isLoading ? 'Updating...' : 'Update Order'}
           </Button>
@@ -1389,6 +1387,15 @@ export default function Orders() {
                 <div class="flex flex-wrap gap-2">
                   {selectedOrder.status === 'pending' && (
                     <>
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          handleEditOrder(selectedOrder)
+                          setSelectedOrder(null)
+                        }}
+                      >
+                        ✏️ Update Order
+                      </Button>
                       <Button
                         size="sm"
                         onClick={() => {
