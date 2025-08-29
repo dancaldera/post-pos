@@ -492,6 +492,49 @@ export class OrderService {
     }
   }
 
+  async getOrdersByDateFilter(dateFilter: 'today' | 'yesterday' | string): Promise<Order[]> {
+    try {
+      const db = await this.getDatabase()
+      await new Promise((resolve) => setTimeout(resolve, 200))
+
+      let startDate: string
+      let endDate: string
+      const now = new Date()
+
+      if (dateFilter === 'today') {
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+        startDate = today.toISOString()
+        endDate = new Date(today.getTime() + 24 * 60 * 60 * 1000 - 1).toISOString()
+      } else if (dateFilter === 'yesterday') {
+        const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1)
+        startDate = yesterday.toISOString()
+        endDate = new Date(yesterday.getTime() + 24 * 60 * 60 * 1000 - 1).toISOString()
+      } else {
+        // Handle specific date (YYYY-MM-DD format)
+        const targetDate = new Date(dateFilter + 'T00:00:00.000Z')
+        startDate = targetDate.toISOString()
+        endDate = new Date(targetDate.getTime() + 24 * 60 * 60 * 1000 - 1).toISOString()
+      }
+
+      const orders = await db.select<DatabaseOrder[]>(
+        `SELECT * FROM orders 
+         WHERE created_at >= ? AND created_at <= ? 
+         ORDER BY created_at DESC`,
+        [startDate, endDate],
+      )
+
+      const convertedOrders = []
+      for (const order of orders) {
+        convertedOrders.push(await this.convertDbOrder(order))
+      }
+
+      return convertedOrders
+    } catch (error) {
+      console.error('Get orders by date filter error:', error)
+      throw new Error('Failed to fetch orders by date filter')
+    }
+  }
+
   async getTopSellingProducts(limit: number = 10): Promise<
     Array<{
       productId: string

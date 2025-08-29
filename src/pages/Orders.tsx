@@ -33,6 +33,7 @@ export default function Orders() {
   const [error, setError] = useState('')
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [selectedStatus, setSelectedStatus] = useState<Order['status'] | 'all'>('all')
+  const [selectedDateFilter, setSelectedDateFilter] = useState<string>('today')
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState<'date' | 'total' | 'status'>('date')
@@ -66,11 +67,44 @@ export default function Orders() {
     }
   }, [])
 
-  const loadData = async () => {
+  useEffect(() => {
+    loadData(selectedDateFilter)
+  }, [selectedDateFilter])
+
+  const getDateFilterOptions = () => {
+    const options = [
+      { value: 'all', label: '📋 All Orders' },
+      { value: 'today', label: '📅 Today' },
+      { value: 'yesterday', label: '📅 Yesterday' },
+    ]
+
+    // Add the last 5 days
+    const now = new Date()
+    for (let i = 2; i <= 6; i++) {
+      const date = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i)
+      const dateString = date.toISOString().split('T')[0]
+      const formattedDate = date.toLocaleDateString('en-US', { 
+        weekday: 'short', 
+        month: 'short', 
+        day: 'numeric' 
+      })
+      options.push({
+        value: dateString,
+        label: `📅 ${formattedDate}`
+      })
+    }
+
+    
+    return options
+  }
+
+  const loadData = async (dateFilter?: string) => {
     try {
       setIsLoading(true)
+      const filterToUse = dateFilter || selectedDateFilter
+      
       const [ordersData, productsData, settings, usersData] = await Promise.all([
-        orderService.getOrders(),
+        filterToUse === 'all' ? orderService.getOrders() : orderService.getOrdersByDateFilter(filterToUse),
         productService.getProducts(),
         companySettingsService.getSettings(),
         userService.getUsers()
@@ -181,7 +215,8 @@ export default function Orders() {
           notes: '',
         })
 
-        // Reload products to update stock levels
+        // Reload data with current filter
+        await loadData(selectedDateFilter)
         const updatedProducts = await productService.getProducts()
         setProducts(updatedProducts.filter((p) => p.isActive && p.stock > 0))
 
@@ -205,8 +240,9 @@ export default function Orders() {
         setAllOrders(updatedAllOrders)
         setOrders(updatedAllOrders)
 
-        // Reload products to update stock levels if status affects inventory
+        // Reload data and products if status affects inventory
         if (status === 'completed' || status === 'paid' || status === 'cancelled') {
+          await loadData(selectedDateFilter)
           const updatedProducts = await productService.getProducts()
           setProducts(updatedProducts.filter((p) => p.isActive && p.stock > 0))
         }
@@ -227,7 +263,8 @@ export default function Orders() {
         setOrders(filteredAllOrders)
         setDeleteConfirm(null)
 
-        // Reload products to update stock levels
+        // Reload data with current filter
+        await loadData(selectedDateFilter)
         const updatedProducts = await productService.getProducts()
         setProducts(updatedProducts.filter((p) => p.isActive && p.stock > 0))
       } else {
@@ -456,7 +493,15 @@ export default function Orders() {
         <div>
           <h1 class="text-2xl font-bold text-gray-900 mb-2">Orders</h1>
           <p class="text-gray-600">
-            {allOrders.length} {allOrders.length === 1 ? 'order' : 'orders'} total
+            {allOrders.length} {allOrders.length === 1 ? 'order' : 'orders'} 
+            {selectedDateFilter === 'today' ? ' today' : 
+             selectedDateFilter === 'yesterday' ? ' yesterday' : 
+             selectedDateFilter === 'all' ? ' total' : 
+             ` on ${new Date(selectedDateFilter + 'T00:00:00').toLocaleDateString('en-US', { 
+               weekday: 'short', 
+               month: 'short', 
+               day: 'numeric' 
+             })}`}
             {searchQuery && ` • ${filteredOrders.length} found`}
           </p>
         </div>
@@ -495,10 +540,18 @@ export default function Orders() {
           </div>
           <div class="w-auto">
             <Select
+              value={selectedDateFilter}
+              onChange={(e) => setSelectedDateFilter((e.target as HTMLSelectElement).value)}
+              options={getDateFilterOptions()}
+              class="w-auto min-w-0"
+            />
+          </div>
+          <div class="w-auto">
+            <Select
               value={selectedStatus}
               onChange={(e) => setSelectedStatus((e.target as HTMLSelectElement).value as Order['status'] | 'all')}
               options={[
-                { value: 'all', label: 'All Orders' },
+                { value: 'all', label: 'All Status' },
                 { value: 'pending', label: 'Pending' },
                 { value: 'paid', label: 'Paid' },
                 { value: 'completed', label: 'Completed' },
