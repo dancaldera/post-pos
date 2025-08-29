@@ -19,7 +19,7 @@ import {
   TableRow,
   Text,
 } from '../components/ui'
-import { type Order, orderService } from '../services/orders-sqlite'
+import { type Order, orderService, type UpdateOrderItemsRequest } from '../services/orders-sqlite'
 import { type Product, productService } from '../services/products-sqlite'
 import { companySettingsService } from '../services/company-settings-sqlite'
 
@@ -36,16 +36,20 @@ export default function Orders() {
   const [sortBy, setSortBy] = useState<'date' | 'total' | 'status' | 'customer'>('date')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
+  const [editingOrder, setEditingOrder] = useState<Order | null>(null)
   const [taxRate, setTaxRate] = useState<number>(0.1)
   const [taxEnabled, setTaxEnabled] = useState<boolean>(true)
   const [currencySymbol, setCurrencySymbol] = useState<string>('$')
   const [productSearch, setProductSearch] = useState('')
+  const [editProductSearch, setEditProductSearch] = useState('')
 
   const [newOrder, setNewOrder] = useState({
     items: [] as Array<{ productId: string; quantity: number }>,
     paymentMethod: 'cash' as 'cash' | 'card' | 'transfer',
     notes: '',
   })
+
+  const [editOrderItems, setEditOrderItems] = useState<Array<{ productId: string; quantity: number }>>([])
 
   useEffect(() => {
     loadData()
@@ -121,6 +125,20 @@ export default function Orders() {
     }
 
     const query = productSearch.toLowerCase()
+    return products.filter(
+      (product) =>
+        product.name.toLowerCase().includes(query) ||
+        product.category.toLowerCase().includes(query) ||
+        product.price.toString().includes(query)
+    )
+  })()
+
+  const filteredEditProducts = (() => {
+    if (!editProductSearch.trim()) {
+      return products
+    }
+
+    const query = editProductSearch.toLowerCase()
     return products.filter(
       (product) =>
         product.name.toLowerCase().includes(query) ||
@@ -232,6 +250,57 @@ export default function Orders() {
     })
   }
 
+  const handleEditOrder = (order: Order) => {
+    setEditingOrder(order)
+    setEditOrderItems(order.items.map(item => ({ productId: item.productId, quantity: item.quantity })))
+    setEditProductSearch('')
+  }
+
+  const handleUpdateOrderItems = async () => {
+    if (!editingOrder || editOrderItems.length === 0) {
+      setError('Please add at least one item to the order')
+      return
+    }
+
+    try {
+      setIsLoading(true)
+      const result = await orderService.updateOrderItems(editingOrder.id, { items: editOrderItems })
+
+      if (result.success && result.order) {
+        const updatedAllOrders = allOrders.map((o) => (o.id === editingOrder.id ? result.order! : o))
+        setAllOrders(updatedAllOrders)
+        setOrders(updatedAllOrders)
+        setEditingOrder(null)
+        setEditOrderItems([])
+        setError('')
+      } else {
+        setError(result.error || 'Failed to update order')
+      }
+    } catch (_err) {
+      setError('Failed to update order')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const addItemToEditOrder = (productId: string, quantity: number = 1) => {
+    const existingItem = editOrderItems.find((item) => item.productId === productId)
+
+    if (existingItem) {
+      setEditOrderItems(
+        editOrderItems.map((item) =>
+          item.productId === productId ? { ...item, quantity: item.quantity + quantity } : item,
+        )
+      )
+    } else {
+      setEditOrderItems([...editOrderItems, { productId, quantity }])
+    }
+  }
+
+  const removeItemFromEditOrder = (productId: string) => {
+    setEditOrderItems(editOrderItems.filter((item) => item.productId !== productId))
+  }
+
   const getStatusColor = (status: Order['status']) => {
     switch (status) {
       case 'pending':
@@ -292,6 +361,12 @@ export default function Orders() {
 
     if (order.status === 'pending') {
       items.push(
+        {
+          id: `edit-${order.id}`,
+          label: 'Edit Items',
+          icon: '✏️',
+          onClick: () => handleEditOrder(order),
+        },
         {
           id: `pay-${order.id}`,
           label: 'Mark as Paid',
@@ -888,6 +963,255 @@ export default function Orders() {
           </Button>
           <Button type="button" onClick={handleCreateOrder} disabled={isLoading || newOrder.items.length === 0}>
             {isLoading ? 'Creating...' : 'Create Order'}
+          </Button>
+        </DialogFooter>
+      </Dialog>
+
+      {/* Edit Order Modal */}
+      <Dialog
+        isOpen={!!editingOrder}
+        onClose={() => {
+          setEditingOrder(null)
+          setEditOrderItems([])
+          setEditProductSearch('')
+        }}
+        title={`Edit Order #${editingOrder?.id}`}
+        size="full"
+      >
+        <DialogBody>
+          <div class="space-y-6">
+            {/* Available Products for Editing */}
+            <div>
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-4">
+                <h3 class="text-lg font-semibold text-gray-900">Available Products</h3>
+                <div class="flex items-center gap-3">
+                  <div class="w-64">
+                    <Input
+                      type="search"
+                      placeholder="Search products..."
+                      value={editProductSearch}
+                      onInput={(e) => setEditProductSearch((e.target as HTMLInputElement).value)}
+                      leftIcon={
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                        </svg>
+                      }
+                      rightIcon={
+                        editProductSearch ? (
+                          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        ) : undefined
+                      }
+                      onRightIconClick={editProductSearch ? () => setEditProductSearch('') : undefined}
+                      class="text-sm"
+                    />
+                  </div>
+                  <div class="text-sm text-gray-500">
+                    {filteredEditProducts.length} of {products.length} products
+                  </div>
+                </div>
+              </div>
+              <div class="max-h-96 overflow-y-auto backdrop-blur-lg bg-gradient-to-br from-emerald-50/40 to-blue-50/30 border border-emerald-200/30 rounded-2xl p-6 shadow-2xl">
+                {filteredEditProducts.length === 0 ? (
+                  <div class="text-center py-12">
+                    <div class="text-6xl mb-4">🔍</div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">No products found</h3>
+                    <p class="text-gray-500">
+                      {editProductSearch ? `No products match "${editProductSearch}"` : 'No products available'}
+                    </p>
+                    {editProductSearch && (
+                      <button
+                        type="button"
+                        onClick={() => setEditProductSearch('')}
+                        class="mt-4 text-blue-600 hover:text-blue-800 font-medium"
+                      >
+                        Clear search
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
+                    {filteredEditProducts.map((product) => (
+                      <div
+                        key={product.id}
+                        class="group relative backdrop-blur-md bg-white/70 border border-white/40 rounded-xl p-4 hover:bg-white/80 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] hover:border-emerald-300/50"
+                      >
+                        <div class="absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-transparent rounded-xl opacity-60 pointer-events-none"></div>
+
+                        <div class="relative flex justify-between items-start">
+                          <div class="flex-1">
+                            <div class="font-semibold text-gray-900 mb-1 drop-shadow-sm">{product.name}</div>
+                            <div class="text-sm text-gray-700 mb-3 font-medium backdrop-blur-sm bg-white/40 px-2 py-1 rounded-full w-fit">
+                              {product.category}
+                            </div>
+                            <div class="flex items-center justify-between">
+                              <div class="text-xl font-bold text-emerald-600 drop-shadow-md">
+                                {formatCurrency(product.price)}
+                              </div>
+                              <div
+                                class={`text-sm px-3 py-1.5 rounded-full font-semibold backdrop-blur-sm border transition-all ${
+                                  product.stock > 10
+                                    ? 'bg-emerald-100/80 text-emerald-800 border-emerald-200/50 shadow-emerald-100/50'
+                                    : product.stock > 0
+                                      ? 'bg-amber-100/80 text-amber-800 border-amber-200/50 shadow-amber-100/50'
+                                      : 'bg-red-100/80 text-red-800 border-red-200/50 shadow-red-100/50'
+                                } shadow-lg`}
+                              >
+                                📦 {product.stock}
+                              </div>
+                            </div>
+                          </div>
+                          <Button
+                            size="sm"
+                            onClick={() => addItemToEditOrder(product.id)}
+                            disabled={product.stock === 0}
+                            class="ml-4 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 backdrop-blur-sm"
+                          >
+                            <span class="drop-shadow-sm">➕ Add</span>
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Edit Order Items */}
+            {editOrderItems.length > 0 && (
+              <div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Updated Order Summary</h3>
+                <div class="backdrop-blur-lg bg-gradient-to-br from-emerald-100/60 to-green-100/40 border border-emerald-200/50 rounded-2xl p-6 space-y-4 shadow-xl">
+                  {editOrderItems.map((item) => {
+                    const product = products.find((p) => p.id === item.productId)
+                    return product ? (
+                      <div
+                        key={item.productId}
+                        class="relative flex justify-between items-center backdrop-blur-md bg-white/80 border border-white/50 rounded-xl p-5 shadow-lg hover:shadow-xl transition-all duration-200"
+                      >
+                        <div class="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-transparent rounded-xl opacity-70 pointer-events-none"></div>
+
+                        <div class="relative flex-1">
+                          <div class="font-semibold text-gray-900 mb-2 drop-shadow-sm">{product.name}</div>
+                          <div class="text-sm text-gray-700 backdrop-blur-sm bg-white/60 px-3 py-1 rounded-full w-fit">
+                            {formatCurrency(product.price)} × {item.quantity} ={' '}
+                            <span class="font-bold text-emerald-600">
+                              {formatCurrency(product.price * item.quantity)}
+                            </span>
+                          </div>
+                        </div>
+                        <div class="relative flex items-center space-x-3">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              if (item.quantity > 1) {
+                                addItemToEditOrder(item.productId, -1)
+                              } else {
+                                removeItemFromEditOrder(item.productId)
+                              }
+                            }}
+                            class="w-10 h-10 p-0 flex items-center justify-center backdrop-blur-sm bg-white/70 border-white/60 hover:bg-white/90 hover:shadow-lg transition-all duration-200 hover:scale-110"
+                          >
+                            <span class="drop-shadow-sm">➖</span>
+                          </Button>
+                          <div class="w-14 text-center font-bold text-xl backdrop-blur-sm bg-gradient-to-r from-emerald-100/80 to-green-100/80 px-3 py-2 rounded-lg border border-white/40 shadow-md">
+                            {item.quantity}
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => addItemToEditOrder(item.productId, 1)}
+                            disabled={item.quantity >= product.stock}
+                            class="w-10 h-10 p-0 flex items-center justify-center backdrop-blur-sm bg-white/70 border-white/60 hover:bg-white/90 hover:shadow-lg transition-all duration-200 hover:scale-110 disabled:opacity-50 disabled:hover:scale-100"
+                          >
+                            <span class="drop-shadow-sm">➕</span>
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => removeItemFromEditOrder(item.productId)}
+                            class="backdrop-blur-sm bg-red-100/70 text-red-700 border-red-200/60 hover:bg-red-200/80 hover:shadow-lg transition-all duration-200 hover:scale-110 ml-2"
+                          >
+                            <span class="drop-shadow-sm">🗑️</span>
+                          </Button>
+                        </div>
+                      </div>
+                    ) : null
+                  })}
+
+                  {/* Updated Order Totals */}
+                  <div class="border-t border-white/40 pt-4 mt-6">
+                    {(() => {
+                      const subtotal = editOrderItems.reduce((total, item) => {
+                        const product = products.find((p) => p.id === item.productId)
+                        return total + (product ? product.price * item.quantity : 0)
+                      }, 0)
+                      const tax = taxEnabled ? subtotal * taxRate : 0
+                      const total = subtotal + tax
+
+                      return (
+                        <div
+                          class={`backdrop-blur-md rounded-xl p-5 border shadow-lg ${
+                            taxEnabled
+                              ? 'bg-white/60 border-white/50'
+                              : 'bg-gray-50/60 border-gray-200/50'
+                          }`}
+                        >
+                          <div class="space-y-3">
+                            <div class="flex justify-between text-gray-700 text-lg">
+                              <span class="font-medium">Subtotal:</span>
+                              <span class="font-semibold drop-shadow-sm">{formatCurrency(subtotal)}</span>
+                            </div>
+                            {taxEnabled && (
+                              <div class="flex justify-between text-gray-700 text-lg">
+                                <span class="font-medium">Tax ({(taxRate * 100).toFixed(1)}%):</span>
+                                <span class="font-semibold drop-shadow-sm">{formatCurrency(tax)}</span>
+                              </div>
+                            )}
+                            {!taxEnabled && (
+                              <div class="text-sm text-gray-500 italic text-center py-2">
+                                Tax calculation is disabled in settings
+                              </div>
+                            )}
+                            <div class="border-t border-white/40 pt-3">
+                              <div class="flex justify-between text-2xl font-bold text-gray-900 backdrop-blur-sm bg-gradient-to-r from-emerald-100/60 to-green-100/40 px-4 py-3 rounded-lg border border-emerald-200/50 shadow-md">
+                                <span class="drop-shadow-sm">New Total:</span>
+                                <span class="drop-shadow-sm text-emerald-700">{formatCurrency(total)}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })()}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </DialogBody>
+
+        <DialogFooter>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              setEditingOrder(null)
+              setEditOrderItems([])
+              setEditProductSearch('')
+            }}
+            disabled={isLoading}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            onClick={handleUpdateOrderItems}
+            disabled={isLoading || editOrderItems.length === 0}
+            class="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white"
+          >
+            {isLoading ? 'Updating...' : 'Update Order'}
           </Button>
         </DialogFooter>
       </Dialog>

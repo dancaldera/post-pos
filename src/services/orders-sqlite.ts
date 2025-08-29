@@ -36,6 +36,13 @@ export interface CreateOrderRequest {
   notes?: string
 }
 
+export interface UpdateOrderItemsRequest {
+  items: Array<{
+    productId: string
+    quantity: number
+  }>
+}
+
 interface DatabaseOrder {
   id: number
   customer_id?: number
@@ -517,6 +524,99 @@ export class OrderService {
     } catch (error) {
       console.error('Get top selling products error:', error)
       return []
+    }
+  }
+
+  async updateOrderItems(
+    orderId: string,
+    itemsData: UpdateOrderItemsRequest,
+  ): Promise<{ success: boolean; order?: Order; error?: string }> {
+    if (!itemsData.items.length) {
+      return { success: false, error: 'Order must contain at least one item' }
+    }
+
+    try {
+      const db = await this.getDatabase()
+      await new Promise((resolve) => setTimeout(resolve, 400))
+
+      // Get current order
+      const currentOrder = await this.getOrder(orderId)
+      if (!currentOrder) {
+        return { success: false, error: 'Order not found' }
+      }
+
+      // Only allow editing pending orders
+      if (currentOrder.status !== 'pending') {
+        return { success: false, error: 'Can only edit pending orders' }
+      }
+
+      // Check stock availability for the updated items
+      const stockCheck = await this.checkStockAvailability(itemsData.items)
+      if (!stockCheck.success) {
+        return { success: false, error: stockCheck.error }
+      }
+
+      // Build new order items with product details
+      const newOrderItems: OrderItem[] = []
+      let newSubtotal = 0
+
+      for (const item of itemsData.items) {
+        const product = await productService.getProduct(item.productId)
+        if (!product) {
+          return {
+            success: false,
+            error: `Product ${item.productId} not found`,
+          }
+        }
+
+        const itemTotal = product.price * item.quantity
+        newOrderItems.push({
+          productId: product.id,
+          productName: product.name,
+          quantity: item.quantity,
+          unitPrice: product.price,
+          totalPrice: itemTotal,
+        })
+
+        newSubtotal += itemTotal
+      }
+
+      // Calculate new tax and total
+      const { tax: newTaxAmount, total: newTotal } = await companySettingsService.calculateTotalWithTax(newSubtotal)
+      const now = new Date().toISOString()
+
+      // Delete existing order items
+      await db.execute('DELETE FROM order_items WHERE order_id = ?', [parseInt(orderId, 10)])
+
+      // Insert new order items
+      for (const item of newOrderItems) {
+        await db.execute(
+          `INSERT INTO order_items (
+            order_id, product_id, product_name, quantity, unit_price, total_price
+          ) VALUES (?, ?, ?, ?, ?, ?)`,
+          [
+            parseInt(orderId, 10),
+            parseInt(item.productId, 10),
+            item.productName,
+            item.quantity,
+            item.unitPrice,
+            item.totalPrice,
+          ],
+        )
+      }
+
+      // Update order totals
+      await db.execute(
+        'UPDATE orders SET subtotal = ?, tax = ?, total = ?, updated_at = ? WHERE id = ?',
+        [newSubtotal, newTaxAmount, newTotal, now, parseInt(orderId, 10)],
+      )
+
+      // Return updated order
+      const updatedOrder = await this.getOrder(orderId)
+      return { success: true, order: updatedOrder || undefined }
+    } catch (error) {
+      console.error('Update order items error:', error)
+      return { success: false, error: 'Failed to update order items' }
     }
   }
 }
