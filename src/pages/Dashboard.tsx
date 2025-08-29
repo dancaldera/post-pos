@@ -47,8 +47,8 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
           <p class="text-gray-600">Loading your business overview...</p>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {[1, 2, 3, 4].map((i) => (
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          {[1, 2, 3].map((i) => (
             <div
               key={i}
               class="backdrop-blur-md bg-white/70 rounded-xl shadow-lg border border-white/40 p-6 animate-pulse"
@@ -64,8 +64,8 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
           ))}
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[1, 2, 3].map((i) => (
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {[1, 2].map((i) => (
             <div
               key={i}
               class="backdrop-blur-md bg-white/70 rounded-xl shadow-lg border border-white/40 p-6 animate-pulse"
