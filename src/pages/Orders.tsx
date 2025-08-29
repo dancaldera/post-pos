@@ -499,8 +499,9 @@ export default function Orders() {
             {filteredOrders.map((order, index) => (
               <TableRow
                 key={order.id}
-                class="hover:bg-gray-50 transition-all duration-200 hover:shadow-sm"
+                class="hover:bg-gray-50 transition-all duration-200 hover:shadow-sm cursor-pointer"
                 style={`animation-delay: ${index * 50}ms`}
+                onClick={() => setSelectedOrder(order)}
               >
                 <TableCell>
                   <button
@@ -587,20 +588,22 @@ export default function Orders() {
                   </div>
                 </TableCell>
                 <TableCell>
-                  <Dropdown
-                    trigger={
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        class="text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all hover:shadow-md"
-                      >
-                        ⚙️ Actions
-                      </Button>
-                    }
-                    items={getOrderActionItems(order)}
-                    align="right"
-                    width="w-48"
-                  />
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <Dropdown
+                      trigger={
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          class="text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all hover:shadow-md"
+                        >
+                          ⚙️ Actions
+                        </Button>
+                      }
+                      items={getOrderActionItems(order)}
+                      align="right"
+                      width="w-48"
+                    />
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
