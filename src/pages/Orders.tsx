@@ -729,7 +729,10 @@ export default function Orders() {
             {/* Available Products */}
             <div>
               <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-4">
-                <h3 class="text-lg font-semibold text-gray-900">Available Products</h3>
+                <div>
+                  <h3 class="text-lg font-semibold text-gray-900">Available Products</h3>
+                  <p class="text-sm text-gray-600 mt-1">Click on any product card to add it to your order</p>
+                </div>
                 <div class="flex items-center gap-3">
                   <div class="w-64">
                     <Input
@@ -781,7 +784,8 @@ export default function Orders() {
                     {filteredProducts.map((product) => (
                       <div
                         key={product.id}
-                        class="group relative backdrop-blur-md bg-white/70 border border-white/40 rounded-xl p-4 hover:bg-white/80 hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
+                        onClick={() => product.stock > 0 && addItemToOrder(product.id)}
+                        class="group relative backdrop-blur-md bg-white/70 border border-white/40 rounded-xl p-4 hover:bg-white/80 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] cursor-pointer"
                       >
                         {/* Glass highlight overlay */}
                         <div class="absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-transparent rounded-xl opacity-60 pointer-events-none"></div>
@@ -811,6 +815,7 @@ export default function Orders() {
                           <Button
                             size="sm"
                             onClick={() => addItemToOrder(product.id)}
+                            onMouseDown={(e: any) => e.stopPropagation()}
                             disabled={product.stock === 0}
                             class="ml-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 backdrop-blur-sm"
                           >
@@ -998,7 +1003,10 @@ export default function Orders() {
             {/* Available Products for Editing */}
             <div>
               <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-4">
-                <h3 class="text-lg font-semibold text-gray-900">Available Products</h3>
+                <div>
+                  <h3 class="text-lg font-semibold text-gray-900">Available Products</h3>
+                  <p class="text-sm text-gray-600 mt-1">Click on any product card to add it to your order</p>
+                </div>
                 <div class="flex items-center gap-3">
                   <div class="w-64">
                     <Input
@@ -1050,7 +1058,8 @@ export default function Orders() {
                     {filteredEditProducts.map((product) => (
                       <div
                         key={product.id}
-                        class="group relative backdrop-blur-md bg-white/70 border border-white/40 rounded-xl p-4 hover:bg-white/80 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] hover:border-emerald-300/50"
+                        onClick={() => product.stock > 0 && addItemToEditOrder(product.id)}
+                        class="group relative backdrop-blur-md bg-white/70 border border-white/40 rounded-xl p-4 hover:bg-white/80 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] hover:border-emerald-300/50 cursor-pointer"
                       >
                         <div class="absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-transparent rounded-xl opacity-60 pointer-events-none"></div>
 
@@ -1080,6 +1089,7 @@ export default function Orders() {
                           <Button
                             size="sm"
                             onClick={() => addItemToEditOrder(product.id)}
+                            onMouseDown={(e: any) => e.stopPropagation()}
                             disabled={product.stock === 0}
                           >
                             <span class="drop-shadow-sm">➕ Add</span>
