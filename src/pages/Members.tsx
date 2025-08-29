@@ -414,7 +414,7 @@ export default function Members() {
                         ✏️ Edit
                       </Button>
                     )}
-                    {(hasPermission('users.delete') || hasRole('admin')) && user.id !== currentUser?.id && (
+                    {(hasPermission('users.delete') || hasRole('admin')) && user.id !== currentUser?.id && user.role !== 'admin' && (
                       <Button
                         size="sm"
                         variant="outline"
