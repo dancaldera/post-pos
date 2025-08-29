@@ -994,15 +994,19 @@ export default function Orders() {
                       <div
                         key={product.id}
                         class="group relative backdrop-blur-md bg-white/70 border border-white/40 rounded-xl p-4 hover:bg-white/80 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] cursor-pointer"
+                        onClick={() => product.stock > 0 && addItemToOrder(product.id)}
+                        role="button"
+                        tabindex={0}
+                        aria-label={`${t('orders.addProduct')} ${product.name}`}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault()
+                            product.stock > 0 && addItemToOrder(product.id)
+                          }
+                        }}
                       >
-                        <button
-                          type="button"
-                          class="absolute inset-0 rounded-xl"
-                          aria-label={`${t('orders.addProduct')} ${product.name}`}
-                          onClick={() => product.stock > 0 && addItemToOrder(product.id)}
-                        />
                         {/* Glass highlight overlay */}
-                        <div class="absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-transparent rounded-xl opacity-60 pointer-events-none"></div>
+                        <div class="absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-transparent rounded-xl opacity-60"></div>
 
                         <div class="relative flex justify-between items-start">
                           <div class="flex-1">
@@ -1048,7 +1052,7 @@ export default function Orders() {
                         class="relative flex justify-between items-center backdrop-blur-md bg-white/80 border border-white/50 rounded-xl p-5 shadow-lg hover:shadow-xl transition-all duration-200"
                       >
                         {/* Glass highlight overlay */}
-                        <div class="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-transparent rounded-xl opacity-70 pointer-events-none"></div>
+                        <div class="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-transparent rounded-xl opacity-70"></div>
 
                         <div class="relative flex-1">
                           <div class="font-semibold text-gray-900 mb-2 drop-shadow-sm">{product.name}</div>
@@ -1293,14 +1297,18 @@ export default function Orders() {
                       <div
                         key={product.id}
                         class="group relative backdrop-blur-md bg-white/70 border border-white/40 rounded-xl p-4 hover:bg-white/80 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] hover:border-emerald-300/50 cursor-pointer"
+                        onClick={() => product.stock > 0 && addItemToEditOrder(product.id)}
+                        role="button"
+                        tabindex={0}
+                        aria-label={`${t('orders.addProduct')} ${product.name}`}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault()
+                            product.stock > 0 && addItemToEditOrder(product.id)
+                          }
+                        }}
                       >
-                        <button
-                          type="button"
-                          class="absolute inset-0 rounded-xl"
-                          aria-label={`${t('orders.addProduct')} ${product.name}`}
-                          onClick={() => product.stock > 0 && addItemToEditOrder(product.id)}
-                        />
-                        <div class="absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-transparent rounded-xl opacity-60 pointer-events-none"></div>
+                        <div class="absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-transparent rounded-xl opacity-60"></div>
 
                         <div class="relative flex justify-between items-start">
                           <div class="flex-1">
@@ -1345,7 +1353,7 @@ export default function Orders() {
                         key={item.productId}
                         class="relative flex justify-between items-center backdrop-blur-md bg-white/80 border border-white/50 rounded-xl p-5 shadow-lg hover:shadow-xl transition-all duration-200"
                       >
-                        <div class="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-transparent rounded-xl opacity-70 pointer-events-none"></div>
+                        <div class="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-transparent rounded-xl opacity-70"></div>
 
                         <div class="relative flex-1">
                           <div class="font-semibold text-gray-900 mb-2 drop-shadow-sm">{product.name}</div>
