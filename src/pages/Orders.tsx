@@ -23,6 +23,7 @@ import { type Order, orderService } from '../services/orders-sqlite'
 import { type Product, productService } from '../services/products-sqlite'
 import { companySettingsService } from '../services/company-settings-sqlite'
 import { userService } from '../services/users-sqlite'
+import { authService } from '../services/auth-sqlite'
 
 export default function Orders() {
   const [orders, setOrders] = useState<Order[]>([])
@@ -44,6 +45,7 @@ export default function Orders() {
   const [productSearch, setProductSearch] = useState('')
   const [editProductSearch, setEditProductSearch] = useState('')
   const [users, setUsers] = useState<{ [key: string]: string }>({}) // userId -> userName mapping
+  const [currentUserRole, setCurrentUserRole] = useState<'admin' | 'manager' | 'user' | null>(null)
 
   const [newOrder, setNewOrder] = useState({
     items: [] as Array<{ productId: string; quantity: number }>,
@@ -57,6 +59,11 @@ export default function Orders() {
 
   useEffect(() => {
     loadData()
+    // Get current user role
+    const user = authService.getCurrentUser()
+    if (user) {
+      setCurrentUserRole(user.role)
+    }
   }, [])
 
   const loadData = async () => {
@@ -409,22 +416,25 @@ export default function Orders() {
       })
     }
 
-    items.push(
-      {
-        id: `separator-${order.id}`,
-        label: '',
-        icon: '',
-        onClick: () => { },
-        separator: true,
-      },
-      {
-        id: `delete-${order.id}`,
-        label: 'Delete Order',
-        icon: '🗑️',
-        onClick: () => setDeleteConfirm(order.id),
-        variant: 'danger',
-      }
-    )
+    // Only show delete option for admin and manager roles
+    if (currentUserRole === 'admin' || currentUserRole === 'manager') {
+      items.push(
+        {
+          id: `separator-${order.id}`,
+          label: '',
+          icon: '',
+          onClick: () => { },
+          separator: true,
+        },
+        {
+          id: `delete-${order.id}`,
+          label: 'Delete Order',
+          icon: '🗑️',
+          onClick: () => setDeleteConfirm(order.id),
+          variant: 'danger',
+        }
+      )
+    }
 
     return items
   }
@@ -1427,17 +1437,19 @@ export default function Orders() {
                       ✅ Mark as Complete
                     </Button>
                   )}
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      setDeleteConfirm(selectedOrder.id)
-                      setSelectedOrder(null)
-                    }}
-                    class="text-red-600 border-red-200 hover:bg-red-50"
-                  >
-                    🗑️ Delete Order
-                  </Button>
+                  {(currentUserRole === 'admin' || currentUserRole === 'manager') && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setDeleteConfirm(selectedOrder.id)
+                        setSelectedOrder(null)
+                      }}
+                      class="text-red-600 border-red-200 hover:bg-red-50"
+                    >
+                      🗑️ Delete Order
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>
