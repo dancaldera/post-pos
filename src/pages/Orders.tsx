@@ -6,6 +6,8 @@ import {
   DialogBody,
   DialogConfirm,
   DialogFooter,
+  Dropdown,
+  type DropdownItem,
   Heading,
   Input,
   Select,
@@ -278,6 +280,63 @@ export default function Orders() {
     return sortOrder === 'asc' ? '↑' : '↓'
   }
 
+  const getOrderActionItems = (order: Order): DropdownItem[] => {
+    const items: DropdownItem[] = [
+      {
+        id: `view-${order.id}`,
+        label: 'View Details',
+        icon: '👁️',
+        onClick: () => setSelectedOrder(order),
+      },
+    ]
+
+    if (order.status === 'pending') {
+      items.push(
+        {
+          id: `pay-${order.id}`,
+          label: 'Mark as Paid',
+          icon: '💰',
+          onClick: () => handleUpdateStatus(order.id, 'paid'),
+        },
+        {
+          id: `cancel-${order.id}`,
+          label: 'Cancel Order',
+          icon: '❌',
+          onClick: () => handleUpdateStatus(order.id, 'cancelled'),
+          variant: 'danger',
+        }
+      )
+    }
+
+    if (order.status === 'paid') {
+      items.push({
+        id: `complete-${order.id}`,
+        label: 'Mark Complete',
+        icon: '✅',
+        onClick: () => handleUpdateStatus(order.id, 'completed'),
+      })
+    }
+
+    items.push(
+      {
+        id: `separator-${order.id}`,
+        label: '',
+        icon: '',
+        onClick: () => {},
+        separator: true,
+      },
+      {
+        id: `delete-${order.id}`,
+        label: 'Delete Order',
+        icon: '🗑️',
+        onClick: () => setDeleteConfirm(order.id),
+        variant: 'danger',
+      }
+    )
+
+    return items
+  }
+
   if (isLoading) {
     return (
       <div class="bg-white rounded-lg shadow p-6">
@@ -447,7 +506,7 @@ export default function Orders() {
                   <button
                     type="button"
                     onClick={() => setSelectedOrder(order)}
-                    class="font-mono text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
+                    class="font-mono text-lg font-bold text-blue-600 hover:text-blue-800 hover:underline cursor-pointer transition-all hover:scale-105"
                   >
                     #{order.id}
                   </button>
@@ -528,53 +587,20 @@ export default function Orders() {
                   </div>
                 </TableCell>
                 <TableCell>
-                  <div class="flex flex-wrap gap-1">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => setSelectedOrder(order)}
-                      class="text-indigo-600 border-indigo-200 hover:bg-indigo-50 hover:border-indigo-300 transition-all hover:shadow-md"
-                    >
-                      👁️ View
-                    </Button>
-                    {order.status === 'pending' && (
-                      <>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleUpdateStatus(order.id, 'paid')}
-                          class="text-green-600 border-green-200 hover:bg-green-50 hover:border-green-300 transition-all hover:shadow-md"
-                        >
-                          💰 Pay
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleUpdateStatus(order.id, 'cancelled')}
-                          class="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 transition-all hover:shadow-md"
-                        >
-                          ❌ Cancel
-                        </Button>
-                      </>
-                    )}
-                    {order.status === 'paid' && (
+                  <Dropdown
+                    trigger={
                       <Button
                         size="sm"
-                        onClick={() => handleUpdateStatus(order.id, 'completed')}
-                        class="bg-blue-600 hover:bg-blue-700 text-white transition-all hover:shadow-md hover:scale-105"
+                        variant="outline"
+                        class="text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all hover:shadow-md"
                       >
-                        ✅ Complete
+                        ⚙️ Actions
                       </Button>
-                    )}
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => setDeleteConfirm(order.id)}
-                      class="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 transition-all hover:shadow-md"
-                    >
-                      🗑️
-                    </Button>
-                  </div>
+                    }
+                    items={getOrderActionItems(order)}
+                    align="right"
+                    width="w-48"
+                  />
                 </TableCell>
               </TableRow>
             ))}
