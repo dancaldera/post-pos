@@ -311,7 +311,7 @@ export default function Analytics() {
             {salesByMembers.length === 0 && (
               <div class="p-8 text-center text-gray-500">
                 <div class="text-4xl mb-2">👥</div>
-                <p>No sales data available for the selected period</p>
+                <p>{t('analytics.noSalesData')}</p>
               </div>
             )}
           </div>
@@ -355,7 +355,7 @@ export default function Analytics() {
             {topProducts.length === 0 && (
               <div class="p-8 text-center text-gray-500">
                 <div class="text-4xl mb-2">📦</div>
-                <p>No product sales data available</p>
+                <p>{t('analytics.noProductSales')}</p>
               </div>
             )}
           </div>
@@ -376,7 +376,7 @@ export default function Analytics() {
                 <div>
                   <div class="font-medium text-gray-900">{activity.description}</div>
                   <div class="text-sm text-gray-600">
-                    by {activity.userName} • {new Date(activity.timestamp).toLocaleString()}
+                    {t('analytics.by')} {activity.userName} • {new Date(activity.timestamp).toLocaleString()}
                   </div>
                 </div>
               </div>

@@ -475,9 +475,7 @@ export default function Products() {
           <div class="text-center">
             <div class="text-6xl mb-6 drop-shadow-lg">🔒</div>
             <h3 class="text-2xl font-bold text-gray-900 mb-3">{t('products.accessDenied')}</h3>
-            <p class="text-gray-600 max-w-md mx-auto">
-              {t('products.noPermission')}
-            </p>
+            <p class="text-gray-600 max-w-md mx-auto">{t('products.noPermission')}</p>
           </div>
         </div>
       </Container>

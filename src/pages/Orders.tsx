@@ -610,7 +610,13 @@ export default function Orders() {
           <div class="flex items-center text-sm text-gray-600 bg-gray-50 px-3 py-2 rounded-lg w-auto">
             <span class="mr-2">{t('orders.sortBy')}:</span>
             <span class="font-medium capitalize">
-              {sortBy === 'date' ? t('common.date') : sortBy === 'total' ? t('common.total') : sortBy === 'status' ? t('common.status') : sortBy}
+              {sortBy === 'date'
+                ? t('common.date')
+                : sortBy === 'total'
+                  ? t('common.total')
+                  : sortBy === 'status'
+                    ? t('common.status')
+                    : sortBy}
             </span>
             <span class="ml-1">{getSortIcon(sortBy)}</span>
           </div>
@@ -709,7 +715,9 @@ export default function Orders() {
                         </div>
                       ))}
                       {order.items.length > 2 && (
-                        <div class="text-xs text-gray-500">+{order.items.length - 2} {t('orders.more')}...</div>
+                        <div class="text-xs text-gray-500">
+                          +{order.items.length - 2} {t('orders.more')}...
+                        </div>
                       )}
                     </div>
                   </div>
@@ -721,7 +729,11 @@ export default function Orders() {
                         {order.paymentMethod === 'cash' ? '💵' : order.paymentMethod === 'card' ? '💳' : '🔄'}
                       </span>
                       <span class="text-sm font-medium text-gray-700 capitalize">
-                        {order.paymentMethod === 'cash' ? t('orders.cash') : order.paymentMethod === 'card' ? t('orders.card') : t('orders.transfer')}
+                        {order.paymentMethod === 'cash'
+                          ? t('orders.cash')
+                          : order.paymentMethod === 'card'
+                            ? t('orders.card')
+                            : t('orders.transfer')}
                       </span>
                     </div>
                   )}
@@ -732,9 +744,13 @@ export default function Orders() {
                       {formatCurrency(taxEnabled ? order.total : order.subtotal)}
                     </div>
                     {taxEnabled && order.tax > 0 && (
-                      <div class="text-xs text-gray-500">{t('common.tax')}: {formatCurrency(order.tax)}</div>
+                      <div class="text-xs text-gray-500">
+                        {t('common.tax')}: {formatCurrency(order.tax)}
+                      </div>
                     )}
-                    {taxEnabled && order.tax === 0 && <div class="text-xs text-gray-400 italic">{t('orders.noTaxApplied')}</div>}
+                    {taxEnabled && order.tax === 0 && (
+                      <div class="text-xs text-gray-400 italic">{t('orders.noTaxApplied')}</div>
+                    )}
                   </div>
                 </TableCell>
                 <TableCell>
@@ -742,7 +758,13 @@ export default function Orders() {
                     class={`inline-flex items-center px-3 py-2 rounded-full text-xs font-semibold uppercase tracking-wide ${getStatusColor(order.status)} transition-all hover:scale-105`}
                   >
                     <span class="mr-1 text-sm">{getStatusIcon(order.status)}</span>
-                    {order.status === 'pending' ? t('orders.pending') : order.status === 'paid' ? t('orders.paid') : order.status === 'completed' ? t('orders.completed') : t('orders.cancelled')}
+                    {order.status === 'pending'
+                      ? t('orders.pending')
+                      : order.status === 'paid'
+                        ? t('orders.paid')
+                        : order.status === 'completed'
+                          ? t('orders.completed')
+                          : t('orders.cancelled')}
                   </div>
                 </TableCell>
                 <TableCell>
@@ -897,7 +919,9 @@ export default function Orders() {
                     <div class="text-6xl mb-4">🔍</div>
                     <h3 class="text-lg font-medium text-gray-900 mb-2">{t('orders.noProductsFound')}</h3>
                     <p class="text-gray-500">
-                      {productSearch ? t('orders.noProductsMatch', { search: productSearch }) : t('orders.noProductsAvailable')}
+                      {productSearch
+                        ? t('orders.noProductsMatch', { search: productSearch })
+                        : t('orders.noProductsAvailable')}
                     </p>
                     {productSearch && (
                       <button
@@ -1038,14 +1062,14 @@ export default function Orders() {
                             </div>
                             {taxEnabled && (
                               <div class="flex justify-between text-gray-700 text-lg">
-                                <span class="font-medium">{t('common.tax')} ({(taxRate * 100).toFixed(1)}%):</span>
+                                <span class="font-medium">
+                                  {t('common.tax')} ({(taxRate * 100).toFixed(1)}%):
+                                </span>
                                 <span class="font-semibold drop-shadow-sm">{formatCurrency(tax)}</span>
                               </div>
                             )}
                             {!taxEnabled && (
-                              <div class="text-sm text-gray-500 italic text-center py-2">
-                                {t('orders.taxDisabled')}
-                              </div>
+                              <div class="text-sm text-gray-500 italic text-center py-2">{t('orders.taxDisabled')}</div>
                             )}
                             <div class="border-t border-white/40 pt-3">
                               <div class="flex justify-between text-2xl font-bold text-gray-900 backdrop-blur-sm bg-gradient-to-r from-emerald-100/60 to-green-100/40 px-4 py-3 rounded-lg border border-emerald-200/50 shadow-md">
@@ -1179,7 +1203,9 @@ export default function Orders() {
                     <div class="text-6xl mb-4">🔍</div>
                     <h3 class="text-lg font-medium text-gray-900 mb-2">{t('orders.noProductsFound')}</h3>
                     <p class="text-gray-500">
-                      {editProductSearch ? t('orders.noProductsMatch', { search: editProductSearch }) : t('orders.noProductsAvailable')}
+                      {editProductSearch
+                        ? t('orders.noProductsMatch', { search: editProductSearch })
+                        : t('orders.noProductsAvailable')}
                     </p>
                     {editProductSearch && (
                       <button
@@ -1321,14 +1347,14 @@ export default function Orders() {
                             </div>
                             {taxEnabled && (
                               <div class="flex justify-between text-gray-700 text-lg">
-                                <span class="font-medium">{t('common.tax')} ({(taxRate * 100).toFixed(1)}%):</span>
+                                <span class="font-medium">
+                                  {t('common.tax')} ({(taxRate * 100).toFixed(1)}%):
+                                </span>
                                 <span class="font-semibold drop-shadow-sm">{formatCurrency(tax)}</span>
                               </div>
                             )}
                             {!taxEnabled && (
-                              <div class="text-sm text-gray-500 italic text-center py-2">
-                                {t('orders.taxDisabled')}
-                              </div>
+                              <div class="text-sm text-gray-500 italic text-center py-2">{t('orders.taxDisabled')}</div>
                             )}
                             <div class="border-t border-white/40 pt-3">
                               <div class="flex justify-between text-2xl font-bold text-gray-900 backdrop-blur-sm bg-gradient-to-r from-emerald-100/60 to-green-100/40 px-4 py-3 rounded-lg border border-emerald-200/50 shadow-md">
@@ -1412,7 +1438,13 @@ export default function Orders() {
                       class={`inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold uppercase tracking-wide ${getStatusColor(selectedOrder.status)} transition-all`}
                     >
                       <span class="mr-2 text-base">{getStatusIcon(selectedOrder.status)}</span>
-                      {selectedOrder.status === 'pending' ? t('orders.pending') : selectedOrder.status === 'paid' ? t('orders.paid') : selectedOrder.status === 'completed' ? t('orders.completed') : t('orders.cancelled')}
+                      {selectedOrder.status === 'pending'
+                        ? t('orders.pending')
+                        : selectedOrder.status === 'paid'
+                          ? t('orders.paid')
+                          : selectedOrder.status === 'completed'
+                            ? t('orders.completed')
+                            : t('orders.cancelled')}
                     </div>
                     {selectedOrder.paymentMethod && (
                       <div class="flex items-center text-gray-600">
@@ -1424,12 +1456,18 @@ export default function Orders() {
                               : '🔄'}
                         </span>
                         <span class="text-sm capitalize">
-                          {selectedOrder.paymentMethod === 'cash' ? t('orders.cash') : selectedOrder.paymentMethod === 'card' ? t('orders.card') : t('orders.transfer')}
+                          {selectedOrder.paymentMethod === 'cash'
+                            ? t('orders.cash')
+                            : selectedOrder.paymentMethod === 'card'
+                              ? t('orders.card')
+                              : t('orders.transfer')}
                         </span>
                       </div>
                     )}
                   </div>
-                  <div class="text-sm text-gray-600">{t('orders.created')}: {new Date(selectedOrder.createdAt).toLocaleString()}</div>
+                  <div class="text-sm text-gray-600">
+                    {t('orders.created')}: {new Date(selectedOrder.createdAt).toLocaleString()}
+                  </div>
                   {selectedOrder.completedAt && (
                     <div class="text-sm text-gray-600">
                       {t('orders.completed')}: {new Date(selectedOrder.completedAt).toLocaleString()}
@@ -1437,7 +1475,8 @@ export default function Orders() {
                   )}
                   {selectedOrder.userId && users[selectedOrder.userId] && (
                     <div class="text-sm text-gray-600">
-                      {t('orders.createdBy')}: <span class="font-medium text-gray-700">{users[selectedOrder.userId]}</span>
+                      {t('orders.createdBy')}:{' '}
+                      <span class="font-medium text-gray-700">{users[selectedOrder.userId]}</span>
                     </div>
                   )}
                 </div>
@@ -1460,7 +1499,9 @@ export default function Orders() {
                     >
                       <div class="flex-1">
                         <div class="font-semibold text-gray-900">{item.productName}</div>
-                        <div class="text-sm text-gray-600">{t('orders.productId')}: {item.productId}</div>
+                        <div class="text-sm text-gray-600">
+                          {t('orders.productId')}: {item.productId}
+                        </div>
                       </div>
                       <div class="text-center mx-4">
                         <div class="font-semibold text-gray-900">×{item.quantity}</div>
@@ -1493,7 +1534,9 @@ export default function Orders() {
                       {/* Only show tax line if the order actually has tax applied */}
                       {selectedOrder.tax > 0 && (
                         <div class="flex justify-between text-gray-700">
-                          <span>{t('common.tax')} ({((selectedOrder.tax / selectedOrder.subtotal) * 100).toFixed(1)}%):</span>
+                          <span>
+                            {t('common.tax')} ({((selectedOrder.tax / selectedOrder.subtotal) * 100).toFixed(1)}%):
+                          </span>
                           <span class="font-semibold">{formatCurrency(selectedOrder.tax)}</span>
                         </div>
                       )}

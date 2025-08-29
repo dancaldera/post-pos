@@ -133,7 +133,9 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
         >
           <div class="flex items-center justify-between">
             <div class="flex-1">
-              <p class="text-sm font-semibold text-emerald-700 uppercase tracking-wide mb-2">{t('dashboard.dailySales')}</p>
+              <p class="text-sm font-semibold text-emerald-700 uppercase tracking-wide mb-2">
+                {t('dashboard.dailySales')}
+              </p>
               <p class="text-3xl font-bold text-gray-900 drop-shadow-sm">{formatCurrency(stats.totalSales)}</p>
               <p class="text-xs text-emerald-600 mt-1">{t('dashboard.completedPaid')}</p>
             </div>
@@ -161,7 +163,9 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
         >
           <div class="flex items-center justify-between">
             <div class="flex-1">
-              <p class="text-sm font-semibold text-purple-700 uppercase tracking-wide mb-2">{t('dashboard.avgOrderValue')}</p>
+              <p class="text-sm font-semibold text-purple-700 uppercase tracking-wide mb-2">
+                {t('dashboard.avgOrderValue')}
+              </p>
               <p class="text-3xl font-bold text-gray-900 drop-shadow-sm">{formatCurrency(stats.averageOrderValue)}</p>
               <p class="text-xs text-purple-600 mt-1">{t('dashboard.perOrder')}</p>
             </div>

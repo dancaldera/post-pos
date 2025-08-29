@@ -333,7 +333,8 @@
     "loadingAnalytics": "Loading analytics...",
     "noSalesData": "No sales data available for the selected period",
     "noProductSales": "No product sales data available",
-    "noRecentActivity": "No recent activity"
+    "noRecentActivity": "No recent activity",
+    "by": "by"
   },
   "settings": {
     "title": "Settings",

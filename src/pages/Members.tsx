@@ -31,7 +31,7 @@ interface EditUserModalProps {
 
 function EditUserModal({ user, isOpen, onClose, onSave }: EditUserModalProps) {
   const { t } = useTranslation()
-  
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -194,7 +194,7 @@ function EditUserModal({ user, isOpen, onClose, onSave }: EditUserModalProps) {
 
 export default function Members() {
   const { t } = useTranslation()
-  
+
   const [users, setUsers] = useState<User[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
@@ -309,9 +309,7 @@ export default function Members() {
             <Heading level={3} class="mb-3 text-gray-900">
               {t('members.accessDenied')}
             </Heading>
-            <Text class="text-gray-600 max-w-md mx-auto">
-              {t('members.noPermissionMembers')}
-            </Text>
+            <Text class="text-gray-600 max-w-md mx-auto">{t('members.noPermissionMembers')}</Text>
           </div>
         </div>
       </Container>
@@ -337,9 +335,9 @@ export default function Members() {
         <div>
           <h1 class="text-2xl font-bold text-gray-900 mb-2">{t('members.teamMembers')}</h1>
           <p class="text-gray-600">
-            {t('members.membersTotal', { 
-              count: totalCount, 
-              unit: totalCount === 1 ? t('members.member') : t('members.members') 
+            {t('members.membersTotal', {
+              count: totalCount,
+              unit: totalCount === 1 ? t('members.member') : t('members.members'),
             })}
             {totalPages > 1 && ` • ${t('members.pageXofY', { current: currentPage, total: totalPages })}`}
           </p>
@@ -395,7 +393,11 @@ export default function Members() {
                     class={`inline-flex items-center px-3 py-2 rounded-full text-xs font-semibold uppercase tracking-wide ${getRoleColor(user.role)} transition-all hover:scale-105`}
                   >
                     <span class="mr-1 text-sm">{getRoleIcon(user.role)}</span>
-                    {user.role === 'admin' ? t('members.admin') : user.role === 'manager' ? t('members.manager') : t('members.user')}
+                    {user.role === 'admin'
+                      ? t('members.admin')
+                      : user.role === 'manager'
+                        ? t('members.manager')
+                        : t('members.user')}
                   </div>
                 </TableCell>
                 <TableCell>
@@ -477,9 +479,7 @@ export default function Members() {
             <Heading level={3} class="mb-3 text-gray-900">
               {t('members.noMembers')}
             </Heading>
-            <Text class="text-gray-600 mb-6 max-w-md mx-auto">
-              {t('members.emptyTeam')}
-            </Text>
+            <Text class="text-gray-600 mb-6 max-w-md mx-auto">{t('members.emptyTeam')}</Text>
             {(hasPermission('users.create') || hasRole('admin')) && (
               <Button onClick={handleCreateUser} class="mt-4">
                 <span class="mr-2">➕</span>

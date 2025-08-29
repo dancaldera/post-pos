@@ -334,7 +334,8 @@
     "transactionCount": "Nombre de transactions",
     "topCustomers": "Meilleurs clients",
     "growthRate": "Taux de croissance",
-    "compared": "par rapport à la période précédente"
+    "compared": "par rapport à la période précédente",
+    "by": "par"
   },
   "settings": {
     "title": "Paramètres",

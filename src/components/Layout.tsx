@@ -132,7 +132,7 @@ export default function Layout({ children, currentPage, onNavigate }: LayoutProp
     // Main layout container with sidebar and content area
     // Uses flexbox for responsive sidebar + content layout
     <div class="flex h-screen bg-gray-100">
-      {/* 
+      {/*
         Sidebar component with dark theme and collapsible functionality
         @param {string} width - Sidebar width (md: medium)
         @param {string} backgroundColor - Background color theme
@@ -142,7 +142,7 @@ export default function Layout({ children, currentPage, onNavigate }: LayoutProp
       <Sidebar width="md" backgroundColor="dark" collapsible defaultCollapsed={false}>
         {({ isCollapsed }: { isCollapsed: boolean }) => (
           <SidebarNav>
-            <SidebarGroup title="Navigation" isCollapsed={isCollapsed}>
+            <SidebarGroup title="" isCollapsed={isCollapsed}>
               {menuItems.map((item) => (
                 <SidebarItem
                   key={item.id}
@@ -161,7 +161,7 @@ export default function Layout({ children, currentPage, onNavigate }: LayoutProp
 
       {/* Main content area with header and scrollable content */}
       <div class="flex-1 flex flex-col overflow-hidden">
-        {/* 
+        {/*
           Application header with page title, notifications, and user profile
           Features white background with subtle shadow and border
         */}
@@ -174,7 +174,7 @@ export default function Layout({ children, currentPage, onNavigate }: LayoutProp
 
             {/* Header right section with notifications and user profile */}
             <div class="flex items-center space-x-4">
-              {/* 
+              {/*
                 User profile dropdown component
                 Contains user avatar, name, email, and dropdown menu
               */}
@@ -199,7 +199,7 @@ export default function Layout({ children, currentPage, onNavigate }: LayoutProp
           </div>
         </header>
 
-        {/* 
+        {/*
           Main content area with scrollable container
           Uses container class for proper horizontal centering and padding
         */}

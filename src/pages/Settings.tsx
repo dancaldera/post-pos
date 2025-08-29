@@ -328,9 +328,7 @@ export default function Settings({ onNavigate }: SettingsProps) {
               <span class="text-2xl">⚠️</span>
               <div>
                 <Text class="font-semibold">{t('settings.resetConfirm')}</Text>
-                <Text class="text-sm text-amber-700">
-                  {t('settings.resetWarning')}
-                </Text>
+                <Text class="text-sm text-amber-700">{t('settings.resetWarning')}</Text>
               </div>
             </div>
             <Text class="text-gray-700">{t('settings.resetDescription')}</Text>
