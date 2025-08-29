@@ -819,15 +819,6 @@ export default function Orders() {
                               </div>
                             </div>
                           </div>
-                          <Button
-                            size="sm"
-                            onClick={() => addItemToOrder(product.id)}
-                            onMouseDown={(e: any) => e.stopPropagation()}
-                            disabled={product.stock === 0}
-                            class="ml-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 backdrop-blur-sm"
-                          >
-                            <span class="drop-shadow-sm">➕ Add</span>
-                          </Button>
                         </div>
                       </div>
                     ))}
@@ -1092,14 +1083,6 @@ export default function Orders() {
                               </div>
                             </div>
                           </div>
-                          <Button
-                            size="sm"
-                            onClick={() => addItemToEditOrder(product.id)}
-                            onMouseDown={(e: any) => e.stopPropagation()}
-                            disabled={product.stock === 0}
-                          >
-                            <span class="drop-shadow-sm">➕ Add</span>
-                          </Button>
                         </div>
                       </div>
                     ))}
