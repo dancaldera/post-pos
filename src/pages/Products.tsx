@@ -18,6 +18,7 @@ import {
   Textarea,
 } from '../components/ui'
 import { useAuth } from '../hooks/useAuth'
+import { useTranslation } from '../hooks/useTranslation'
 import { PRODUCT_CATEGORIES, type Product, productService } from '../services/products-sqlite'
 
 interface EditProductModalProps {
@@ -28,6 +29,8 @@ interface EditProductModalProps {
 }
 
 function EditProductModal({ product, isOpen, onClose, onSave }: EditProductModalProps) {
+  const { t } = useTranslation()
+
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -103,17 +106,22 @@ function EditProductModal({ product, isOpen, onClose, onSave }: EditProductModal
         onSave(result.product)
         onClose()
       } else {
-        setError(result.error || 'An error occurred')
+        setError(result.error || t('errors.generic'))
       }
     } catch (_err) {
-      setError('An error occurred')
+      setError(t('errors.generic'))
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <Dialog isOpen={isOpen} onClose={onClose} title={product ? 'Edit Product' : 'Create Product'} size="md">
+    <Dialog
+      isOpen={isOpen}
+      onClose={onClose}
+      title={product ? t('products.editProduct') : t('products.addProduct')}
+      size="md"
+    >
       <DialogBody>
         {error && (
           <div class="bg-red-500/10 backdrop-blur-sm border border-red-400/20 text-red-700 px-4 py-3 rounded-xl mb-6">
@@ -129,7 +137,7 @@ function EditProductModal({ product, isOpen, onClose, onSave }: EditProductModal
             <div class="grid grid-cols-2 gap-6">
               <div>
                 <Input
-                  label="📦 Product Name"
+                  label={`📦 ${t('products.productName')}`}
                   value={formData.name}
                   onInput={(e) =>
                     setFormData({
@@ -139,13 +147,13 @@ function EditProductModal({ product, isOpen, onClose, onSave }: EditProductModal
                   }
                   required
                   class="bg-white/80 text-gray-900"
-                  placeholder="Enter product name"
+                  placeholder={t('products.productName')}
                 />
               </div>
 
               <div>
                 <Select
-                  label="🏷️ Category"
+                  label={`🏷️ ${t('products.category')}`}
                   value={formData.category}
                   onChange={(e) =>
                     setFormData({
@@ -154,7 +162,7 @@ function EditProductModal({ product, isOpen, onClose, onSave }: EditProductModal
                     })
                   }
                   required
-                  placeholder="Select a category"
+                  placeholder={t('products.selectCategory')}
                   options={PRODUCT_CATEGORIES.map((category) => ({
                     value: category,
                     label: category,
@@ -166,7 +174,7 @@ function EditProductModal({ product, isOpen, onClose, onSave }: EditProductModal
 
             <div>
               <Textarea
-                label="📝 Description"
+                label={`📝 ${t('products.description')}`}
                 value={formData.description}
                 onInput={(e) =>
                   setFormData({
@@ -294,10 +302,10 @@ function EditProductModal({ product, isOpen, onClose, onSave }: EditProductModal
 
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button type="button" onClick={() => handleSubmit(new Event('submit'))} disabled={isLoading}>
-          {isLoading ? 'Saving...' : product ? 'Update' : 'Create'}
+          {isLoading ? t('common.loading') : product ? t('common.edit') : t('common.add')}
         </Button>
       </DialogFooter>
     </Dialog>
@@ -305,6 +313,8 @@ function EditProductModal({ product, isOpen, onClose, onSave }: EditProductModal
 }
 
 export default function Products() {
+  const { t } = useTranslation()
+
   const [products, setProducts] = useState<Product[]>([])
   const [allProducts, setAllProducts] = useState<Product[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -339,7 +349,7 @@ export default function Products() {
 
   const loadProducts = async (page: number = 1) => {
     if (!canManageProducts) {
-      setError("You don't have permission to view products")
+      setError(t('errors.unauthorized'))
       setIsLoading(false)
       return
     }
@@ -357,7 +367,7 @@ export default function Products() {
       setTotalPages(paginatedResult.totalPages)
       setCurrentPage(paginatedResult.currentPage)
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to load products'
+      const message = err instanceof Error ? err.message : t('errors.generic')
       setError(message)
     } finally {
       setIsLoading(false)
@@ -501,7 +511,7 @@ export default function Products() {
         {(hasPermission('products.create') || hasRole('admin') || hasRole('manager')) && (
           <Button onClick={handleCreateProduct}>
             <span class="mr-2">➕</span>
-            Add Product
+            {t('products.addProduct')}
           </Button>
         )}
       </div>
@@ -509,7 +519,7 @@ export default function Products() {
       <div class="mb-6">
         <Input
           type="search"
-          placeholder="Search products by name, description, category, or barcode..."
+          placeholder={t('products.searchProducts')}
           value={searchQuery}
           onInput={(e) => {
             setCurrentPage(1)
@@ -562,13 +572,13 @@ export default function Products() {
         <Table>
           <TableHead>
             <TableRow class="bg-gray-50">
-              <TableHeader class="font-semibold text-gray-900">Product</TableHeader>
-              <TableHeader class="font-semibold text-gray-900">Category</TableHeader>
-              <TableHeader class="font-semibold text-gray-900">Price</TableHeader>
-              <TableHeader class="font-semibold text-gray-900">Cost</TableHeader>
-              <TableHeader class="font-semibold text-gray-900">Stock</TableHeader>
-              <TableHeader class="font-semibold text-gray-900">Status</TableHeader>
-              <TableHeader class="font-semibold text-gray-900">Actions</TableHeader>
+              <TableHeader class="font-semibold text-gray-900">{t('common.name')}</TableHeader>
+              <TableHeader class="font-semibold text-gray-900">{t('products.category')}</TableHeader>
+              <TableHeader class="font-semibold text-gray-900">{t('common.price')}</TableHeader>
+              <TableHeader class="font-semibold text-gray-900">{t('products.costPrice')}</TableHeader>
+              <TableHeader class="font-semibold text-gray-900">{t('products.stock')}</TableHeader>
+              <TableHeader class="font-semibold text-gray-900">{t('common.status')}</TableHeader>
+              <TableHeader class="font-semibold text-gray-900">{t('common.actions')}</TableHeader>
             </TableRow>
           </TableHead>
           <TableBody>

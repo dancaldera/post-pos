@@ -20,6 +20,7 @@ import {
   TableRow,
   Text,
 } from '../components/ui'
+import { useTranslation } from '../hooks/useTranslation'
 import { authService } from '../services/auth-sqlite'
 import { companySettingsService } from '../services/company-settings-sqlite'
 import { type Order, orderService } from '../services/orders-sqlite'
@@ -27,6 +28,8 @@ import { type Product, productService } from '../services/products-sqlite'
 import { userService } from '../services/users-sqlite'
 
 export default function Orders() {
+  const { t } = useTranslation()
+
   const [orders, setOrders] = useState<Order[]>([])
   const [allOrders, setAllOrders] = useState<Order[]>([])
   const [products, setProducts] = useState<Product[]>([])
@@ -546,7 +549,7 @@ export default function Orders() {
         </div>
         <Button onClick={() => setIsCreateModalOpen(true)}>
           <span class="mr-2">➕</span>
-          Create Order
+          {t('orders.createOrder')}
         </Button>
       </div>
 
@@ -1096,7 +1099,7 @@ export default function Orders() {
             Cancel
           </Button>
           <Button type="button" onClick={handleCreateOrder} disabled={isLoading || newOrder.items.length === 0}>
-            {isLoading ? 'Creating...' : 'Create Order'}
+            {isLoading ? t('common.loading') : t('orders.createOrder')}
           </Button>
         </DialogFooter>
       </Dialog>

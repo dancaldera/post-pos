@@ -8,6 +8,7 @@
 import type { ComponentChildren } from 'preact'
 import { useState } from 'preact/hooks'
 import { useAuth } from '../hooks/useAuth'
+import { useTranslation } from '../hooks/useTranslation'
 import { Dropdown, type DropdownItem, Heading, Text } from './ui'
 import Sidebar, { SidebarGroup, SidebarItem, SidebarNav } from './ui/Sidebar'
 
@@ -48,19 +49,24 @@ export default function Layout({ children, currentPage, onNavigate }: LayoutProp
   const { user, signOut } = useAuth()
 
   /**
+   * Translation hook providing translation function and language utilities
+   */
+  const { t } = useTranslation()
+
+  /**
    * User dropdown menu items configuration
    * @type {DropdownItem[]}
    */
   const userDropdownItems: DropdownItem[] = [
     {
       id: 'settings',
-      label: 'Settings',
+      label: t('navigation.settings'),
       icon: '⚙️',
       onClick: () => onNavigate('settings'),
     },
     {
       id: 'signout',
-      label: 'Sign Out',
+      label: t('navigation.signOut'),
       icon: '🚪',
       onClick: signOut,
       variant: 'danger',
@@ -76,39 +82,39 @@ export default function Layout({ children, currentPage, onNavigate }: LayoutProp
   const menuItems = [
     {
       id: 'dashboard',
-      label: 'Dashboard',
+      label: t('navigation.dashboard'),
       icon: '📊',
-      description: 'Overview of store performance and analytics',
+      description: t('dashboard.subtitle'),
     },
     {
       id: 'orders',
-      label: 'Orders',
+      label: t('navigation.orders'),
       icon: '📋',
-      description: 'Manage orders and transactions',
+      description: t('orders.subtitle'),
     },
     {
       id: 'products',
-      label: 'Products',
+      label: t('navigation.products'),
       icon: '📦',
-      description: 'Product catalog and inventory management',
+      description: t('products.subtitle'),
     },
     {
       id: 'members',
-      label: 'Members',
+      label: t('navigation.members'),
       icon: '👤',
-      description: 'Staff member management and permissions',
+      description: t('members.subtitle'),
     },
     {
       id: 'analytics',
-      label: 'Analytics',
+      label: t('navigation.analytics'),
       icon: '📈',
-      description: 'Advanced business insights and performance metrics',
+      description: t('analytics.subtitle'),
     },
     {
       id: 'settings',
-      label: 'Settings',
+      label: t('navigation.settings'),
       icon: '⚙️',
-      description: 'Application configuration and preferences',
+      description: t('settings.subtitle'),
     },
   ].filter((item) => {
     // Filter out Members section for non-admin/non-manager users

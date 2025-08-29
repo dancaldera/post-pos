@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'preact/hooks'
 import { Container } from '../components/ui'
+import { useTranslation } from '../hooks/useTranslation'
 import { dashboardService } from '../services/dashboard-sqlite'
 
 interface DashboardProps {
@@ -7,6 +8,8 @@ interface DashboardProps {
 }
 
 export default function Dashboard({ onNavigate }: DashboardProps) {
+  const { t } = useTranslation()
+
   const [stats, setStats] = useState({
     totalSales: 0,
     ordersToday: 0,
@@ -28,7 +31,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
       setStats(dashboardStats)
       setError('')
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to load dashboard data'
+      const message = err instanceof Error ? err.message : t('errors.generic')
       setError(message)
     } finally {
       setIsLoading(false)
@@ -43,8 +46,8 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
     return (
       <Container size="xl">
         <div class="mb-6">
-          <h1 class="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
-          <p class="text-gray-600">Loading your business overview...</p>
+          <h1 class="text-3xl font-bold text-gray-900 mb-2">{t('dashboard.title')}</h1>
+          <p class="text-gray-600">{t('common.loading')}</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">

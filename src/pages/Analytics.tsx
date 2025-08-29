@@ -13,6 +13,7 @@ import {
   Text,
 } from '../components/ui'
 import { useAuth } from '../hooks/useAuth'
+import { useTranslation } from '../hooks/useTranslation'
 import {
   type AnalyticsMetrics,
   analyticsService,
@@ -22,6 +23,8 @@ import {
 import { companySettingsService } from '../services/company-settings-sqlite'
 
 export default function Analytics() {
+  const { t } = useTranslation()
+
   const [metrics, setMetrics] = useState<AnalyticsMetrics | null>(null)
   const [salesByMembers, setSalesByMembers] = useState<SalesByMember[]>([])
   const [topProducts, setTopProducts] = useState<TopProduct[]>([])
@@ -138,11 +141,9 @@ export default function Analytics() {
           <div class="text-center">
             <div class="text-6xl mb-6 drop-shadow-lg">🔒</div>
             <Heading level={3} class="mb-3 text-gray-900">
-              Admin Access Required
+              {t('errors.unauthorized')}
             </Heading>
-            <Text class="text-gray-600 max-w-md mx-auto">
-              You need administrator privileges to access the analytics dashboard.
-            </Text>
+            <Text class="text-gray-600 max-w-md mx-auto">{t('analytics.adminOnly')}</Text>
           </div>
         </div>
       </Container>
