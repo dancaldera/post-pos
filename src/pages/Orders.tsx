@@ -26,6 +26,7 @@ import { companySettingsService } from '../services/company-settings-sqlite'
 import { type Order, orderService } from '../services/orders-sqlite'
 import { type Product, productService } from '../services/products-sqlite'
 import { userService } from '../services/users-sqlite'
+import { PrintService } from '../services/print-service'
 
 export default function Orders() {
   const { t } = useTranslation()
@@ -51,6 +52,8 @@ export default function Orders() {
   const [editProductSearch, setEditProductSearch] = useState('')
   const [users, setUsers] = useState<{ [key: string]: string }>({}) // userId -> userName mapping
   const [currentUserRole, setCurrentUserRole] = useState<'admin' | 'manager' | 'user' | null>(null)
+  const [isPrinting, setIsPrinting] = useState(false)
+  const [printStatus, setPrintStatus] = useState<string | null>(null)
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1)
@@ -449,6 +452,32 @@ export default function Orders() {
     setCurrentPage(page)
   }
 
+  const handleThermalPrint = async (order: Order) => {
+    setIsPrinting(true)
+    setPrintStatus(null)
+
+    try {
+      // Get company settings for printing
+      const settings = await companySettingsService.getSettings()
+      
+      // Format receipt data
+      const receiptData = PrintService.formatReceiptData(order, settings)
+      
+      // Send to printer
+      const response = await PrintService.printThermalReceipt(receiptData)
+      
+      setPrintStatus('Print command sent successfully!')
+      console.log('Print response:', response)
+    } catch (error: any) {
+      console.error('Print error:', error)
+      setPrintStatus(`Print failed: ${error.message || error}`)
+    } finally {
+      setIsPrinting(false)
+      // Clear status after 3 seconds
+      setTimeout(() => setPrintStatus(null), 3000)
+    }
+  }
+
   const getOrderActionItems = (order: Order): DropdownItem[] => {
     const items: DropdownItem[] = [
       {
@@ -456,6 +485,12 @@ export default function Orders() {
         label: t('orders.viewDetails'),
         icon: '👁️',
         onClick: () => setSelectedOrder(order),
+      },
+      {
+        id: `print-${order.id}`,
+        label: 'Print Receipt',
+        icon: '🖨️',
+        onClick: () => handleThermalPrint(order),
       },
     ]
 
@@ -555,6 +590,19 @@ export default function Orders() {
       </div>
 
       {error && <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">{error}</div>}
+
+      {/* Print Status Message */}
+      {printStatus && (
+        <div
+          class={`text-center p-3 mb-4 text-sm rounded ${
+            printStatus.includes('failed') || printStatus.includes('Print failed')
+              ? 'bg-red-100 text-red-700 border border-red-200'
+              : 'bg-green-100 text-green-700 border border-green-200'
+          }`}
+        >
+          {printStatus}
+        </div>
+      )}
 
       <div class="mb-6 space-y-4">
         <div class="flex gap-4">
@@ -781,17 +829,12 @@ export default function Orders() {
                     </div>
                   </div>
                 </TableCell>
-                <TableCell>
+                <TableCell onClick={(e) => e.stopPropagation()}>
                   <Dropdown
                     trigger={
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        class="text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all hover:shadow-md"
-                        onMouseDown={(e) => e.stopPropagation()}
-                      >
+                      <span class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-md hover:bg-gray-50 hover:border-gray-300 transition-all hover:shadow-md cursor-pointer">
                         ⚙️ {t('common.actions')}
-                      </Button>
+                      </span>
                     }
                     items={getOrderActionItems(order)}
                     align="right"
@@ -1604,6 +1647,14 @@ export default function Orders() {
               <div class="border-t border-gray-200 pt-4">
                 <h4 class="text-lg font-semibold text-gray-900 mb-3">{t('common.actions')}</h4>
                 <div class="flex flex-wrap gap-2">
+                  <Button
+                    size="sm"
+                    onClick={() => handleThermalPrint(selectedOrder)}
+                    disabled={isPrinting}
+                    class="bg-purple-600 hover:bg-purple-700 text-white"
+                  >
+                    🖨️ {isPrinting ? 'Printing...' : 'Print Receipt'}
+                  </Button>
                   {selectedOrder.status === 'pending' && (
                     <>
                       <Button
