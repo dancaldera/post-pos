@@ -940,23 +940,6 @@ export default function Orders() {
                 </div>
               </div>
 
-              {/* Customer Information */}
-              <div>
-                <h4 class="text-lg font-semibold text-gray-900 mb-3">Customer Information</h4>
-                <div class="bg-gray-50 rounded-lg p-4">
-                  <div class="flex items-center">
-                    <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-lg font-bold mr-4">
-                      {(selectedOrder.customerName || 'G').charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                      <div class="font-semibold text-gray-900">{selectedOrder.customerName || 'Guest Customer'}</div>
-                      {selectedOrder.customerId && (
-                        <div class="text-sm text-gray-600">Customer ID: {selectedOrder.customerId}</div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
 
               {/* Order Items */}
               <div>

@@ -82,8 +82,8 @@ function Dialog({ isOpen, onClose, title, children, size = 'md' }: DialogProps) 
     if (isOpen) {
       setShouldRender(true)
       // Small delay to trigger animation after mounting
-      setTimeout(() => setIsAnimating(true), 10)
-      return
+      const timeout = setTimeout(() => setIsAnimating(true), 10)
+      return () => clearTimeout(timeout)
     }
     
     // Start close animation

@@ -74,8 +74,6 @@ pub fn run() {
             description: "create_orders_table",
             sql: "CREATE TABLE IF NOT EXISTS orders (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                customer_id INTEGER,
-                customer_name TEXT,
                 subtotal REAL NOT NULL,
                 tax REAL NOT NULL,
                 total REAL NOT NULL,
@@ -107,9 +105,9 @@ pub fn run() {
         Migration {
             version: 7,
             description: "insert_default_orders",
-            sql: "INSERT OR IGNORE INTO orders (id, customer_name, subtotal, tax, total, status, payment_method, created_at, updated_at, completed_at) VALUES
-                (1, 'John Doe', 8.99, 0.90, 9.89, 'completed', 'cash', '2024-01-15T10:30:00.000Z', '2024-01-15T10:35:00.000Z', '2024-01-15T10:35:00.000Z'),
-                (2, 'Jane Smith', 24.99, 2.50, 27.49, 'paid', 'card', '2024-01-16T14:45:00.000Z', '2024-01-16T14:50:00.000Z', '2024-01-16T14:50:00.000Z');",
+            sql: "INSERT OR IGNORE INTO orders (id, subtotal, tax, total, status, payment_method, created_at, updated_at, completed_at) VALUES
+                (1, 8.99, 0.90, 9.89, 'completed', 'cash', '2024-01-15T10:30:00.000Z', '2024-01-15T10:35:00.000Z', '2024-01-15T10:35:00.000Z'),
+                (2, 24.99, 2.50, 27.49, 'paid', 'card', '2024-01-16T14:45:00.000Z', '2024-01-16T14:50:00.000Z', '2024-01-16T14:50:00.000Z');",
             kind: MigrationKind::Up,
         },
         Migration {
