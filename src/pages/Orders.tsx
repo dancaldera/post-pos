@@ -34,7 +34,7 @@ export default function Orders() {
   const [selectedStatus, setSelectedStatus] = useState<Order['status'] | 'all'>('all')
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
-  const [sortBy, setSortBy] = useState<'date' | 'total' | 'status' | 'customer'>('date')
+  const [sortBy, setSortBy] = useState<'date' | 'total' | 'status'>('date')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
   const [editingOrder, setEditingOrder] = useState<Order | null>(null)
@@ -98,7 +98,6 @@ export default function Orders() {
       filtered = filtered.filter(
         (order) =>
           order.id.includes(query) ||
-          order.customerName?.toLowerCase().includes(query) ||
           order.items.some((item) => item.productName.toLowerCase().includes(query)) ||
           order.total.toString().includes(query),
       )
@@ -118,12 +117,6 @@ export default function Orders() {
         case 'status':
           comparison = a.status.localeCompare(b.status)
           break
-        case 'customer': {
-          const customerA = a.customerName || 'Guest'
-          const customerB = b.customerName || 'Guest'
-          comparison = customerA.localeCompare(customerB)
-          break
-        }
       }
 
       return sortOrder === 'asc' ? comparison : -comparison
@@ -359,7 +352,7 @@ export default function Orders() {
     return `${currencySymbol}${amount.toFixed(2)}`
   }
 
-  const handleSort = (column: 'date' | 'total' | 'status' | 'customer') => {
+  const handleSort = (column: 'date' | 'total' | 'status') => {
     if (sortBy === column) {
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
     } else {
@@ -368,7 +361,7 @@ export default function Orders() {
     }
   }
 
-  const getSortIcon = (column: 'date' | 'total' | 'status' | 'customer') => {
+  const getSortIcon = (column: 'date' | 'total' | 'status') => {
     if (sortBy !== column) return '⇅'
     return sortOrder === 'asc' ? '↑' : '↓'
   }

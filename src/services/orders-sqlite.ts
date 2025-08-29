@@ -12,8 +12,6 @@ export interface OrderItem {
 
 export interface Order {
   id: string
-  customerId?: string
-  customerName?: string
   userId?: string
   items: OrderItem[]
   subtotal: number
@@ -28,7 +26,6 @@ export interface Order {
 }
 
 export interface CreateOrderRequest {
-  customerId?: string
   items: Array<{
     productId: string
     quantity: number
@@ -48,8 +45,6 @@ export interface UpdateOrderRequest {
 
 interface DatabaseOrder {
   id: number
-  customer_id?: number
-  customer_name?: string
   user_id?: number
   subtotal: number
   tax: number
@@ -108,8 +103,6 @@ export class OrderService {
 
     return {
       id: dbOrder.id.toString(),
-      customerId: dbOrder.customer_id?.toString(),
-      customerName: dbOrder.customer_name,
       userId: dbOrder.user_id?.toString(),
       items,
       subtotal: dbOrder.subtotal,
@@ -205,38 +198,51 @@ export class OrderService {
       const { tax: taxAmount, total } = await companySettingsService.calculateTotalWithTax(subtotal)
       const now = new Date().toISOString()
 
-      // Get customer name if customerId is provided
-      let customerName: string | undefined
-      if (orderData.customerId) {
-        const customers = await db.select<{ first_name: string; last_name: string }[]>(
-          'SELECT first_name, last_name FROM customers WHERE id = ? LIMIT 1',
-          [parseInt(orderData.customerId, 10)],
+
+      // Create order (with user_id if column exists, without if it doesn't)
+      let orderResult: any
+      try {
+        // Try with user_id first (for new schema)
+        orderResult = await db.execute(
+          `INSERT INTO orders (
+            user_id, subtotal, tax, total, status, 
+            payment_method, notes, created_at, updated_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [
+            1, // Default to Admin User (id=1)
+            subtotal,
+            taxAmount,
+            total,
+            'pending',
+            orderData.paymentMethod || null,
+            orderData.notes || null,
+            now,
+            now,
+          ],
         )
-        if (customers.length > 0) {
-          customerName = `${customers[0].first_name} ${customers[0].last_name}`
+      } catch (error: any) {
+        // If user_id column doesn't exist, fall back to old schema
+        if (error.message?.includes('no column named user_id')) {
+          orderResult = await db.execute(
+            `INSERT INTO orders (
+              subtotal, tax, total, status, 
+              payment_method, notes, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+              subtotal,
+              taxAmount,
+              total,
+              'pending',
+              orderData.paymentMethod || null,
+              orderData.notes || null,
+              now,
+              now,
+            ],
+          )
+        } else {
+          throw error
         }
       }
-
-      // Create order with default user (Admin User with id=1)
-      const orderResult = await db.execute(
-        `INSERT INTO orders (
-          customer_id, customer_name, user_id, subtotal, tax, total, status, 
-          payment_method, notes, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          orderData.customerId ? parseInt(orderData.customerId, 10) : null,
-          customerName,
-          1, // Default to Admin User (id=1)
-          subtotal,
-          taxAmount,
-          total,
-          'pending',
-          orderData.paymentMethod || null,
-          orderData.notes || null,
-          now,
-          now,
-        ],
-      )
 
       const orderId = orderResult.lastInsertId ?? 0
 
@@ -252,9 +258,7 @@ export class OrderService {
 
       const newOrder: Order = {
         id: orderId.toString(),
-        customerId: orderData.customerId,
-        customerName,
-        userId: '1', // Default to Admin User (id=1)
+        userId: undefined, // Will be set by convertDbOrder if column exists
         items: orderItems,
         subtotal,
         tax: taxAmount,
