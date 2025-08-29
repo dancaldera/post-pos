@@ -530,7 +530,10 @@ export default function Products() {
               viewBox="0 0 24 24"
               stroke-width="1.5"
               stroke="currentColor"
+              role="img"
+              aria-label="Search"
             >
+              <title>Search</title>
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
@@ -540,7 +543,8 @@ export default function Products() {
           }
           rightIcon={
             searchQuery ? (
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" role="img" aria-label="Clear search">
+                <title>Clear search</title>
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
               </svg>
             ) : undefined

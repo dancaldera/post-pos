@@ -127,10 +127,13 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
 
       {/* Main Stats Cards */}
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        <div
-          class="group backdrop-blur-md bg-gradient-to-br from-emerald-100/80 to-green-100/60 rounded-2xl shadow-xl border border-emerald-200/50 p-6 hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer"
-          onClick={() => onNavigate?.('orders')}
-        >
+        <div class="relative group backdrop-blur-md bg-gradient-to-br from-emerald-100/80 to-green-100/60 rounded-2xl shadow-xl border border-emerald-200/50 p-6 hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer">
+          <button
+            type="button"
+            class="absolute inset-0 rounded-2xl"
+            aria-label={t('dashboard.orders')}
+            onClick={() => onNavigate?.('orders')}
+          />
           <div class="flex items-center justify-between">
             <div class="flex-1">
               <p class="text-sm font-semibold text-emerald-700 uppercase tracking-wide mb-2">
@@ -143,10 +146,13 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
           </div>
         </div>
 
-        <div
-          class="group backdrop-blur-md bg-gradient-to-br from-blue-100/80 to-indigo-100/60 rounded-2xl shadow-xl border border-blue-200/50 p-6 hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer"
-          onClick={() => onNavigate?.('orders')}
-        >
+        <div class="relative group backdrop-blur-md bg-gradient-to-br from-blue-100/80 to-indigo-100/60 rounded-2xl shadow-xl border border-blue-200/50 p-6 hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer">
+          <button
+            type="button"
+            class="absolute inset-0 rounded-2xl"
+            aria-label={t('dashboard.orders')}
+            onClick={() => onNavigate?.('orders')}
+          />
           <div class="flex items-center justify-between">
             <div class="flex-1">
               <p class="text-sm font-semibold text-blue-700 uppercase tracking-wide mb-2">{t('dashboard.orders')}</p>
@@ -157,10 +163,13 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
           </div>
         </div>
 
-        <div
-          class="group backdrop-blur-md bg-gradient-to-br from-purple-100/80 to-pink-100/60 rounded-2xl shadow-xl border border-purple-200/50 p-6 hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer"
-          onClick={() => onNavigate?.('orders')}
-        >
+        <div class="relative group backdrop-blur-md bg-gradient-to-br from-purple-100/80 to-pink-100/60 rounded-2xl shadow-xl border border-purple-200/50 p-6 hover:shadow-2xl transition-all duration-300 hover:scale-105 cursor-pointer">
+          <button
+            type="button"
+            class="absolute inset-0 rounded-2xl"
+            aria-label={t('dashboard.orders')}
+            onClick={() => onNavigate?.('orders')}
+          />
           <div class="flex items-center justify-between">
             <div class="flex-1">
               <p class="text-sm font-semibold text-purple-700 uppercase tracking-wide mb-2">
@@ -176,10 +185,13 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
 
       {/* Secondary Stats */}
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div
-          class="group backdrop-blur-md bg-gradient-to-br from-amber-100/80 to-orange-100/60 rounded-2xl shadow-xl border border-amber-200/50 p-6 hover:shadow-2xl transition-all duration-300 cursor-pointer"
-          onClick={() => onNavigate?.('products')}
-        >
+        <div class="relative group backdrop-blur-md bg-gradient-to-br from-amber-100/80 to-orange-100/60 rounded-2xl shadow-xl border border-amber-200/50 p-6 hover:shadow-2xl transition-all duration-300 cursor-pointer">
+          <button
+            type="button"
+            class="absolute inset-0 rounded-2xl"
+            aria-label={t('dashboard.products')}
+            onClick={() => onNavigate?.('products')}
+          />
           <div class="flex items-center justify-between mb-4">
             <div class="flex items-center">
               <div class="text-3xl mr-3 group-hover:scale-110 transition-transform">⚠️</div>
@@ -190,10 +202,13 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
           <p class="text-xs text-amber-600 mt-2">{t('dashboard.needsRestocking')}</p>
         </div>
 
-        <div
-          class="group backdrop-blur-md bg-gradient-to-br from-rose-100/80 to-red-100/60 rounded-2xl shadow-xl border border-rose-200/50 p-6 hover:shadow-2xl transition-all duration-300 cursor-pointer"
-          onClick={() => onNavigate?.('orders')}
-        >
+        <div class="relative group backdrop-blur-md bg-gradient-to-br from-rose-100/80 to-red-100/60 rounded-2xl shadow-xl border border-rose-200/50 p-6 hover:shadow-2xl transition-all duration-300 cursor-pointer">
+          <button
+            type="button"
+            class="absolute inset-0 rounded-2xl"
+            aria-label={t('dashboard.orders')}
+            onClick={() => onNavigate?.('orders')}
+          />
           <div class="flex items-center justify-between mb-4">
             <div class="flex items-center">
               <div class="text-3xl mr-3 group-hover:scale-110 transition-transform">⏳</div>

@@ -7,7 +7,7 @@ export function useTranslation() {
   }, [])
 
   return {
-    t: (key: string, params?: Record<string, any>) => translationService.t(key, params),
+    t: (key: string, params?: Record<string, string | number | boolean>) => translationService.t(key, params),
     setLocale: (locale: string) => translationService.setLocale(locale),
     getCurrentLocale: () => translationService.getCurrentLocale(),
     getSupportedLocales: () => translationService.getSupportedLocales(),

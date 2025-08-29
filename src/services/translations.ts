@@ -48,7 +48,7 @@ class TranslationService {
     localStorage.setItem('preferred-language', locale)
   }
 
-  t(key: string, params?: Record<string, any>): string {
+  t(key: string, params?: Record<string, string | number | boolean>): string {
     const translation =
       this.getTranslation(key, this.currentLocale.value) || this.getTranslation(key, this.fallbackLocale) || key
 
@@ -57,21 +57,24 @@ class TranslationService {
 
   private getTranslation(key: string, locale: string): string | null {
     const keys = key.split('.')
-    let current: any = this.translations.value[locale]
+    let current: unknown = this.translations.value[locale]
 
     for (const k of keys) {
       if (!current || typeof current !== 'object') return null
-      current = current[k]
+      // current is an object at this point; index with k safely
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      current = (current as Record<string, unknown>)[k]
     }
 
     return typeof current === 'string' ? current : null
   }
 
-  private interpolate(text: string, params?: Record<string, any>): string {
+  private interpolate(text: string, params?: Record<string, string | number | boolean>): string {
     if (!params) return text
 
     return text.replace(/\{\{(\w+)\}\}/g, (match, key) => {
-      return params[key]?.toString() || match
+      const value = params[key]
+      return value === undefined || value === null ? match : String(value)
     })
   }
 

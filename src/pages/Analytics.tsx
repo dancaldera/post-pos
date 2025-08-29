@@ -17,6 +17,7 @@ import { useTranslation } from '../hooks/useTranslation'
 import {
   type AnalyticsMetrics,
   analyticsService,
+  type RecentActivity,
   type SalesByMember,
   type TopProduct,
 } from '../services/analytics-sqlite'
@@ -28,7 +29,7 @@ export default function Analytics() {
   const [metrics, setMetrics] = useState<AnalyticsMetrics | null>(null)
   const [salesByMembers, setSalesByMembers] = useState<SalesByMember[]>([])
   const [topProducts, setTopProducts] = useState<TopProduct[]>([])
-  const [recentActivity, setRecentActivity] = useState<any[]>([])
+  const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
   const [currencySymbol, setCurrencySymbol] = useState('$')
@@ -193,7 +194,9 @@ export default function Analytics() {
             <Select
               label={t('analytics.timePeriod')}
               value={dateRange}
-              onChange={(e) => handleDateRangeChange((e.target as HTMLSelectElement).value as any)}
+              onChange={(e) =>
+                handleDateRangeChange((e.target as HTMLSelectElement).value as '7d' | '30d' | '90d' | 'custom')
+              }
               options={[
                 { value: '7d', label: t('analytics.last7Days') },
                 { value: '30d', label: t('analytics.last30Days') },
@@ -205,8 +208,11 @@ export default function Analytics() {
           {customDateRange && (
             <>
               <div class="flex-1 min-w-40">
-                <label class="block text-sm font-medium text-gray-700 mb-2">{t('analytics.startDate')}</label>
+                <label for="analytics-start-date" class="block text-sm font-medium text-gray-700 mb-2">
+                  {t('analytics.startDate')}
+                </label>
                 <input
+                  id="analytics-start-date"
                   type="date"
                   value={startDate}
                   onInput={(e) => setStartDate((e.target as HTMLInputElement).value)}
@@ -214,8 +220,11 @@ export default function Analytics() {
                 />
               </div>
               <div class="flex-1 min-w-40">
-                <label class="block text-sm font-medium text-gray-700 mb-2">{t('analytics.endDate')}</label>
+                <label for="analytics-end-date" class="block text-sm font-medium text-gray-700 mb-2">
+                  {t('analytics.endDate')}
+                </label>
                 <input
+                  id="analytics-end-date"
                   type="date"
                   value={endDate}
                   onInput={(e) => setEndDate((e.target as HTMLInputElement).value)}

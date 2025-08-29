@@ -362,7 +362,8 @@ export default function Orders() {
       })
 
       if (result.success && result.order) {
-        const updatedAllOrders = allOrders.map((o) => (o.id === editingOrder.id ? result.order! : o))
+        const updated = result.order
+        const updatedAllOrders = allOrders.map((o) => (o.id === editingOrder.id ? updated : o))
         setAllOrders(updatedAllOrders)
         setOrders(updatedAllOrders)
         setEditingOrder(null)
@@ -538,7 +539,7 @@ export default function Orders() {
                 ? ` ${t('dates.yesterday').toLowerCase()}`
                 : selectedDateFilter === 'all'
                   ? ` ${t('common.total').toLowerCase()}`
-                  : ` on ${new Date(selectedDateFilter + 'T00:00:00').toLocaleDateString('en-US', {
+                  : ` on ${new Date(`${selectedDateFilter}T00:00:00`).toLocaleDateString('en-US', {
                       weekday: 'short',
                       month: 'short',
                       day: 'numeric',
@@ -565,7 +566,8 @@ export default function Orders() {
               onInput={(e) => setSearchQuery((e.target as HTMLInputElement).value)}
               onChange={(e) => setSearchQuery((e.target as HTMLInputElement).value)}
               leftIcon={
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" role="img" aria-label="Search">
+                  <title>Search</title>
                   <path
                     stroke-linecap="round"
                     stroke-linejoin="round"
@@ -576,7 +578,8 @@ export default function Orders() {
               }
               rightIcon={
                 searchQuery ? (
-                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" role="img" aria-label="Clear search">
+                    <title>Clear search</title>
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 ) : undefined
@@ -779,22 +782,21 @@ export default function Orders() {
                   </div>
                 </TableCell>
                 <TableCell>
-                  <div onClick={(e) => e.stopPropagation()}>
-                    <Dropdown
-                      trigger={
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          class="text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all hover:shadow-md"
-                        >
-                          ⚙️ {t('common.actions')}
-                        </Button>
-                      }
-                      items={getOrderActionItems(order)}
-                      align="right"
-                      width="w-48"
-                    />
-                  </div>
+                  <Dropdown
+                    trigger={
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        class="text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all hover:shadow-md"
+                        onMouseDown={(e) => e.stopPropagation()}
+                      >
+                        ⚙️ {t('common.actions')}
+                      </Button>
+                    }
+                    items={getOrderActionItems(order)}
+                    align="right"
+                    width="w-48"
+                  />
                 </TableCell>
               </TableRow>
             ))}
@@ -884,7 +886,10 @@ export default function Orders() {
                           viewBox="0 0 24 24"
                           stroke-width="1.5"
                           stroke="currentColor"
+                          role="img"
+                          aria-label="Search"
                         >
+                          <title>Search</title>
                           <path
                             stroke-linecap="round"
                             stroke-linejoin="round"
@@ -894,7 +899,14 @@ export default function Orders() {
                       }
                       rightIcon={
                         productSearch ? (
-                          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            role="img"
+                            aria-label="Clear search"
+                          >
+                            <title>Clear search</title>
                             <path
                               stroke-linecap="round"
                               stroke-linejoin="round"
@@ -938,9 +950,14 @@ export default function Orders() {
                     {filteredProducts.map((product) => (
                       <div
                         key={product.id}
-                        onClick={() => product.stock > 0 && addItemToOrder(product.id)}
                         class="group relative backdrop-blur-md bg-white/70 border border-white/40 rounded-xl p-4 hover:bg-white/80 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] cursor-pointer"
                       >
+                        <button
+                          type="button"
+                          class="absolute inset-0 rounded-xl"
+                          aria-label={`${t('orders.addProduct')} ${product.name}`}
+                          onClick={() => product.stock > 0 && addItemToOrder(product.id)}
+                        />
                         {/* Glass highlight overlay */}
                         <div class="absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-transparent rounded-xl opacity-60 pointer-events-none"></div>
 
@@ -1142,7 +1159,7 @@ export default function Orders() {
           setEditNotes('')
           setEditProductSearch('')
         }}
-        title={t('orders.updateOrderTitle', { id: editingOrder?.id })}
+        title={t('orders.updateOrderTitle', { id: editingOrder?.id ?? '' })}
         size="full"
       >
         <DialogBody>
@@ -1168,7 +1185,10 @@ export default function Orders() {
                           viewBox="0 0 24 24"
                           stroke-width="1.5"
                           stroke="currentColor"
+                          role="img"
+                          aria-label="Search"
                         >
+                          <title>Search</title>
                           <path
                             stroke-linecap="round"
                             stroke-linejoin="round"
@@ -1178,7 +1198,14 @@ export default function Orders() {
                       }
                       rightIcon={
                         editProductSearch ? (
-                          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            role="img"
+                            aria-label="Clear search"
+                          >
+                            <title>Clear search</title>
                             <path
                               stroke-linecap="round"
                               stroke-linejoin="round"
@@ -1222,9 +1249,14 @@ export default function Orders() {
                     {filteredEditProducts.map((product) => (
                       <div
                         key={product.id}
-                        onClick={() => product.stock > 0 && addItemToEditOrder(product.id)}
                         class="group relative backdrop-blur-md bg-white/70 border border-white/40 rounded-xl p-4 hover:bg-white/80 hover:shadow-xl transition-all duration-300 hover:scale-[1.02] hover:border-emerald-300/50 cursor-pointer"
                       >
+                        <button
+                          type="button"
+                          class="absolute inset-0 rounded-xl"
+                          aria-label={`${t('orders.addProduct')} ${product.name}`}
+                          onClick={() => product.stock > 0 && addItemToEditOrder(product.id)}
+                        />
                         <div class="absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-transparent rounded-xl opacity-60 pointer-events-none"></div>
 
                         <div class="relative flex justify-between items-start">

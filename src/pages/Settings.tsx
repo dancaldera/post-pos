@@ -38,7 +38,7 @@ export default function Settings({ onNavigate }: SettingsProps) {
     }
   }
 
-  const handleUpdateSetting = async (field: keyof CompanySettings, value: any) => {
+  const handleUpdateSetting = async <K extends keyof CompanySettings>(field: K, value: CompanySettings[K]) => {
     if (!settings) return
 
     try {
@@ -156,7 +156,7 @@ export default function Settings({ onNavigate }: SettingsProps) {
                   <Input
                     label={t('common.address')}
                     value={settings.address || ''}
-                    onBlur={(e) => handleUpdateSetting('address', (e.target as HTMLInputElement).value || null)}
+                    onBlur={(e) => handleUpdateSetting('address', (e.target as HTMLInputElement).value || undefined)}
                     disabled={isUpdating}
                     placeholder={t('common.address')}
                     class="mb-2"
@@ -167,7 +167,7 @@ export default function Settings({ onNavigate }: SettingsProps) {
                   <Input
                     label={t('common.phone')}
                     value={settings.phone || ''}
-                    onBlur={(e) => handleUpdateSetting('phone', (e.target as HTMLInputElement).value || null)}
+                    onBlur={(e) => handleUpdateSetting('phone', (e.target as HTMLInputElement).value || undefined)}
                     disabled={isUpdating}
                     placeholder={t('common.phone')}
                     class="mb-2"
@@ -179,7 +179,7 @@ export default function Settings({ onNavigate }: SettingsProps) {
                     label={t('common.email')}
                     type="email"
                     value={settings.email || ''}
-                    onBlur={(e) => handleUpdateSetting('email', (e.target as HTMLInputElement).value || null)}
+                    onBlur={(e) => handleUpdateSetting('email', (e.target as HTMLInputElement).value || undefined)}
                     disabled={isUpdating}
                     placeholder={t('common.email')}
                     class="mb-2"
@@ -191,7 +191,7 @@ export default function Settings({ onNavigate }: SettingsProps) {
                     label={t('settings.website')}
                     type="text"
                     value={settings.website || ''}
-                    onBlur={(e) => handleUpdateSetting('website', (e.target as HTMLInputElement).value || null)}
+                    onBlur={(e) => handleUpdateSetting('website', (e.target as HTMLInputElement).value || undefined)}
                     disabled={isUpdating}
                     placeholder="https://example.com"
                     class="mb-2"
