@@ -19,7 +19,7 @@ import {
   TableRow,
   Text,
 } from '../components/ui'
-import { type Order, orderService, type UpdateOrderItemsRequest } from '../services/orders-sqlite'
+import { type Order, orderService } from '../services/orders-sqlite'
 import { type Product, productService } from '../services/products-sqlite'
 import { companySettingsService } from '../services/company-settings-sqlite'
 
@@ -49,7 +49,9 @@ export default function Orders() {
     notes: '',
   })
 
-  const [editOrderItems, setEditOrderItems] = useState<Array<{ productId: string; quantity: number }>>([])
+  const [editOrderItems, setEditOrderItems] = useState<Array<{ productId: string; quantity: number }>>([])  
+  const [editPaymentMethod, setEditPaymentMethod] = useState<'cash' | 'card' | 'transfer'>('cash')
+  const [editNotes, setEditNotes] = useState('')
 
   useEffect(() => {
     loadData()
@@ -253,10 +255,12 @@ export default function Orders() {
   const handleEditOrder = (order: Order) => {
     setEditingOrder(order)
     setEditOrderItems(order.items.map(item => ({ productId: item.productId, quantity: item.quantity })))
+    setEditPaymentMethod(order.paymentMethod || 'cash')
+    setEditNotes(order.notes || '')
     setEditProductSearch('')
   }
 
-  const handleUpdateOrderItems = async () => {
+  const handleUpdateOrder = async () => {
     if (!editingOrder || editOrderItems.length === 0) {
       setError('Please add at least one item to the order')
       return
@@ -264,7 +268,11 @@ export default function Orders() {
 
     try {
       setIsLoading(true)
-      const result = await orderService.updateOrderItems(editingOrder.id, { items: editOrderItems })
+      const result = await orderService.updateOrder(editingOrder.id, { 
+        items: editOrderItems,
+        paymentMethod: editPaymentMethod,
+        notes: editNotes
+      })
 
       if (result.success && result.order) {
         const updatedAllOrders = allOrders.map((o) => (o.id === editingOrder.id ? result.order! : o))
@@ -272,6 +280,8 @@ export default function Orders() {
         setOrders(updatedAllOrders)
         setEditingOrder(null)
         setEditOrderItems([])
+        setEditPaymentMethod('cash')
+        setEditNotes('')
         setError('')
       } else {
         setError(result.error || 'Failed to update order')
@@ -285,20 +295,23 @@ export default function Orders() {
 
   const addItemToEditOrder = (productId: string, quantity: number = 1) => {
     const existingItem = editOrderItems.find((item) => item.productId === productId)
-
+    const originalItem = editingOrder?.items.find((item) => item.productId === productId)
+    
     if (existingItem) {
+      // Only allow increasing quantities, not decreasing below original amount
+      const newQuantity = Math.max(
+        existingItem.quantity + quantity,
+        originalItem?.quantity || 1
+      )
+      
       setEditOrderItems(
         editOrderItems.map((item) =>
-          item.productId === productId ? { ...item, quantity: item.quantity + quantity } : item,
+          item.productId === productId ? { ...item, quantity: newQuantity } : item,
         )
       )
     } else {
       setEditOrderItems([...editOrderItems, { productId, quantity }])
     }
-  }
-
-  const removeItemFromEditOrder = (productId: string) => {
-    setEditOrderItems(editOrderItems.filter((item) => item.productId !== productId))
   }
 
   const getStatusColor = (status: Order['status']) => {
@@ -363,7 +376,7 @@ export default function Orders() {
       items.push(
         {
           id: `edit-${order.id}`,
-          label: 'Edit Items',
+          label: 'Update Order',
           icon: '✏️',
           onClick: () => handleEditOrder(order),
         },
@@ -973,9 +986,11 @@ export default function Orders() {
         onClose={() => {
           setEditingOrder(null)
           setEditOrderItems([])
+          setEditPaymentMethod('cash')
+          setEditNotes('')
           setEditProductSearch('')
         }}
-        title={`Edit Order #${editingOrder?.id}`}
+        title={`Update Order #${editingOrder?.id}`}
         size="full"
       >
         <DialogBody>
@@ -1102,40 +1117,41 @@ export default function Orders() {
                           </div>
                         </div>
                         <div class="relative flex items-center space-x-3">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => {
-                              if (item.quantity > 1) {
-                                addItemToEditOrder(item.productId, -1)
-                              } else {
-                                removeItemFromEditOrder(item.productId)
-                              }
-                            }}
-                            class="w-10 h-10 p-0 flex items-center justify-center backdrop-blur-sm bg-white/70 border-white/60 hover:bg-white/90 hover:shadow-lg transition-all duration-200 hover:scale-110"
-                          >
-                            <span class="drop-shadow-sm">➖</span>
-                          </Button>
-                          <div class="w-14 text-center font-bold text-xl backdrop-blur-sm bg-gradient-to-r from-emerald-100/80 to-green-100/80 px-3 py-2 rounded-lg border border-white/40 shadow-md">
-                            {item.quantity}
-                          </div>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => addItemToEditOrder(item.productId, 1)}
-                            disabled={item.quantity >= product.stock}
-                            class="w-10 h-10 p-0 flex items-center justify-center backdrop-blur-sm bg-white/70 border-white/60 hover:bg-white/90 hover:shadow-lg transition-all duration-200 hover:scale-110 disabled:opacity-50 disabled:hover:scale-100"
-                          >
-                            <span class="drop-shadow-sm">➕</span>
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => removeItemFromEditOrder(item.productId)}
-                            class="backdrop-blur-sm bg-red-100/70 text-red-700 border-red-200/60 hover:bg-red-200/80 hover:shadow-lg transition-all duration-200 hover:scale-110 ml-2"
-                          >
-                            <span class="drop-shadow-sm">🗑️</span>
-                          </Button>
+                          {(() => {
+                            const originalItem = editingOrder?.items.find((origItem) => origItem.productId === item.productId)
+                            const canDecrease = item.quantity > (originalItem?.quantity || 1)
+                            
+                            return (
+                              <>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => addItemToEditOrder(item.productId, -1)}
+                                  disabled={!canDecrease}
+                                  class="w-10 h-10 p-0 flex items-center justify-center backdrop-blur-sm bg-white/70 border-white/60 hover:bg-white/90 hover:shadow-lg transition-all duration-200 hover:scale-110 disabled:opacity-50 disabled:hover:scale-100"
+                                >
+                                  <span class="drop-shadow-sm">➖</span>
+                                </Button>
+                                <div class="w-14 text-center font-bold text-xl backdrop-blur-sm bg-gradient-to-r from-emerald-100/80 to-green-100/80 px-3 py-2 rounded-lg border border-white/40 shadow-md">
+                                  {item.quantity}
+                                  {originalItem && item.quantity > originalItem.quantity && (
+                                    <div class="text-xs text-emerald-600 font-medium">
+                                      +{item.quantity - originalItem.quantity}
+                                    </div>
+                                  )}
+                                </div>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => addItemToEditOrder(item.productId, 1)}
+                                  disabled={item.quantity >= product.stock}
+                                  class="w-10 h-10 p-0 flex items-center justify-center backdrop-blur-sm bg-white/70 border-white/60 hover:bg-white/90 hover:shadow-lg transition-all duration-200 hover:scale-110 disabled:opacity-50 disabled:hover:scale-100"
+                                >
+                                  <span class="drop-shadow-sm">➕</span>
+                                </Button>
+                              </>
+                            )
+                          })()}
                         </div>
                       </div>
                     ) : null
@@ -1189,6 +1205,30 @@ export default function Orders() {
                 </div>
               </div>
             )}
+
+            {/* Payment Method & Notes */}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Select
+                  label="Payment Method"
+                  value={editPaymentMethod}
+                  onChange={(e) => setEditPaymentMethod((e.target as HTMLSelectElement).value as 'cash' | 'card' | 'transfer')}
+                  options={[
+                    { value: 'cash', label: '💵 Cash' },
+                    { value: 'card', label: '💳 Card' },
+                    { value: 'transfer', label: '🔄 Transfer' },
+                  ]}
+                />
+              </div>
+              <div>
+                <Input
+                  label="Order Notes"
+                  value={editNotes}
+                  onInput={(e) => setEditNotes((e.target as HTMLInputElement).value)}
+                  placeholder="Optional notes..."
+                />
+              </div>
+            </div>
           </div>
         </DialogBody>
 
@@ -1199,6 +1239,8 @@ export default function Orders() {
             onClick={() => {
               setEditingOrder(null)
               setEditOrderItems([])
+              setEditPaymentMethod('cash')
+              setEditNotes('')
               setEditProductSearch('')
             }}
             disabled={isLoading}
@@ -1207,7 +1249,7 @@ export default function Orders() {
           </Button>
           <Button
             type="button"
-            onClick={handleUpdateOrderItems}
+            onClick={handleUpdateOrder}
             disabled={isLoading || editOrderItems.length === 0}
             class="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white"
           >

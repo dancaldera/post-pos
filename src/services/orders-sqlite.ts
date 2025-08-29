@@ -36,11 +36,13 @@ export interface CreateOrderRequest {
   notes?: string
 }
 
-export interface UpdateOrderItemsRequest {
+export interface UpdateOrderRequest {
   items: Array<{
     productId: string
     quantity: number
   }>
+  paymentMethod?: 'cash' | 'card' | 'transfer'
+  notes?: string
 }
 
 interface DatabaseOrder {
@@ -527,11 +529,11 @@ export class OrderService {
     }
   }
 
-  async updateOrderItems(
+  async updateOrder(
     orderId: string,
-    itemsData: UpdateOrderItemsRequest,
+    updateData: UpdateOrderRequest,
   ): Promise<{ success: boolean; order?: Order; error?: string }> {
-    if (!itemsData.items.length) {
+    if (!updateData.items.length) {
       return { success: false, error: 'Order must contain at least one item' }
     }
 
@@ -547,11 +549,11 @@ export class OrderService {
 
       // Only allow editing pending orders
       if (currentOrder.status !== 'pending') {
-        return { success: false, error: 'Can only edit pending orders' }
+        return { success: false, error: 'Can only update pending orders' }
       }
 
       // Check stock availability for the updated items
-      const stockCheck = await this.checkStockAvailability(itemsData.items)
+      const stockCheck = await this.checkStockAvailability(updateData.items)
       if (!stockCheck.success) {
         return { success: false, error: stockCheck.error }
       }
@@ -560,7 +562,7 @@ export class OrderService {
       const newOrderItems: OrderItem[] = []
       let newSubtotal = 0
 
-      for (const item of itemsData.items) {
+      for (const item of updateData.items) {
         const product = await productService.getProduct(item.productId)
         if (!product) {
           return {
@@ -605,18 +607,26 @@ export class OrderService {
         )
       }
 
-      // Update order totals
+      // Update order totals and details
       await db.execute(
-        'UPDATE orders SET subtotal = ?, tax = ?, total = ?, updated_at = ? WHERE id = ?',
-        [newSubtotal, newTaxAmount, newTotal, now, parseInt(orderId, 10)],
+        'UPDATE orders SET subtotal = ?, tax = ?, total = ?, payment_method = ?, notes = ?, updated_at = ? WHERE id = ?',
+        [
+          newSubtotal, 
+          newTaxAmount, 
+          newTotal, 
+          updateData.paymentMethod || currentOrder.paymentMethod, 
+          updateData.notes !== undefined ? updateData.notes : currentOrder.notes, 
+          now, 
+          parseInt(orderId, 10)
+        ],
       )
 
       // Return updated order
       const updatedOrder = await this.getOrder(orderId)
       return { success: true, order: updatedOrder || undefined }
     } catch (error) {
-      console.error('Update order items error:', error)
-      return { success: false, error: 'Failed to update order items' }
+      console.error('Update order error:', error)
+      return { success: false, error: 'Failed to update order' }
     }
   }
 }
