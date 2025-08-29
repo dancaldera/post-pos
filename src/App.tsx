@@ -2,7 +2,6 @@ import { useEffect, useState } from 'preact/hooks'
 import Layout from './components/Layout'
 import { useAuth } from './hooks/useAuth'
 import ComponentShowcase from './pages/ComponentShowcase'
-import Customers from './pages/Customers'
 import Dashboard from './pages/Dashboard'
 import Members from './pages/Members'
 import Products from './pages/Products'
@@ -45,13 +44,11 @@ function App() {
   const renderPage = () => {
     switch (currentPage) {
       case 'dashboard':
-        return <Dashboard />
+        return <Dashboard onNavigate={handleNavigate} />
       case 'orders':
         return <Orders />
       case 'products':
         return <Products />
-      case 'customers':
-        return <Customers />
       case 'members':
         return <Members />
       case 'settings':

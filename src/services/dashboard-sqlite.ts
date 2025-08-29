@@ -1,12 +1,9 @@
-import { customerService } from './customers-sqlite'
 import { orderService } from './orders-sqlite'
 import { productService } from './products-sqlite'
 
 export interface DashboardStats {
   totalSales: number
   ordersToday: number
-  totalCustomers: number
-  totalRevenue: number
   averageOrderValue: number
   lowStockProducts: number
   pendingOrders: number
@@ -46,33 +43,28 @@ export class DashboardService {
       await new Promise((resolve) => setTimeout(resolve, 200))
 
       // Get all data in parallel for better performance
-      const [orders, customers, products] = await Promise.all([
+      const [orders, products] = await Promise.all([
         orderService.getOrders(),
-        customerService.getCustomers(),
         productService.getProducts(),
       ])
 
-      // Filter completed/paid orders for sales calculations
-      const completedOrders = orders.filter((o) => o.status === 'completed' || o.status === 'paid')
-
-      // Total sales (sum of all completed/paid orders)
-      const totalSales = completedOrders.reduce((sum, order) => sum + order.total, 0)
-
-      // Orders today (based on current date)
+      // Get today's date range
       const today = new Date()
       const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString()
       const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString()
 
-      const ordersToday = orders.filter((order) => order.createdAt >= todayStart && order.createdAt < todayEnd).length
+      // Filter orders for today only
+      const todayOrders = orders.filter((order) => order.createdAt >= todayStart && order.createdAt < todayEnd)
+      const todayCompletedOrders = todayOrders.filter((o) => o.status === 'completed' || o.status === 'paid')
 
-      // Total customers (only active ones)
-      const totalCustomers = customers.filter((c) => c.isActive).length
+      // Total sales today (sum of today's completed/paid orders)
+      const totalSales = todayCompletedOrders.reduce((sum, order) => sum + order.total, 0)
 
-      // Total revenue (same as total sales for this implementation)
-      const totalRevenue = totalSales
+      // Orders today count
+      const ordersToday = todayOrders.length
 
-      // Average order value
-      const averageOrderValue = completedOrders.length > 0 ? totalSales / completedOrders.length : 0
+      // Average order value today
+      const averageOrderValue = todayCompletedOrders.length > 0 ? totalSales / todayCompletedOrders.length : 0
 
       // Low stock products (stock < 10 and > 0)
       const lowStockProducts = products.filter((p) => p.isActive && p.stock > 0 && p.stock < 10).length
@@ -83,8 +75,6 @@ export class DashboardService {
       return {
         totalSales,
         ordersToday,
-        totalCustomers,
-        totalRevenue,
         averageOrderValue,
         lowStockProducts,
         pendingOrders,
@@ -242,42 +232,6 @@ export class DashboardService {
     }
   }
 
-  async getCustomerInsights() {
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 200))
-
-      const customers = await customerService.getCustomers()
-      const activeCustomers = customers.filter((c) => c.isActive)
-
-      // Calculate customer metrics
-      const totalSpent = activeCustomers.reduce((sum, customer) => sum + customer.totalSpent, 0)
-      const averageSpentPerCustomer = activeCustomers.length > 0 ? totalSpent / activeCustomers.length : 0
-
-      // Find top customers by spending
-      const topCustomers = activeCustomers
-        .filter((c) => c.totalSpent > 0)
-        .sort((a, b) => b.totalSpent - a.totalSpent)
-        .slice(0, 5)
-        .map((c) => ({
-          id: c.id,
-          name: `${c.firstName} ${c.lastName}`,
-          totalSpent: c.totalSpent,
-          loyaltyPoints: c.loyaltyPoints,
-          lastPurchaseDate: c.lastPurchaseDate,
-        }))
-
-      return {
-        totalActiveCustomers: activeCustomers.length,
-        totalInactiveCustomers: customers.length - activeCustomers.length,
-        averageSpentPerCustomer,
-        totalCustomerSpending: totalSpent,
-        topCustomers,
-      }
-    } catch (error) {
-      console.error('Customer insights error:', error)
-      throw new Error('Failed to fetch customer insights')
-    }
-  }
 }
 
 export const dashboardService = DashboardService.getInstance()

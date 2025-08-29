@@ -72,12 +72,6 @@ export default function Layout({ children, currentPage, onNavigate }: LayoutProp
       description: 'Product catalog and inventory management',
     },
     {
-      id: 'customers',
-      label: 'Customers',
-      icon: '👥',
-      description: 'Customer database and relationship management',
-    },
-    {
       id: 'members',
       label: 'Members',
       icon: '👤',
