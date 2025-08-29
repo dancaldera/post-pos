@@ -75,16 +75,37 @@ function DialogFooter({ children }: DialogFooterProps) {
 
 function Dialog({ isOpen, onClose, title, children, size = 'md' }: DialogProps) {
   // Keep the dialog mounted for close animation
-  const [shouldRender, setShouldRender] = useState(isOpen)
+  const [shouldRender, setShouldRender] = useState(false)
+  const [isAnimating, setIsAnimating] = useState(false)
 
   useEffect(() => {
     if (isOpen) {
       setShouldRender(true)
+      // Small delay to trigger animation after mounting
+      setTimeout(() => setIsAnimating(true), 10)
       return
     }
+    
+    // Start close animation
+    setIsAnimating(false)
+    // Unmount after animation completes
     const timeout = setTimeout(() => setShouldRender(false), 300)
     return () => clearTimeout(timeout)
   }, [isOpen])
+
+  // Handle escape key to close dialog
+  useEffect(() => {
+    if (!isOpen) return
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose()
+      }
+    }
+
+    document.addEventListener('keydown', handleEscape)
+    return () => document.removeEventListener('keydown', handleEscape)
+  }, [isOpen, onClose])
   const sizeClasses = {
     sm: 'max-w-sm',
     md: 'max-w-md',
@@ -101,33 +122,26 @@ function Dialog({ isOpen, onClose, title, children, size = 'md' }: DialogProps) 
         'fixed inset-0 z-50 overflow-y-auto',
         // Overlay with visible frame border and added transparency
         'bg-black/40 backdrop-blur-sm transition-all duration-300 ease-out border-2 border-white/20',
-        isOpen ? 'opacity-100' : 'opacity-0',
+        isAnimating ? 'opacity-100' : 'opacity-0',
       )}
       role="presentation"
+      onClick={onClose}
     >
-      <button
-        type="button"
-        aria-label="Close dialog"
-        class="absolute inset-0 w-full h-full cursor-default"
-        onClick={onClose}
-        onKeyDown={(e) => {
-          if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') onClose()
-        }}
-      />
-      <div class="relative flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0 z-10">
+      <div class="relative flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
         <div
           class={clsx(
             // Dialog card with added transparency and refined border
             'relative w-full bg-white/60 backdrop-blur-xl border-2 border-white/50 rounded-2xl shadow-2xl',
             'transition-all duration-300 ease-out transform will-change-transform will-change-opacity',
             'my-8 overflow-hidden text-left align-middle sm:my-8',
-            isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0',
+            isAnimating 
+              ? 'scale-100 opacity-100 translate-y-0' 
+              : 'scale-95 opacity-0 translate-y-4',
             sizeClasses[size],
           )}
           role="dialog"
           aria-modal="true"
           onClick={(e) => e.stopPropagation()}
-          onKeyDown={(e) => e.stopPropagation()}
         >
           {title && <DialogHeader onClose={onClose}>{title}</DialogHeader>}
           {children}

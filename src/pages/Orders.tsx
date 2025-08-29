@@ -466,12 +466,6 @@ export default function Orders() {
           <TableHead>
             <TableRow class="bg-gray-50">
               <TableHeader class="font-semibold text-gray-900">Order</TableHeader>
-              <TableHeader
-                class="font-semibold text-gray-900 cursor-pointer hover:bg-gray-100 select-none"
-                onClick={() => handleSort('customer')}
-              >
-                Customer {getSortIcon('customer')}
-              </TableHeader>
               <TableHeader class="font-semibold text-gray-900">Items</TableHeader>
               <TableHeader class="font-semibold text-gray-900">Payment</TableHeader>
               <TableHeader
@@ -511,17 +505,6 @@ export default function Orders() {
                   >
                     #{order.id}
                   </button>
-                </TableCell>
-                <TableCell>
-                  <div class="flex items-center">
-                    <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-medium mr-3">
-                      {(order.customerName || 'G').charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                      <div class="font-medium text-gray-900">{order.customerName || 'Guest Customer'}</div>
-                      {order.customerId && <div class="text-xs text-gray-500">ID: {order.customerId}</div>}
-                    </div>
-                  </div>
                 </TableCell>
                 <TableCell>
                   <div class="max-w-xs">
