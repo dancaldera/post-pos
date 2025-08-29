@@ -19,6 +19,7 @@ import {
 } from '../components/ui'
 import { type Order, orderService } from '../services/orders-sqlite'
 import { type Product, productService } from '../services/products-sqlite'
+import { companySettingsService } from '../services/company-settings-sqlite'
 
 export default function Orders() {
   const [orders, setOrders] = useState<Order[]>([])
@@ -33,6 +34,9 @@ export default function Orders() {
   const [sortBy, setSortBy] = useState<'date' | 'total' | 'status' | 'customer'>('date')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
+  const [taxRate, setTaxRate] = useState<number>(0.1)
+  const [taxEnabled, setTaxEnabled] = useState<boolean>(true)
+  const [currencySymbol, setCurrencySymbol] = useState<string>('$')
 
   const [newOrder, setNewOrder] = useState({
     items: [] as Array<{ productId: string; quantity: number }>,
@@ -47,10 +51,17 @@ export default function Orders() {
   const loadData = async () => {
     try {
       setIsLoading(true)
-      const [ordersData, productsData] = await Promise.all([orderService.getOrders(), productService.getProducts()])
+      const [ordersData, productsData, settings] = await Promise.all([
+        orderService.getOrders(), 
+        productService.getProducts(),
+        companySettingsService.getSettings()
+      ])
       setAllOrders(ordersData)
       setOrders(ordersData)
       setProducts(productsData.filter((p) => p.isActive && p.stock > 0))
+      setTaxEnabled(settings.taxEnabled)
+      setTaxRate(settings.taxEnabled ? settings.taxPercentage / 100 : 0)
+      setCurrencySymbol(settings.currencySymbol)
       setError('')
     } catch (err: unknown) {
       setError((err as Error)?.message || 'Failed to load data')
@@ -235,7 +246,7 @@ export default function Orders() {
   }
 
   const formatCurrency = (amount: number) => {
-    return `$${amount.toFixed(2)}`
+    return `${currencySymbol}${amount.toFixed(2)}`
   }
 
   const handleSort = (column: 'date' | 'total' | 'status' | 'customer') => {
@@ -466,8 +477,19 @@ export default function Orders() {
                 </TableCell>
                 <TableCell>
                   <div class="text-right">
-                    <div class="text-lg font-bold text-gray-900">{formatCurrency(order.total)}</div>
-                    <div class="text-xs text-gray-500">Tax: {formatCurrency(order.tax)}</div>
+                    <div class="text-lg font-bold text-gray-900">
+                      {formatCurrency(taxEnabled ? order.total : order.subtotal)}
+                    </div>
+                    {taxEnabled && order.tax > 0 && (
+                      <div class="text-xs text-gray-500">
+                        Tax: {formatCurrency(order.tax)}
+                      </div>
+                    )}
+                    {taxEnabled && order.tax === 0 && (
+                      <div class="text-xs text-gray-400 italic">
+                        No tax applied
+                      </div>
+                    )}
                   </div>
                 </TableCell>
                 <TableCell>
@@ -720,20 +742,31 @@ export default function Orders() {
                         const product = products.find((p) => p.id === item.productId)
                         return total + (product ? product.price * item.quantity : 0)
                       }, 0)
-                      const tax = subtotal * 0.1
+                      const tax = taxEnabled ? subtotal * taxRate : 0
                       const total = subtotal + tax
 
                       return (
-                        <div class="backdrop-blur-md bg-white/60 rounded-xl p-5 border border-white/50 shadow-lg">
+                        <div class={`backdrop-blur-md rounded-xl p-5 border shadow-lg ${
+                          taxEnabled 
+                            ? 'bg-white/60 border-white/50' 
+                            : 'bg-gray-50/60 border-gray-200/50'
+                        }`}>
                           <div class="space-y-3">
                             <div class="flex justify-between text-gray-700 text-lg">
                               <span class="font-medium">Subtotal:</span>
                               <span class="font-semibold drop-shadow-sm">{formatCurrency(subtotal)}</span>
                             </div>
-                            <div class="flex justify-between text-gray-700 text-lg">
-                              <span class="font-medium">Tax (10%):</span>
-                              <span class="font-semibold drop-shadow-sm">{formatCurrency(tax)}</span>
-                            </div>
+                            {taxEnabled && (
+                              <div class="flex justify-between text-gray-700 text-lg">
+                                <span class="font-medium">Tax ({(taxRate * 100).toFixed(1)}%):</span>
+                                <span class="font-semibold drop-shadow-sm">{formatCurrency(tax)}</span>
+                              </div>
+                            )}
+                            {!taxEnabled && (
+                              <div class="text-sm text-gray-500 italic text-center py-2">
+                                Tax calculation is disabled in settings
+                              </div>
+                            )}
                             <div class="border-t border-white/40 pt-3">
                               <div class="flex justify-between text-2xl font-bold text-gray-900 backdrop-blur-sm bg-gradient-to-r from-emerald-100/60 to-green-100/40 px-4 py-3 rounded-lg border border-emerald-200/50 shadow-md">
                                 <span class="drop-shadow-sm">Total:</span>
@@ -836,7 +869,9 @@ export default function Orders() {
                   )}
                 </div>
                 <div class="text-right">
-                  <div class="text-3xl font-bold text-gray-900">{formatCurrency(selectedOrder.total)}</div>
+                  <div class="text-3xl font-bold text-gray-900">
+                    {formatCurrency(taxEnabled ? selectedOrder.total : selectedOrder.subtotal)}
+                  </div>
                   <div class="text-sm text-gray-500">Total Amount</div>
                 </div>
               </div>
@@ -893,20 +928,35 @@ export default function Orders() {
               <div class="bg-blue-50 rounded-lg p-4">
                 <h4 class="text-lg font-semibold text-gray-900 mb-3">Order Summary</h4>
                 <div class="space-y-2">
-                  <div class="flex justify-between text-gray-700">
-                    <span>Subtotal:</span>
-                    <span class="font-semibold">{formatCurrency(selectedOrder.subtotal)}</span>
-                  </div>
-                  <div class="flex justify-between text-gray-700">
-                    <span>Tax (10%):</span>
-                    <span class="font-semibold">{formatCurrency(selectedOrder.tax)}</span>
-                  </div>
-                  <div class="border-t border-blue-200 pt-2">
+                  {/* Only show subtotal and tax breakdown when tax is enabled */}
+                  {taxEnabled && (
+                    <>
+                      <div class="flex justify-between text-gray-700">
+                        <span>Subtotal:</span>
+                        <span class="font-semibold">{formatCurrency(selectedOrder.subtotal)}</span>
+                      </div>
+                      {/* Only show tax line if the order actually has tax applied */}
+                      {selectedOrder.tax > 0 && (
+                        <div class="flex justify-between text-gray-700">
+                          <span>Tax ({((selectedOrder.tax / selectedOrder.subtotal) * 100).toFixed(1)}%):</span>
+                          <span class="font-semibold">{formatCurrency(selectedOrder.tax)}</span>
+                        </div>
+                      )}
+                      <div class="border-t border-blue-200 pt-2">
+                        <div class="flex justify-between text-xl font-bold text-gray-900">
+                          <span>Total:</span>
+                          <span>{formatCurrency(selectedOrder.total)}</span>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                  {/* When tax is disabled, only show the total */}
+                  {!taxEnabled && (
                     <div class="flex justify-between text-xl font-bold text-gray-900">
                       <span>Total:</span>
-                      <span>{formatCurrency(selectedOrder.total)}</span>
+                      <span>{formatCurrency(selectedOrder.subtotal)}</span>
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
 
