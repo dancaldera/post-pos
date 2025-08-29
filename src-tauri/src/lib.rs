@@ -160,6 +160,34 @@ pub fn run() {
                 (2, 1, 2, 'Bread Loaf', 1, 3.99, 3.99),
                 (3, 2, 3, 'Premium Coffee Beans 1kg', 1, 24.99, 24.99);",
             kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 11,
+            description: "create_company_settings_table",
+            sql: "CREATE TABLE IF NOT EXISTS company_settings (
+                id INTEGER PRIMARY KEY CHECK (id = 1),
+                name TEXT NOT NULL DEFAULT 'Post POS',
+                description TEXT DEFAULT 'Modern Point of Sale System',
+                tax_enabled BOOLEAN DEFAULT 1,
+                tax_percentage REAL DEFAULT 10.0,
+                currency_symbol TEXT DEFAULT '$',
+                language TEXT DEFAULT 'en',
+                logo_url TEXT,
+                address TEXT,
+                phone TEXT,
+                email TEXT,
+                website TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );",
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 12,
+            description: "insert_default_company_settings",
+            sql: "INSERT OR IGNORE INTO company_settings (id, name, description, tax_enabled, tax_percentage, currency_symbol, language, created_at, updated_at) VALUES
+                (1, 'Post POS', 'Modern Point of Sale System', 1, 10.0, '$', 'en', '2024-01-01T00:00:00.000Z', '2024-01-01T00:00:00.000Z');",
+            kind: MigrationKind::Up,
         }
     ];
 

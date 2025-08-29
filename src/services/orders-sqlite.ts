@@ -1,5 +1,6 @@
 import Database from '@tauri-apps/plugin-sql'
 import { productService } from './products-sqlite'
+import { companySettingsService } from './company-settings-sqlite'
 
 export interface OrderItem {
   productId: string
@@ -188,8 +189,8 @@ export class OrderService {
         subtotal += itemTotal
       }
 
-      const tax = subtotal * 0.1 // 10% tax
-      const total = subtotal + tax
+      // Get tax rate from company settings
+      const { tax: taxAmount, total } = await companySettingsService.calculateTotalWithTax(subtotal)
       const now = new Date().toISOString()
 
       // Get customer name if customerId is provided
@@ -214,7 +215,7 @@ export class OrderService {
           orderData.customerId ? parseInt(orderData.customerId, 10) : null,
           customerName,
           subtotal,
-          tax,
+          taxAmount,
           total,
           'pending',
           orderData.paymentMethod || null,
@@ -242,7 +243,7 @@ export class OrderService {
         customerName,
         items: orderItems,
         subtotal,
-        tax,
+        tax: taxAmount,
         total,
         status: 'pending',
         paymentMethod: orderData.paymentMethod,
