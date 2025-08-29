@@ -99,6 +99,12 @@ export default function Layout({ children, currentPage, onNavigate }: LayoutProp
       description: 'Staff member management and permissions',
     },
     {
+      id: 'analytics',
+      label: 'Analytics',
+      icon: '📈',
+      description: 'Advanced business insights and performance metrics',
+    },
+    {
       id: 'settings',
       label: 'Settings',
       icon: '⚙️',
@@ -108,6 +114,10 @@ export default function Layout({ children, currentPage, onNavigate }: LayoutProp
     // Filter out Members section for non-admin/non-manager users
     if (item.id === 'members') {
       return user && (user.role === 'admin' || user.role === 'manager')
+    }
+    // Filter out Analytics section for non-admin users
+    if (item.id === 'analytics') {
+      return user && user.role === 'admin'
     }
     return true
   })

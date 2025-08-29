@@ -7,6 +7,7 @@ import Members from './pages/Members'
 import Products from './pages/Products'
 import Settings from './pages/Settings'
 import SignIn from './pages/SignIn'
+import Analytics from './pages/Analytics'
 import { authActions } from './stores/auth/authActions'
 import './App.css'
 import Orders from './pages/Orders'
@@ -51,6 +52,8 @@ function App() {
         return <Products />
       case 'members':
         return <Members />
+      case 'analytics':
+        return <Analytics />
       case 'settings':
         return <Settings onNavigate={handleNavigate} />
       case 'component-showcase':

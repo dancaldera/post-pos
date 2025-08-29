@@ -1,0 +1,404 @@
+import { useEffect, useState } from 'preact/hooks'
+import {
+  Button,
+  Container,
+  Heading,
+  Input,
+  Select,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  Text,
+} from '../components/ui'
+import { useAuth } from '../hooks/useAuth'
+import {
+  analyticsService,
+  type AnalyticsMetrics,
+  type SalesByMember,
+  type TopProduct,
+} from '../services/analytics-sqlite'
+import { companySettingsService } from '../services/company-settings-sqlite'
+
+export default function Analytics() {
+  const [metrics, setMetrics] = useState<AnalyticsMetrics | null>(null)
+  const [salesByMembers, setSalesByMembers] = useState<SalesByMember[]>([])
+  const [topProducts, setTopProducts] = useState<TopProduct[]>([])
+  const [recentActivity, setRecentActivity] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [currencySymbol, setCurrencySymbol] = useState('$')
+  
+  // Date filters
+  const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d' | 'custom'>('30d')
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
+  const [customDateRange, setCustomDateRange] = useState(false)
+
+  const { hasRole } = useAuth()
+
+  // Check if user is admin
+  const isAdmin = hasRole('admin')
+
+  const formatCurrency = (amount: number) => {
+    return `${currencySymbol}${amount.toFixed(2)}`
+  }
+
+  const getDateRange = () => {
+    const now = new Date()
+    let start = new Date()
+    
+    if (customDateRange && startDate && endDate) {
+      return { start: startDate, end: endDate }
+    }
+
+    switch (dateRange) {
+      case '7d':
+        start.setDate(now.getDate() - 7)
+        break
+      case '30d':
+        start.setDate(now.getDate() - 30)
+        break
+      case '90d':
+        start.setDate(now.getDate() - 90)
+        break
+      default:
+        start.setDate(now.getDate() - 30)
+    }
+
+    return { 
+      start: start.toISOString(), 
+      end: now.toISOString() 
+    }
+  }
+
+  const loadAnalytics = async () => {
+    if (!isAdmin) {
+      setError("You don't have permission to view analytics")
+      setIsLoading(false)
+      return
+    }
+
+    try {
+      setIsLoading(true)
+      const { start, end } = getDateRange()
+      
+      const [
+        metricsData,
+        salesData,
+        productsData,
+        activityData,
+        settings
+      ] = await Promise.all([
+        analyticsService.getOverallMetrics(start, end),
+        analyticsService.getSalesByMembers(start, end),
+        analyticsService.getTopProducts(10, start, end),
+        analyticsService.getRecentActivity(10),
+        companySettingsService.getSettings()
+      ])
+
+      setMetrics(metricsData)
+      setSalesByMembers(salesData)
+      setTopProducts(productsData)
+      setRecentActivity(activityData)
+      setCurrencySymbol(settings.currencySymbol)
+      setError('')
+    } catch (err: unknown) {
+      setError((err as Error)?.message || 'Failed to load analytics')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    loadAnalytics()
+  }, [dateRange, startDate, endDate, isAdmin])
+
+  const handleDateRangeChange = (newRange: '7d' | '30d' | '90d' | 'custom') => {
+    setDateRange(newRange)
+    setCustomDateRange(newRange === 'custom')
+    if (newRange !== 'custom') {
+      setStartDate('')
+      setEndDate('')
+    }
+  }
+
+  const getActivityIcon = (type: string) => {
+    switch (type) {
+      case 'order_created':
+        return '📝'
+      case 'order_completed':
+        return '✅'
+      case 'order_cancelled':
+        return '❌'
+      default:
+        return '📊'
+    }
+  }
+
+
+  if (!isAdmin) {
+    return (
+      <Container size="xl">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-12">
+          <div class="text-center">
+            <div class="text-6xl mb-6 drop-shadow-lg">🔒</div>
+            <Heading level={3} class="mb-3 text-gray-900">
+              Admin Access Required
+            </Heading>
+            <Text class="text-gray-600 max-w-md mx-auto">
+              You need administrator privileges to access the analytics dashboard.
+            </Text>
+          </div>
+        </div>
+      </Container>
+    )
+  }
+
+  if (isLoading) {
+    return (
+      <Container size="xl">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-12">
+          <div class="text-center">
+            <div class="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full animate-spin border-4 border-transparent border-t-white mx-auto mb-6 shadow-lg"></div>
+            <Text class="text-gray-600 text-lg">Loading analytics...</Text>
+          </div>
+        </div>
+      </Container>
+    )
+  }
+
+  return (
+    <Container size="xl">
+      <div class="flex justify-between items-center mb-6">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900 mb-2">📊 Analytics Dashboard</h1>
+          <p class="text-gray-600">
+            Comprehensive business insights and performance metrics
+          </p>
+        </div>
+        <Button onClick={loadAnalytics} disabled={isLoading}>
+          <span class="mr-2">🔄</span>
+          Refresh Data
+        </Button>
+      </div>
+
+      {error && (
+        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6">
+          <div class="flex items-center">
+            <span class="text-red-500 mr-2">⚠️</span>
+            {error}
+          </div>
+        </div>
+      )}
+
+      {/* Date Range Filters */}
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">📅 Date Range</h3>
+        <div class="flex flex-wrap gap-4 items-end">
+          <div class="flex-1 min-w-48">
+            <Select
+              label="Time Period"
+              value={dateRange}
+              onChange={(e) => handleDateRangeChange((e.target as HTMLSelectElement).value as any)}
+              options={[
+                { value: '7d', label: 'Last 7 Days' },
+                { value: '30d', label: 'Last 30 Days' },
+                { value: '90d', label: 'Last 90 Days' },
+                { value: 'custom', label: 'Custom Range' },
+              ]}
+            />
+          </div>
+          {customDateRange && (
+            <>
+              <div class="flex-1 min-w-40">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
+                <input
+                  type="date"
+                  value={startDate}
+                  onInput={(e) => setStartDate((e.target as HTMLInputElement).value)}
+                  class="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm backdrop-blur-md bg-white/10 focus:outline-none focus:ring-2 focus:ring-blue-500/60 focus:border-transparent"
+                />
+              </div>
+              <div class="flex-1 min-w-40">
+                <label class="block text-sm font-medium text-gray-700 mb-2">End Date</label>
+                <input
+                  type="date"
+                  value={endDate}
+                  onInput={(e) => setEndDate((e.target as HTMLInputElement).value)}
+                  class="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm backdrop-blur-md bg-white/10 focus:outline-none focus:ring-2 focus:ring-blue-500/60 focus:border-transparent"
+                />
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Key Metrics */}
+      {metrics && (
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+          <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl border border-blue-200 hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="text-3xl font-bold text-blue-600">{formatCurrency(metrics.totalRevenue)}</div>
+                <div class="text-sm font-medium text-blue-700">Total Revenue</div>
+              </div>
+              <div class="text-blue-400 text-3xl">💰</div>
+            </div>
+          </div>
+
+          <div class="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl border border-green-200 hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="text-3xl font-bold text-green-600">{metrics.totalOrders}</div>
+                <div class="text-sm font-medium text-green-700">Total Orders</div>
+              </div>
+              <div class="text-green-400 text-3xl">📋</div>
+            </div>
+          </div>
+
+          <div class="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-xl border border-purple-200 hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="text-3xl font-bold text-purple-600">{metrics.completedOrders}</div>
+                <div class="text-sm font-medium text-purple-700">Completed Orders</div>
+              </div>
+              <div class="text-purple-400 text-3xl">✅</div>
+            </div>
+          </div>
+
+          <div class="bg-gradient-to-br from-orange-50 to-orange-100 p-6 rounded-xl border border-orange-200 hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="text-3xl font-bold text-orange-600">{formatCurrency(metrics.averageOrderValue)}</div>
+                <div class="text-sm font-medium text-orange-700">Avg Order Value</div>
+              </div>
+              <div class="text-orange-400 text-3xl">📊</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        {/* Sales by Members */}
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div class="p-6 border-b border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-900">👥 Sales by Members</h3>
+          </div>
+          <div class="max-h-96 overflow-y-auto">
+            <Table>
+              <TableHead>
+                <TableRow class="bg-gray-50">
+                  <TableHeader class="font-semibold text-gray-900">Member</TableHeader>
+                  <TableHeader class="font-semibold text-gray-900">Orders</TableHeader>
+                  <TableHeader class="font-semibold text-gray-900">Revenue</TableHeader>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {salesByMembers.map((member) => (
+                  <TableRow key={member.userId} class="hover:bg-gray-50">
+                    <TableCell>
+                      <div class="flex items-center">
+                        <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-bold mr-3">
+                          {member.userName.charAt(0).toUpperCase()}
+                        </div>
+                        <div class="font-medium text-gray-900">{member.userName}</div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div class="font-semibold text-gray-900">{member.totalOrders}</div>
+                    </TableCell>
+                    <TableCell>
+                      <div class="font-bold text-green-600">{formatCurrency(member.totalRevenue)}</div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            {salesByMembers.length === 0 && (
+              <div class="p-8 text-center text-gray-500">
+                <div class="text-4xl mb-2">👥</div>
+                <p>No sales data available for the selected period</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Top Products */}
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div class="p-6 border-b border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-900">🏆 Top Products</h3>
+          </div>
+          <div class="max-h-96 overflow-y-auto">
+            <Table>
+              <TableHead>
+                <TableRow class="bg-gray-50">
+                  <TableHeader class="font-semibold text-gray-900">Product</TableHeader>
+                  <TableHeader class="font-semibold text-gray-900">Sold</TableHeader>
+                  <TableHeader class="font-semibold text-gray-900">Revenue</TableHeader>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {topProducts.map((product, index) => (
+                  <TableRow key={product.productId} class="hover:bg-gray-50">
+                    <TableCell>
+                      <div class="flex items-center">
+                        <div class="w-8 h-8 bg-gradient-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center text-white text-sm font-bold mr-3">
+                          {index + 1}
+                        </div>
+                        <div class="font-medium text-gray-900">{product.productName}</div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div class="font-semibold text-gray-900">{product.totalSold}</div>
+                    </TableCell>
+                    <TableCell>
+                      <div class="font-bold text-green-600">{formatCurrency(product.totalRevenue)}</div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            {topProducts.length === 0 && (
+              <div class="p-8 text-center text-gray-500">
+                <div class="text-4xl mb-2">📦</div>
+                <p>No product sales data available</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Recent Activity */}
+      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">🕒 Recent Activity</h3>
+        <div class="space-y-3 max-h-96 overflow-y-auto">
+          {recentActivity.map((activity) => (
+            <div key={`${activity.id}-${activity.type}`} class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div class="flex items-center">
+                <span class="text-xl mr-3">{getActivityIcon(activity.type)}</span>
+                <div>
+                  <div class="font-medium text-gray-900">{activity.description}</div>
+                  <div class="text-sm text-gray-600">
+                    by {activity.userName} • {new Date(activity.timestamp).toLocaleString()}
+                  </div>
+                </div>
+              </div>
+              {activity.amount && (
+                <div class="font-bold text-green-600">{formatCurrency(activity.amount)}</div>
+              )}
+            </div>
+          ))}
+        </div>
+        {recentActivity.length === 0 && (
+          <div class="text-center text-gray-500 py-8">
+            <div class="text-4xl mb-2">🕒</div>
+            <p>No recent activity</p>
+          </div>
+        )}
+      </div>
+    </Container>
+  )
+}
