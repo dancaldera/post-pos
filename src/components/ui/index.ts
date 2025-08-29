@@ -7,6 +7,7 @@ export {
   DialogHeader,
   default as Dialog,
 } from './Dialog'
+export { default as Dropdown, type DropdownItem } from './Dropdown'
 export { default as Form, FormActions, FormField, FormGroup } from './Form'
 export { default as Heading } from './Heading'
 export { default as Input } from './Input'

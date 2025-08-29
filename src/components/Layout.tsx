@@ -8,7 +8,7 @@
 import type { ComponentChildren } from 'preact'
 import { useState } from 'preact/hooks'
 import { useAuth } from '../hooks/useAuth'
-import { Button, Heading, Text } from './ui'
+import { Dropdown, type DropdownItem, Heading, Text } from './ui'
 import Sidebar, { SidebarGroup, SidebarItem, SidebarNav } from './ui/Sidebar'
 
 interface LayoutProps {
@@ -46,6 +46,27 @@ export default function Layout({ children, currentPage, onNavigate }: LayoutProp
    * @property {function} signOut - Function to sign out the current user
    */
   const { user, signOut } = useAuth()
+
+  /**
+   * User dropdown menu items configuration
+   * @type {DropdownItem[]}
+   */
+  const userDropdownItems: DropdownItem[] = [
+    {
+      id: 'settings',
+      label: 'Settings',
+      icon: '⚙️',
+      onClick: () => onNavigate('settings'),
+    },
+    {
+      id: 'signout',
+      label: 'Sign Out',
+      icon: '🚪',
+      onClick: signOut,
+      variant: 'danger',
+      separator: true,
+    },
+  ]
 
   /**
    * Navigation menu items configuration with role-based filtering
@@ -141,61 +162,23 @@ export default function Layout({ children, currentPage, onNavigate }: LayoutProp
                 User profile dropdown component
                 Contains user avatar, name, email, and dropdown menu
               */}
-              <div class="relative">
-                <button
-                  type="button"
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  class="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
-                >
-                  <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-sm font-bold text-white">
-                    A
-                  </div>
-                  <div class="flex flex-col items-start">
-                    <span class="font-medium">{user?.name || 'User'}</span>
-                    <span class="text-xs text-gray-500">{user?.email}</span>
-                  </div>
-                  <span class={`text-gray-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}>▼</span>
-                </button>
-
-                {/* 
-                  Dropdown menu that appears when user profile is clicked
-                  Contains navigation to settings and sign out functionality
-                  Positioned absolutely below the profile button
-                */}
-                {isDropdownOpen && (
-                  <div class="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
-                    <div class="p-2">
-                      {/* Settings navigation button */}
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          onNavigate('settings')
-                          setIsDropdownOpen(false)
-                        }}
-                        class="w-full"
-                      >
-                        <span>⚙️</span>
-                        <span>Settings</span>
-                      </Button>
-
-                      {/* Sign out section with visual separator */}
-                      <div class="border-t border-gray-100 mt-2 pt-2">
-                        <Button
-                          variant="danger"
-                          onClick={() => {
-                            signOut()
-                            setIsDropdownOpen(false)
-                          }}
-                          class="w-full"
-                        >
-                          <span>🚪</span>
-                          <span>Sign Out</span>
-                        </Button>
-                      </div>
+              <Dropdown
+                items={userDropdownItems}
+                isOpen={isDropdownOpen}
+                onOpenChange={setIsDropdownOpen}
+                trigger={
+                  <div class="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
+                    <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-sm font-bold text-white">
+                      A
                     </div>
+                    <div class="flex flex-col items-start">
+                      <span class="font-medium">{user?.name || 'User'}</span>
+                      <span class="text-xs text-gray-500">{user?.email}</span>
+                    </div>
+                    <span class={`text-gray-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}>▼</span>
                   </div>
-                )}
-              </div>
+                }
+              />
             </div>
           </div>
         </header>
